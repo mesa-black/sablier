@@ -287,9 +287,21 @@ the group comes back.
 
 ## 9. What happens next
 
-1. Write the declaration for a real project, and measure how long it actually
-   takes someone who knows the code. Never done yet, and it decides whether the
-   thesis survives contact with a second team.
+1. Write the declaration for a real project, with someone whose job is the
+   business rather than the code, and measure it. Never done yet, and it decides
+   whether the thesis survives contact with a second team.
+
+   **What to measure**, decided before the session so the result cannot be
+   rationalised afterwards: the real time to fill it; how many domains the
+   person answers with confidence against how many they stall on; and where they
+   disagree with the starter file's defaults — the disagreements are the most
+   instructive, because they say our defaults are wrong.
+
+   **What would falsify the thesis**: the person cannot answer "how long must
+   this stay secret" for most of their domains. Then the problem is not the tool
+   and no further detector will compensate. The question would have to be asked
+   differently — starting from legal retention, which people know, rather than
+   from confidentiality lifetime, which they have never had to put into words.
 2. Extend the probe beyond HTTPS: SMTP, IMAP, database connections.
 3. A second language, once the thesis holds.
 

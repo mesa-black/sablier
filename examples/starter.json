@@ -1,0 +1,89 @@
+{
+  "_": "A declaration to correct rather than a file to fill. Delete what does not apply, change every lifetime that is wrong, and keep the note field as your own record of why. Correcting a proposal surfaces disagreements that a blank file hides.",
+
+  "project": "",
+  "expiry_year": 2035,
+  "deprecation_year": 2030,
+  "deadlines_checked_on": "2026-09-30",
+  "default_lifetime_years": 3,
+
+  "probe": [
+    "example.org",
+    "smtp://mail.example.org:587",
+    "postgres://db.internal:5432"
+  ],
+
+  "exclude": [
+    "docs/*",
+    "tests/fixtures/*"
+  ],
+
+  "domains": {
+    "accounting": {
+      "paths": ["src/Billing/*", "src/Entity/Invoice*"],
+      "lifetime_years": 10,
+      "note": "Usually the easiest one: legal retention answers it. Ten years in France. Start here, it warms people up."
+    },
+    "contracts and legal": {
+      "paths": ["src/Contract/*", "storage/contracts/*"],
+      "lifetime_years": 30,
+      "note": "How long could this document still be produced in a dispute? People underestimate this one badly."
+    },
+    "hr and payroll": {
+      "paths": ["src/Hr/*", "src/Entity/Employee*"],
+      "lifetime_years": 5,
+      "note": "Five years after departure is common, but pension records run for decades. Ask which of the two this is."
+    },
+    "health or sensitive personal data": {
+      "paths": [],
+      "lifetime_years": 30,
+      "note": "If this domain exists at all, it is almost always the one that decides the whole report. Delete it if it does not apply — do not leave it in to look thorough."
+    },
+    "customer identity": {
+      "paths": ["src/Entity/User*", "src/Entity/Customer*"],
+      "lifetime_years": 5,
+      "note": "Driven by your retention policy, not by the code. Whoever wrote that policy is the person to ask."
+    },
+    "payment references": {
+      "paths": ["src/Payment/*"],
+      "lifetime_years": 10,
+      "note": "The card token is short-lived; the mandate reference and the transaction trail are not. Ask which one you actually store."
+    },
+    "backups": {
+      "paths": ["deploy/*backup*", "bin/*backup*"],
+      "lifetime_years": 30,
+      "note": "The one people get wrong. A backup's lifetime is the MAXIMUM of everything inside it — so it inherits the longest domain above, whatever that is. This is where most red verdicts come from."
+    },
+    "secrets and credentials": {
+      "paths": ["config/secrets/*", ".env.prod*"],
+      "lifetime_years": 15,
+      "note": "Not 'until we rotate'. A sealed vault copied today is decrypted the day the curve falls, and rotating afterwards does not recover what was already taken."
+    },
+    "sessions and tokens": {
+      "paths": ["config/packages/framework.yaml", "src/Security/*"],
+      "lifetime_years": 1,
+      "note": "Short by design. Worth declaring anyway: it is the domain that proves the tool is not just shouting at everything."
+    },
+    "logs and telemetry": {
+      "paths": ["var/log/*", "src/Logging/*"],
+      "lifetime_years": 1,
+      "note": "Usually short, but check what ends up in them. Logs that carry identifiers inherit the lifetime of what they identify."
+    },
+    "internal correspondence": {
+      "paths": ["src/Mailer/*", "templates/email/*"],
+      "lifetime_years": 10,
+      "note": "The forgotten one. Nobody sets a retention policy for email, and it outlives everything."
+    },
+    "public content": {
+      "paths": ["templates/*", "public/*"],
+      "lifetime_years": 0,
+      "note": "Zero, and saying so matters: it stops the report treating published pages as a confidentiality problem."
+    },
+    "code signing or internal certificate authority": {
+      "paths": ["deploy/sign*", "config/ca/*"],
+      "lifetime_years": 15,
+      "trust_anchor": true,
+      "note": "The only place where a signature is urgent. trust_anchor changes the verdict: a signature that must still verify after the expiry year is prepared years ahead."
+    }
+  }
+}

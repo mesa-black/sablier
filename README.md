@@ -84,6 +84,15 @@ it becomes useful. See [`examples/showmetherex.json`](examples/showmetherex.json
 This file is the one artefact in the project that commits people rather than
 tooling. It gets read, argued over, and versioned.
 
+[`examples/starter.json`](examples/starter.json) is a declaration to **correct**
+rather than a file to fill: a dozen common domains with their usual lifetimes
+and a note explaining what drives each answer. Correcting a proposal surfaces
+disagreements that a blank file hides, and it is faster.
+
+One of those notes matters more than the rest: **a backup's lifetime is the
+maximum of everything inside it.** It inherits the longest domain you declared,
+whatever that is. That single line is where most red verdicts come from.
+
 ## How it is put together
 
 Two extension points, because the scoping study names two axes that will
