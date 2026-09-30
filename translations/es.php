@@ -170,4 +170,32 @@ return [
     // --- deadline freshness ---
     'report.deadline_checked' => 'Plazo verificado con sus fuentes el %s.',
     'report.deadline_stale' => 'Esa verificación tiene %d meses: repítala antes de citar esta fecha.',
+
+    // --- action plan and sharing ---
+    'plan.title' => 'Qué hacer, y en qué orden',
+    'plan.intro' => 'Un inventario que no concluye nada acaba archivado. Aquí está el arbitraje, y el orden importa tanto como la lista.',
+    'action.harvested.title' => 'Decidir qué pasa con los datos ya emitidos',
+    'action.harvested.body' => 'Es la decisión que nadie toma, y va antes que la migración. Los dominios afectados (%s) están protegidos por un algoritmo que no aguantará toda su duración de confidencialidad: lo que ya se cifró y se transmitió queda fuera del alcance de cualquier corrección. Hay tres salidas y hay que elegir una de forma explícita: volver a cifrar el material existente con un algoritmo que aguante, rotar las claves y reemitir lo que se pueda, o dejar por escrito que se acepta el riesgo sobre los datos anteriores a %d. Migrar sin resolver esto protege los datos futuros y deja expuestos los antiguos sin que nadie lo haya decidido.',
+    'action.broken.title' => 'Sustituir lo que ya está roto',
+    'action.broken.body' => 'Un uso se apoya en un algoritmo roto clásicamente. No hace falta ningún razonamiento cuántico: el plazo fue hace diez años, el reemplazo se conoce y no exige un proyecto. Hay que tratarlo antes que nada relacionado con la transición post-cuántica, porque es más barato y ya es explotable.',
+    'action.hybrid_edge.title' => 'Activar el intercambio de claves híbrido en el borde',
+    'action.hybrid_edge.body' => 'La sonda encontró un intercambio de claves clásico. Es el mayor beneficio por hora de trabajo de toda la lista: en la mayoría de alojamientos y CDN es una opción que se activa, y protege de golpe todo el tráfico, es decir todo lo que un adversario captura hoy. Hágalo antes de tocar el código.',
+    'action.declare.title' => 'Completar la declaración de duraciones',
+    'action.declare.body' => 'Un dominio sigue con la duración por defecto. Mientras sea así, los veredictos anteriores son aproximaciones presentadas con aplomo. Es una hora de trabajo con alguien que conoce el negocio y no la técnica: ¿cuánto tiempo debe permanecer en secreto cada categoría de datos? El archivo se relee, se discute y se versiona.',
+    'action.trust_anchors.title' => 'Planificar las anclas de confianza',
+    'action.trust_anchors.body' => 'Las firmas no se recolectan, así que nada arde. Pero un ancla de larga duración —firma de código, autoridad interna, firmware— debe seguir siendo verificable después del plazo, y eso se prepara con años de antelación. Póngalo en el plan antes de %d, no en esta semana.',
+    'action.nothing_urgent.title' => 'Nada urgente, y eso también es un resultado',
+    'action.nothing_urgent.body' => 'Ningún dato de larga duración está expuesto a la recolección y nada está roto hoy. No hacer nada es aquí la decisión correcta: sustituir criptografía que aguanta cuesta tiempo, introduce riesgo y no mejora nada.',
+    'action.calendar.title' => 'Volver a poner este informe en el calendario',
+    'action.calendar.body' => 'La ventana se cierra sola: la fecha de caducidad no se mueve (%d), pero cada año que pasa acerca sus datos a esa línea. Un dominio conforme hoy con una duración de nueve años dejará de serlo el año que viene. Basta con repetir el análisis una vez al año, y comprobar de paso que el plazo reglamentario no se ha movido.',
+    'share.threema' => 'Enviar el resumen por Threema',
+    'share.note' => 'Abre Threema si está instalado. Nada llega a un servidor de terceros: el enlace solo lleva el texto anterior.',
+    'share.text' => 'Sablier — inventario criptográfico de %s (%s)
+
+%s
+
+%d hallazgos retenidos. Fecha de caducidad empleada: %d.
+Primera acción: %s',
+    'action.declare.plural.body' => '%d dominios siguen con la duración por defecto. Mientras sea así, los veredictos anteriores son aproximaciones presentadas con aplomo. Es una hora de trabajo con alguien que conoce el negocio y no la técnica: ¿cuánto tiempo debe permanecer en secreto cada categoría de datos? El archivo se relee, se discute y se versiona.',
+    'action.broken.plural.body' => '%d usos se apoyan en un algoritmo roto clásicamente. No hace falta ningún razonamiento cuántico: el plazo fue hace diez años, el reemplazo se conoce y no exige un proyecto. Hay que tratarlo antes que nada relacionado con la transición post-cuántica, porque es más barato y ya es explotable.',
 ];

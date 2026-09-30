@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sablier\Reporter;
 
+use Sablier\ActionPlan;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\Catalogue;
@@ -63,6 +64,7 @@ final class HtmlReporter implements Reporter
         $projection = $this->analysis->projected
             ? '<p class="projection">'.htmlspecialchars(Lang::t('report.projection', $this->analysis->currentYear)).'</p>'
             : '';
+        $plan = $this->actionPlan($headline, $actionable);
         $probeBlock = $this->probeBlock();
         $timeline = $this->timeline();
         $blind = $this->blind($byVerdict[Assessor::DECLARE] ?? []);
@@ -106,6 +108,7 @@ final class HtmlReporter implements Reporter
             $probeBlock
             $rows
             $blind
+            $plan
 
             <footer>$footer</footer>
             </body></html>
@@ -135,6 +138,59 @@ final class HtmlReporter implements Reporter
               <path fill="currentColor" d="M10.3 16.4h1.4v2.6h-1.4z"/>
             </svg>
             SVG;
+    }
+
+    /**
+     * The conclusion. Data is not a decision, and a report that stops at
+     * findings hands the arbitration back to a reader who will postpone it.
+     */
+    private function actionPlan(string $headline, int $actionable): string
+    {
+        $actions = ActionPlan::for($this->analysis);
+
+        $items = '';
+        $number = 0;
+        foreach ($actions as $action) {
+            ++$number;
+            $items .= \sprintf(
+                '<li><h3>%s</h3><p>%s</p></li>',
+                htmlspecialchars($action['title']),
+                htmlspecialchars($action['body']),
+            );
+        }
+
+        $project = $this->analysis->declaration->project !== ''
+            ? $this->analysis->declaration->project
+            : basename($this->analysis->target);
+
+        // The share link carries plain text and opens a local application. No
+        // third party sees it, which is the only kind of sharing this tool can
+        // offer without contradicting its own footer.
+        $summary = Lang::t(
+            'share.text',
+            $project,
+            (new \DateTimeImmutable())->format('d/m/Y'),
+            strip_tags($headline),
+            $actionable,
+            $this->analysis->declaration->expiryYear,
+            $actions[0]['title'],
+        );
+        $href = 'threema://compose?text='.rawurlencode($summary);
+
+        $title = htmlspecialchars(Lang::t('plan.title'));
+        $intro = htmlspecialchars(Lang::t('plan.intro'));
+        $share = htmlspecialchars(Lang::t('share.threema'));
+        $note = htmlspecialchars(Lang::t('share.note'));
+
+        return <<<HTML
+            <section class="plan">
+              <h2>$title</h2>
+              <p class="legend">$intro</p>
+              <ol>$items</ol>
+              <p class="share"><a href="$href">$share</a></p>
+              <p class="share-note">$note</p>
+            </section>
+            HTML;
     }
 
     private function timeline(): string
@@ -392,6 +448,20 @@ final class HtmlReporter implements Reporter
             .summary summary{cursor:pointer;font-size:.92rem}
             .summary .dom{margin-left:.4rem}
             .files{margin:.6rem 0 0;padding-left:1.1rem;font-family:ui-monospace,Menlo,monospace;font-size:.74rem;color:var(--muted)}
+            .plan{margin-top:3rem;border-top:2px solid var(--ink);padding-top:1.2rem}
+            .plan ol{margin:1.4rem 0 0;padding-left:0;list-style:none;counter-reset:step}
+            .plan li{counter-increment:step;position:relative;padding:0 0 1.5rem 2.6rem;border-top:1px solid var(--line);padding-top:1.1rem}
+            .plan li::before{content:counter(step);position:absolute;left:0;top:1rem;
+                             font-variant-numeric:tabular-nums;font-size:.95rem;font-weight:700;color:var(--sand)}
+            .plan h3{margin:0 0 .35rem;font-size:1.02rem;font-weight:600}
+            .plan p{margin:0;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+            .share{margin:1.4rem 0 .3rem!important}
+            .share a{display:inline-block;border:1px solid var(--accent-line,var(--ink));border-radius:3px;
+                     padding:.45rem .9rem;text-decoration:none;color:var(--ink);font-size:.88rem}
+            .share a:hover{background:var(--ink);color:var(--paper)}
+            .share-note{color:var(--muted);font-size:.78rem;margin:0!important}
+            @media (max-width:34rem){.plan p{text-align:left;hyphens:manual}}
+            @media print{.share,.share-note{display:none}}
             footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.8rem}
 
             /* Print, and therefore PDF. The palette is forced back to light: a

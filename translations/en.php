@@ -170,4 +170,32 @@ return [
     // --- deadline freshness ---
     'report.deadline_checked' => 'Deadline last checked against its sources on %s.',
     'report.deadline_stale' => 'That check is %d months old: redo it before quoting this date.',
+
+    // --- action plan and sharing ---
+    'plan.title' => 'What to do, in order',
+    'plan.intro' => 'An inventory that concludes nothing gets filed away. Here is the arbitration — and the order matters as much as the list.',
+    'action.harvested.title' => 'Decide what happens to the data already sent',
+    'action.harvested.body' => 'This is the decision nobody makes, and it comes before migration. The affected domains (%s) are protected by an algorithm that will not hold for the whole of their confidentiality lifetime: whatever has already been encrypted and transmitted is beyond the reach of a fix. Three ways out, and one has to be chosen explicitly — re-encrypt the existing stock with an algorithm that holds, rotate the keys and re-issue what can be re-issued, or write down that the risk is accepted for data predating %d. Migrating without settling this protects future data and leaves the old exposed without anyone having decided it.',
+    'action.broken.title' => 'Replace what is already broken',
+    'action.broken.body' => 'One use rests on a classically broken algorithm. No quantum reasoning is needed: the deadline was ten years ago, the replacement is known and does not need a project. Handle this before anything about the post-quantum transition, because it is cheaper and already exploitable.',
+    'action.hybrid_edge.title' => 'Turn on hybrid key exchange at the edge',
+    'action.hybrid_edge.body' => 'The probe found a classical key exchange. This is the highest return per hour on the whole list: at most hosts and CDNs it is a setting to switch on, and it protects all traffic at once — therefore everything an adversary captures today. Do it before touching any code.',
+    'action.declare.title' => 'Finish the lifetime declaration',
+    'action.declare.body' => 'One domain still runs on the default lifetime. While that holds, the verdicts above are approximations delivered in a confident typeface. It is an hour of work with someone who knows the business rather than the technology: how long must each category of data stay secret? The file gets read, argued over and versioned.',
+    'action.trust_anchors.title' => 'Plan the trust anchors',
+    'action.trust_anchors.body' => 'Signatures cannot be harvested, so nothing is burning. But a long-lived anchor — code signing, an internal authority, firmware — has to stay verifiable past the deadline, and that is prepared years ahead. Put it on the plan before %d, not on this week.',
+    'action.nothing_urgent.title' => 'Nothing urgent, and that is a result',
+    'action.nothing_urgent.body' => 'No long-lived data is exposed to harvesting, and nothing is broken today. Doing nothing is the right decision here: replacing cryptography that holds costs time, introduces risk and improves nothing.',
+    'action.calendar.title' => 'Put this report back on the calendar',
+    'action.calendar.body' => 'The window closes by itself: the expiry date does not move (%d), but every year that passes brings your data closer to that line. A domain that is clear today with a nine-year lifetime will not be next year. Re-running the analysis once a year is enough — and checking, while you are there, that the regulatory deadline has not moved.',
+    'share.threema' => 'Send the summary on Threema',
+    'share.note' => 'Opens Threema if it is installed. Nothing reaches a third-party server: the link carries only the text above.',
+    'share.text' => 'Sablier — cryptographic inventory of %s (%s)
+
+%s
+
+%d findings kept. Expiry date used: %d.
+First action: %s',
+    'action.declare.plural.body' => '%d domains still run on the default lifetime. While that holds, the verdicts above are approximations delivered in a confident typeface. It is an hour of work with someone who knows the business rather than the technology: how long must each category of data stay secret? The file gets read, argued over and versioned.',
+    'action.broken.plural.body' => '%d uses rest on a classically broken algorithm. No quantum reasoning is needed: the deadline was ten years ago, the replacement is known and does not need a project. Handle this before anything about the post-quantum transition, because it is cheaper and already exploitable.',
 ];

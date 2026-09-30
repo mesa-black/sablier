@@ -108,6 +108,23 @@ Everything else stays concrete. `Catalogue`, `Assessor`, `Declaration` and `Lang
 have one implementation each and no second one in sight: an interface with a
 single implementation and no prospect of another is a cost with no buyer.
 
+## The report concludes
+
+Findings are not a decision. The last section is an ordered action plan derived
+from what was actually found — what to do first, and why it comes first.
+
+It takes positions most inventories avoid. When data is already harvestable the
+first action is not "migrate": it is deciding what happens to the data already
+sent, because migration cannot reach it. When nothing is burning it says so
+plainly, because replacing cryptography that holds costs time and improves
+nothing. And when most findings sit in undeclared domains, finishing the
+declaration comes before everything else — until then the verdicts above are
+approximations delivered in a confident typeface.
+
+A share button hands the summary to Threema, which opens a local application
+with plain text. Nothing reaches a third-party server, which is the only kind of
+sharing this tool can offer without contradicting its own footer.
+
 ## What the tool refuses to do
 
 - **Guess.** An algorithm coming from a variable is reported as undetermined,

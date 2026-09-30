@@ -179,4 +179,32 @@ return [
     // --- deadline freshness ---
     'report.deadline_checked' => 'Échéance vérifiée auprès de ses sources le %s.',
     'report.deadline_stale' => 'Cette vérification date de %d mois : à refaire avant de citer cette date.',
+
+    // --- action plan and sharing ---
+    'plan.title' => 'Ce qu\'il faut faire, dans l\'ordre',
+    'plan.intro' => 'Un inventaire qui ne conclut rien se range dans un dossier. Voici l\'arbitrage — et l\'ordre compte autant que la liste.',
+    'action.harvested.title' => 'Décider du sort des données déjà émises',
+    'action.harvested.body' => 'C\'est la décision que personne ne prend, et elle vient avant la migration. Les domaines concernés (%s) sont protégés par un algorithme qui ne tiendra pas jusqu\'au bout de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d\'un correctif. Trois issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire tourner les clés et réémettre ce qui peut l\'être, ou acter par écrit qu\'on accepte le risque sur les données antérieures à %d. Migrer sans trancher cette question protège les données futures et laisse les anciennes exposées sans que personne ne l\'ait décidé.',
+    'action.broken.title' => 'Remplacer ce qui est déjà cassé',
+    'action.broken.body' => 'Un usage repose sur un algorithme cassé classiquement. Aucun raisonnement quantique n\'est nécessaire : l\'échéance était il y a dix ans, le remplacement est connu et ne demande pas un projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c\'est moins cher et déjà exploitable.',
+    'action.hybrid_edge.title' => 'Activer l\'échange de clés hybride en bordure',
+    'action.hybrid_edge.body' => 'La sonde a trouvé un échange de clés classique. C\'est le gain le plus élevé par heure de travail de toute cette liste : chez la plupart des hébergeurs et des CDN c\'est une option à activer, et elle protège d\'un coup tout le trafic — donc tout ce qu\'un adversaire capture aujourd\'hui. À faire avant de toucher au code.',
+    'action.declare.title' => 'Compléter la déclaration des durées',
+    'action.declare.body' => 'Un domaine tourne encore avec la durée par défaut. Tant que c\'est le cas, les verdicts ci-dessus sont des approximations présentées avec assurance. C\'est une heure de travail avec quelqu\'un qui connaît le métier et non la technique : combien de temps chaque catégorie de donnée doit-elle rester secrète ? Le fichier se relit, se discute et se versionne.',
+    'action.trust_anchors.title' => 'Planifier les ancres de confiance',
+    'action.trust_anchors.body' => 'Les signatures ne se récoltent pas, donc rien ne brûle. Mais une ancre à longue durée — signature de code, autorité interne, micrologiciel — doit rester vérifiable après l\'échéance, et cela se prépare des années à l\'avance. À inscrire au plan avant %d, pas à faire cette semaine.',
+    'action.nothing_urgent.title' => 'Rien d\'urgent, et c\'est un résultat',
+    'action.nothing_urgent.body' => 'Aucune donnée à longue durée n\'est exposée à la récolte, et rien n\'est cassé aujourd\'hui. Ne rien faire est ici la bonne décision : remplacer de la cryptographie qui tient coûte du temps, introduit du risque et n\'améliore rien.',
+    'action.calendar.title' => 'Remettre ce rapport au calendrier',
+    'action.calendar.body' => 'La fenêtre se referme d\'elle-même : la date de péremption ne bouge pas (%d), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd\'hui avec une durée de neuf ans ne le sera plus l\'an prochain. Rejouer l\'analyse une fois par an suffit — et vérifier à cette occasion que l\'échéance réglementaire n\'a pas bougé.',
+    'share.threema' => 'Envoyer le résumé sur Threema',
+    'share.note' => 'Ouvre Threema s\'il est installé. Rien n\'est transmis à un serveur tiers : le lien ne contient que le texte ci-dessus.',
+    'share.text' => 'Sablier — inventaire cryptographique de %s (%s)
+
+%s
+
+%d constats retenus. Échéance de péremption retenue : %d.
+Première action : %s',
+    'action.declare.plural.body' => '%d domaines tournent encore avec la durée par défaut. Tant que c\'est le cas, les verdicts ci-dessus sont des approximations présentées avec assurance. C\'est une heure de travail avec quelqu\'un qui connaît le métier et non la technique : combien de temps chaque catégorie de donnée doit-elle rester secrète ? Le fichier se relit, se discute et se versionne.',
+    'action.broken.plural.body' => '%d usages reposent sur un algorithme cassé classiquement. Aucun raisonnement quantique n\'est nécessaire : l\'échéance était il y a dix ans, le remplacement est connu et ne demande pas un projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c\'est moins cher et déjà exploitable.',
 ];
