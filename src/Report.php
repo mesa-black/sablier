@@ -339,7 +339,9 @@ final class Report
             .blind li{margin-bottom:.4rem}
             .blind p{color:var(--muted);font-size:.85rem;margin:.9rem 0 0}
             .about{border-left:2px solid var(--sand);padding:.1rem 0 .1rem 1rem;margin:0 0 2rem;
-                   color:var(--muted);font-size:.88rem;line-height:1.55}
+                   color:var(--muted);font-size:.88rem;line-height:1.55;
+                   text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+            @media (max-width:34rem){.about{text-align:left;hyphens:manual}}
             .about strong{color:var(--ink)}
             .probe{border-top:1px solid var(--line);padding:.9rem 0}
             .probe h3{margin:0 0 .5rem;font-family:ui-monospace,Menlo,monospace;font-size:.85rem;font-weight:600}
@@ -352,6 +354,32 @@ final class Report
             .summary .dom{margin-left:.4rem}
             .files{margin:.6rem 0 0;padding-left:1.1rem;font-family:ui-monospace,Menlo,monospace;font-size:.74rem;color:var(--muted)}
             footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.8rem}
+
+            /* Print, and therefore PDF. The palette is forced back to light: a
+               report printed on a dark ground wastes ink and is unreadable on
+               paper, and the viewer's theme must not follow the file to the
+               printer. */
+            @page{margin:18mm 15mm}
+            @media print{
+                :root{--ink:#16181d;--muted:#55595f;--paper:#fff;--line:#d9d6d0;
+                      --bad:#8f241c;--warn:#8a5210;--ok:#1a5f46;--cool:#2a4c7d;--sand:#bb9a45}
+                body{max-width:none;margin:0;padding:0;font-size:10.5pt;background:#fff}
+                header{border-bottom-width:1.5pt}
+                .headline{font-size:1.25rem}
+                section,article,details,.probe{break-inside:avoid}
+                h2{break-after:avoid}
+                .timeline,.probes,.blind{break-inside:avoid}
+                .blind{background:none}
+                /* At 10.5pt the label column is too narrow and the names run
+                   into the bars: give them room, not a smaller size. */
+                .row{grid-template-columns:11.5rem 1fr 3.4rem;gap:.5rem}
+                .lbl{font-size:.74rem}
+                .summary details{display:block}
+                .summary details>summary{list-style:none}
+                .files{display:none}
+                pre{white-space:pre-wrap;word-break:break-word}
+                footer{break-before:avoid}
+            }
             CSS;
     }
 }

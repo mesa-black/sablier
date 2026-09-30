@@ -25,6 +25,7 @@ assumées, modèle de risque — est dans [`docs/cadrage.fr.md`](docs/cadrage.fr
 ```bash
 make demo                                   # jeu d'essai + rapport
 make scan DIR=/chemin/vers/projet           # un vrai projet
+make scan DIR=/chemin/vers/projet PDF=1     # …avec un PDF à côté
 make test                                   # le modèle discrimine-t-il encore ?
 ```
 

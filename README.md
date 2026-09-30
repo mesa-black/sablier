@@ -25,6 +25,7 @@ limits, risk model — is in [`docs/scoping.md`](docs/scoping.md).
 ```bash
 make demo                                   # fixture project + report
 make scan DIR=/path/to/project LANG=en      # a real project
+make scan DIR=/path/to/project PDF=1        # …and a PDF alongside it
 make probe HOST=example.org                 # what a server actually negotiates
 make test                                   # does the risk model still discriminate?
 ```
@@ -34,6 +35,12 @@ Reports are available in French, English and Spanish (`--lang=fr|en|es`).
 The report is a self-contained HTML file: no remote font, no script, no request.
 A tool that reads where the keys are must not open a socket to render its own
 output.
+
+`--pdf=FILE` writes a PDF as well, by borrowing a Chrome or Chromium the machine
+already has — the same rule as the TLS probe: use what is present, add nothing,
+and say plainly when it is missing. With no browser installed, the HTML report
+still prints to PDF from anywhere: it ships a print stylesheet that forces the
+light palette and keeps charts, findings and the probe block off page breaks.
 
 ## Two sources, because a repository can be wrong
 

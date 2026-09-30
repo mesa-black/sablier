@@ -157,4 +157,10 @@ return [
     'cli.findings' => '%d findings',
     'cli.missing_host' => 'missing host: bin/sablier probe example.org',
     'cli.missing_path' => 'missing or unreachable path to scan',
+
+    // --- PDF export ---
+    'pdf.no_browser' => 'PDF export unavailable: no Chrome or Chromium found on this machine. The HTML report prints to PDF from any browser (a print stylesheet is included).',
+    'pdf.missing_html' => 'PDF export unavailable: %s not found.',
+    'pdf.failed' => 'PDF export failed: %s produced no file.',
+    'pdf.written' => '%s (%s KB)',
 ];

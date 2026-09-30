@@ -157,4 +157,10 @@ return [
     'cli.findings' => '%d hallazgos',
     'cli.missing_host' => 'falta el host: bin/sablier probe ejemplo.es',
     'cli.missing_path' => 'ruta por analizar ausente o no encontrada',
+
+    // --- PDF export ---
+    'pdf.no_browser' => 'Exportación a PDF imposible: no se ha encontrado Chrome ni Chromium en esta máquina. El informe HTML se imprime a PDF desde cualquier navegador (incluye hoja de impresión).',
+    'pdf.missing_html' => 'Exportación a PDF imposible: no se encuentra %s.',
+    'pdf.failed' => 'Exportación a PDF fallida: %s no ha producido ningún archivo.',
+    'pdf.written' => '%s (%s KB)',
 ];

@@ -15,6 +15,7 @@ probe: ## What a server actually negotiates: make probe HOST=example.org
 	@test -n "$(HOST)" || { echo "make probe HOST=example.org"; exit 1; }
 	@./bin/sablier probe "$(HOST)" $(if $(LANG),--lang=$(LANG),)
 
-scan: ## Scan a project: make scan DIR=/path [DECLARE=file.json] [LANG=en]
+scan: ## Scan a project: make scan DIR=/path [DECLARE=file.json] [LANG=en] [PDF=1]
 	@test -n "$(DIR)" || { echo "make scan DIR=/path"; exit 1; }
-	@./bin/sablier scan "$(DIR)" $(if $(DECLARE),--declare=$(DECLARE),) $(if $(LANG),--lang=$(LANG),) --out=report.html
+	@./bin/sablier scan "$(DIR)" $(if $(DECLARE),--declare=$(DECLARE),) \
+		$(if $(LANG),--lang=$(LANG),) $(if $(PDF),--pdf=report.pdf,) --out=report.html

@@ -6,7 +6,7 @@ declare(strict_types=1);
 /*
  * Sablier — cryptographic inventory, and the expiry date of each protection.
  *
- *   bin/sablier scan <path> [--declare=sablier.json] [--out=report.html] [--lang=en]
+ *   bin/sablier scan <path> [--declare=sablier.json] [--out=report.html] [--pdf=report.pdf]
  *   bin/sablier probe <host>
  *
  * No dependency, no network call of its own, no telemetry. On a tool that reads
@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 namespace Sablier;
 
-foreach (['Lang', 'Catalogue', 'Declaration', 'Finding', 'Scanner', 'Assessor', 'Probe', 'Report'] as $class) {
+foreach (['Lang', 'Catalogue', 'Declaration', 'Finding', 'Scanner', 'Assessor', 'Probe', 'Pdf', 'Report'] as $class) {
     require __DIR__.'/../src/'.$class.'.php';
 }
 
@@ -60,11 +60,11 @@ if ($command !== 'scan') {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|pdf)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -110,7 +110,15 @@ if ($options['json'] !== null) {
     ], $findings), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES));
 }
 
+$pdfMessage = null;
+if ($options['pdf'] !== null) {
+    [, $pdfMessage] = Pdf::render($options['out'], $options['pdf']);
+}
+
 if ($options['quiet']) {
+    if ($pdfMessage !== null) {
+        printf("  %s\n", $pdfMessage);
+    }
     exit(0);
 }
 
@@ -126,7 +134,11 @@ foreach (Assessor::order() as $verdict) {
         printf("    %s %d\n", mb_str_pad(Assessor::label($verdict), 24), $counts[$verdict]);
     }
 }
-printf("\n  → %s\n\n", $options['out']);
+printf("\n  → %s\n", $options['out']);
+if ($pdfMessage !== null) {
+    printf("  → %s\n", $pdfMessage);
+}
+echo "\n";
 
 // Non-zero exit when long-lived data is already exposed: that is what makes
 // this usable as a pipeline step.

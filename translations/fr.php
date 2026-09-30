@@ -166,4 +166,10 @@ return [
     'cli.findings' => '%d constats',
     'cli.missing_host' => 'hôte manquant : bin/sablier probe exemple.fr',
     'cli.missing_path' => 'chemin à analyser manquant ou introuvable',
+
+    // --- PDF export ---
+    'pdf.no_browser' => 'export PDF impossible : aucun navigateur Chrome ou Chromium trouvé sur cette machine. Le rapport HTML s\'imprime en PDF depuis n\'importe quel navigateur (feuille d\'impression fournie).',
+    'pdf.missing_html' => 'export PDF impossible : %s est introuvable.',
+    'pdf.failed' => 'export PDF échoué : %s n\'a produit aucun fichier.',
+    'pdf.written' => '%s (%s Ko)',
 ];
