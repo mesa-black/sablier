@@ -25,6 +25,7 @@ final class Report
         private readonly float $duration = 0.0,
         /** @var list<array{target:string, facts:array<string,string>, notes:list<string>}> */
         private readonly array $probes = [],
+        private readonly bool $projected = false,
     ) {
     }
 
@@ -59,6 +60,9 @@ final class Report
         $elapsed = $this->duration < 1
             ? number_format($this->duration * 1000, 0, ',', ' ').' ms'
             : number_format($this->duration, 1, ',', ' ').' s';
+        $projection = $this->projected
+            ? '<p class="projection">'.htmlspecialchars(Lang::t('report.projection', $this->currentYear)).'</p>'
+            : '';
         $probeBlock = $this->probeBlock();
         $timeline = $this->timeline();
         $blind = $this->blind($byVerdict[Assessor::DECLARE] ?? []);
@@ -90,6 +94,7 @@ final class Report
             <div class="about">$pq</div>
             <div class="about">$about</div>
 
+            $projection
             <p class="headline">$headline</p>
             <p class="sub">$subtitle</p>
 
@@ -343,6 +348,8 @@ final class Report
                    text-align:justify;hyphens:auto;-webkit-hyphens:auto}
             @media (max-width:34rem){.about{text-align:left;hyphens:manual}}
             .about strong{color:var(--ink)}
+            .projection{border:1px solid var(--warn);color:var(--warn);border-radius:3px;
+                        padding:.6rem .85rem;margin:0 0 1.4rem;font-size:.86rem}
             .probe{border-top:1px solid var(--line);padding:.9rem 0}
             .probe h3{margin:0 0 .5rem;font-family:ui-monospace,Menlo,monospace;font-size:.85rem;font-weight:600}
             .probe dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.35rem 1.2rem}

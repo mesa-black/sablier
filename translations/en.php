@@ -163,4 +163,7 @@ return [
     'pdf.missing_html' => 'PDF export unavailable: %s not found.',
     'pdf.failed' => 'PDF export failed: %s produced no file.',
     'pdf.written' => '%s (%s KB)',
+
+    // --- projection ---
+    'report.projection' => '⚠ Projection: this report simulates the situation in %d. It is not a current state — the verdicts are those the same data would get if it were encrypted that year.',
 ];

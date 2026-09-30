@@ -163,4 +163,7 @@ return [
     'pdf.missing_html' => 'Exportación a PDF imposible: no se encuentra %s.',
     'pdf.failed' => 'Exportación a PDF fallida: %s no ha producido ningún archivo.',
     'pdf.written' => '%s (%s KB)',
+
+    // --- projection ---
+    'report.projection' => '⚠ Proyección: este informe simula la situación en %d. No es un estado actual: los veredictos son los que tendrían los mismos datos si se cifraran ese año.',
 ];

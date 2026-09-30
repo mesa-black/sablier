@@ -172,4 +172,7 @@ return [
     'pdf.missing_html' => 'export PDF impossible : %s est introuvable.',
     'pdf.failed' => 'export PDF échoué : %s n\'a produit aucun fichier.',
     'pdf.written' => '%s (%s Ko)',
+
+    // --- projection ---
+    'report.projection' => '⚠ Projection : ce rapport simule la situation en %d. Ce n\'est pas un état actuel — les verdicts sont ceux qu\'auraient les mêmes données si elles étaient chiffrées cette année-là.',
 ];

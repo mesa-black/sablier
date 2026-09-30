@@ -60,11 +60,11 @@ if ($command !== 'scan') {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'year' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|pdf)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|pdf|year)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -78,7 +78,12 @@ if ($target === null || !is_dir($target)) {
 
 $declarationPath = $options['declare'] ?? (is_file($target.'/sablier.json') ? $target.'/sablier.json' : null);
 $declaration = Declaration::load($declarationPath);
-$currentYear = (int) date('Y');
+// --year projects the same codebase into a future year. The expiry date does
+// not move — it is a regulatory deadline — but the other side of the comparison
+// does: every year that passes pushes more data over the line. Worth being able
+// to show, and worth marking loudly so a projection is never read as a finding.
+$actualYear = (int) date('Y');
+$currentYear = $options['year'] !== null ? (int) $options['year'] : $actualYear;
 
 $startedAt = microtime(true);
 $scan = (new Scanner())->scan($target);
@@ -99,7 +104,7 @@ if (!$options['no-probe']) {
 $findings = (new Assessor($declaration, $currentYear))->assess([...$scan['findings'], ...$probeFindings]);
 $duration = microtime(true) - $startedAt;
 
-$report = new Report($findings, $declaration, $target, $scan['files'], $scan['blind'], $currentYear, $duration, $probes);
+$report = new Report($findings, $declaration, $target, $scan['files'], $scan['blind'], $currentYear, $duration, $probes, $currentYear !== $actualYear);
 file_put_contents($options['out'], $report->html());
 
 if ($options['json'] !== null) {
