@@ -195,7 +195,7 @@ $scan = (new Scanner([
     new FrameworkConfigDetector(),
     new SymfonyVaultDetector(),
     new DependencyDetector(),
-]))->scan($target);
+], $declaration->exclude))->scan($target);
 
 // Live probes come from the declaration: what a server negotiates belongs to
 // the same inventory as what the code says, and it is the only part a file can

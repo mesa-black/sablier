@@ -1,0 +1,32 @@
+{
+    "name": "mesa-black/sablier",
+    "description": "Inventories a project's cryptography and says how long each protection will hold.",
+    "type": "project",
+    "keywords": ["cryptography", "post-quantum", "security", "sbom", "cbom", "static-analysis"],
+    "homepage": "https://github.com/mesa-black/sablier",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jérôme Nadaud",
+            "email": "jerome@nadaud.io"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "ext-sodium": "*",
+        "ext-openssl": "*",
+        "ext-json": "*"
+    },
+    "bin": ["bin/sablier"],
+    "autoload": {
+        "psr-4": {
+            "Sablier\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "tests/run.sh"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

@@ -1,0 +1,38 @@
+name: False positive
+description: Sablier reported something that is not a real finding
+labels: ["false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Two different things get called a false positive, and only one of them belongs here.
+
+        If the tool is **right** but your project accepts the finding, that is a decision
+        rather than a bug: record it in your declaration with a reason and an expiry date
+        (`sablier accept <fingerprint> --reason="…"`). Nothing to open here.
+
+        If the tool is **wrong** — the algorithm is misread, the file is not what the
+        detector thinks it is, a verdict does not follow — this is the right place.
+  - type: input
+    id: fingerprint
+    attributes:
+      label: Fingerprint
+      description: The eight characters shown under the finding.
+      placeholder: a3f1c2
+    validations:
+      required: false
+  - type: textarea
+    id: finding
+    attributes:
+      label: What Sablier reported
+      description: Algorithm, verdict, file and the evidence line. Redact anything you would not publish.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it is wrong
+      description: What the code or the configuration actually does.
+    validations:
+      required: true

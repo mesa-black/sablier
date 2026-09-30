@@ -1,0 +1,27 @@
+name: Missed finding
+description: Sablier failed to see cryptography it should have seen
+labels: ["missed-finding"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The failure mode that matters most. A tool that misses things quietly is worse
+        than no tool, because it manufactures confidence.
+
+        Before opening: the report prints what it does not look at — managed services,
+        live negotiation for undeclared hosts, keys held in an HSM. Those are known and
+        deliberate, not misses.
+  - type: textarea
+    id: what
+    attributes:
+      label: What should have been found
+      description: The file or the service, and the algorithm involved.
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: A sample the detector should match
+      render: text
+    validations:
+      required: true

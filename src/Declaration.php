@@ -65,6 +65,19 @@ final class Declaration
     public array $accepted = [];
 
     /**
+     * Paths this project puts out of scope, as globs.
+     *
+     * Not a way to hide findings — that is what `accepted` is for, with its
+     * reason and its expiry. This is for files that talk *about* cryptography
+     * without using any: rule tables, documentation, test fixtures. A scanner's
+     * own pattern list is the clearest example, and this tool's repository ships
+     * exactly that case.
+     *
+     * @var list<string>
+     */
+    public array $exclude = [];
+
+    /**
      * Hosts to probe live. Declared next to the data domains on purpose: what a
      * server negotiates is part of the inventory, not a separate exercise.
      *
@@ -89,6 +102,7 @@ final class Declaration
         $self->expiryYear = (int) ($raw['expiry_year'] ?? $self->expiryYear);
         $self->defaultLifetime = (int) ($raw['default_lifetime_years'] ?? $self->defaultLifetime);
         $self->probe = array_map(strval(...), (array) ($raw['probe'] ?? []));
+        $self->exclude = array_map(strval(...), (array) ($raw['exclude'] ?? []));
         $self->deadlinesCheckedOn = (string) ($raw['deadlines_checked_on'] ?? $self->deadlinesCheckedOn);
         $self->signingPublicKey = (string) ($raw['signing_public_key'] ?? '');
 

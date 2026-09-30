@@ -1,0 +1,44 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sodium, openssl, json
+          coverage: none
+
+      # No dependencies to install: that is the point of the project, and it is
+      # worth asserting rather than assuming.
+      - name: No vendor directory is required
+        run: test ! -d vendor
+
+      - name: Lint every PHP file
+        run: find bin src tests translations -type f \( -name '*.php' -o -name 'sablier' \) -print0 | xargs -0 -n1 php -l
+
+      - name: Test suite
+        run: ./tests/run.sh
+
+      # The tool has to be able to read its own repository without crying wolf.
+      # It used to report its own pattern tables; this keeps it honest.
+      - name: Scan its own repository
+        run: |
+          ./bin/sablier scan . --no-probe --json=self.json --out=self.html --quiet
+          php -r '
+            $f = json_decode(file_get_contents("self.json"), true);
+            $bad = array_filter($f, static fn (array $x): bool => in_array($x["verdict"], ["compromised", "urgent"], true));
+            if ($bad !== []) {
+              fwrite(STDERR, "Sablier reports ".count($bad)." alert(s) on its own code\n");
+              exit(1);
+            }
+            echo count($f), " findings on its own repository, none red\n";
+          '

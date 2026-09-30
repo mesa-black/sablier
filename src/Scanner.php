@@ -25,9 +25,14 @@ final class Scanner
 
     private const int MAX_BYTES = 2_000_000;
 
-    /** @param list<Detector> $detectors */
-    public function __construct(private readonly array $detectors)
-    {
+    /**
+     * @param list<Detector> $detectors
+     * @param list<string>   $exclude globs from the declaration, matched on the relative path
+     */
+    public function __construct(
+        private readonly array $detectors,
+        private readonly array $exclude = [],
+    ) {
     }
 
     /** @return array{findings: list<Finding>, files: int, blind: list<string>} */
@@ -72,9 +77,18 @@ final class Scanner
         );
 
         foreach ($iterator as $file) {
-            if ($file instanceof \SplFileInfo && $file->isFile() && $file->getSize() <= self::MAX_BYTES) {
-                yield SourceFile::fromSplFileInfo($file, $root);
+            if (!$file instanceof \SplFileInfo || !$file->isFile() || $file->getSize() > self::MAX_BYTES) {
+                continue;
             }
+
+            $source = SourceFile::fromSplFileInfo($file, $root);
+            foreach ($this->exclude as $glob) {
+                if (fnmatch($glob, $source->relativePath, \FNM_NOESCAPE)) {
+                    continue 2;
+                }
+            }
+
+            yield $source;
         }
     }
 }

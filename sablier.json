@@ -1,0 +1,22 @@
+{
+  "project": "Sablier",
+  "expiry_year": 2035,
+  "default_lifetime_years": 3,
+  "exclude": [
+    "src/Detector/*",
+    "src/Probe.php",
+    "src/Catalogue.php",
+    "translations/*",
+    "tests/fixtures/*",
+    "tests/run.sh",
+    "docs/*",
+    "README.md"
+  ],
+  "domains": {
+    "signature des rapports": {
+      "paths": ["src/Signature.php"],
+      "lifetime_years": 1,
+      "note": "Un rapport se présente dans le trimestre. Mettre 15 ici si vous archivez pour un régulateur : le verdict change, et c'est le sujet."
+    }
+  }
+}
