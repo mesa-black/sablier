@@ -28,16 +28,18 @@ if  (today + the data's confidentiality lifetime)  >  the algorithm's expiry yea
 then the protection has already failed, and migrating does not repair it
 ```
 
-A chat session that expires in ten seconds has no problem at all. A medical
-record, a contract, a backup key, a trade secret, an HR file — anything that must
-stay confidential beyond the deadline — is **already** in breach if it is
-protected by RSA or an elliptic curve.
+**This formula has a name, and it is not ours.** It is Mosca's inequality,
+published by Michele Mosca in 2015: `X + Y > Z`, where X is the data's
+confidentiality lifetime, Y is the time the migration will take, and Z the years
+until a cryptographically relevant quantum computer. It is the standard reference
+CISOs and agencies use. What is written above is that inequality with Y dropped
+and Z replaced by the regulatory deadline — a simplification, not an invention.
 
-No tool on the market asks this question, because none of them knows the lifetime
-of the data. That is exactly what the tool asks the team for, and it is the pivot
-of everything else.
+We wrote this document before checking, and claimed the angle was unoccupied. It
+was not. Correcting it in place rather than quietly is the least this project can
+do, given what it says about tools that hide what they did not look at.
 
-### The dates
+### The dates### The dates
 
 To be handled with care, and re-verified before any public communication: they
 have moved several times and will move again.
@@ -60,30 +62,52 @@ against everyone else.
 
 ## 2. What already exists, honestly
 
-The field is not empty. Pretending otherwise would cost six months.
+Checked rather than remembered, in September 2026. The field is not empty and it
+moved fast.
 
-| Existing | What it does | What it does not do |
+| Existing | What it does | Where it stops |
 |---|---|---|
-| CycloneDX 1.6+ (CBOM) | a standardised **format** for cryptographic inventory | it is not a tool, and it judges nothing |
-| IBM `cbomkit` / Sonar plugin | scans code, produces a CBOM | no notion of data lifetime, austere report, Sonar-shaped |
-| Crypto-agility vendors | network discovery plus inventory, enterprise offering | expensive, sold to the CIO rather than the developer; agent to install |
-| `testssl.sh`, `sslyze`, `cryptolyzer` | what a server actually **negotiates** | network only — nothing of the code, nothing of the backups |
-| Semgrep, crypto rules | individual misuses | no inventory, no prioritisation |
+| **Mosca's inequality** (2015) | the framework itself: `X + Y > Z` | a formula, not a tool: somebody still has to find X |
+| Mosca calculators (several vendors) | ask for three numbers, return an exposure | no inventory: they never look at a codebase |
+| CycloneDX 1.6+ (CBOM) | a standardised **format** for cryptographic inventory | not a tool, and it judges nothing |
+| IBM `cbomkit`, Mondoo `xgrep` | scan code, produce a CBOM | no data lifetime at all: algorithm-level findings |
+| A .NET CBOM generator | two axes — quantum vulnerability and classical weakness | "data-sensitivity hints" are categorical, not a duration |
+| **CryptoDrishti** | scans a codebase, per-asset confidentiality lifetime, computes Mosca, self-contained HTML report | a Python prototype of the same age and maturity as this one |
+| ECDAT | discovery platform, also on Mosca's theorem | enterprise-shaped |
+| `testssl.sh`, `sslyze` | what a server actually **negotiates** | network only: nothing of the code or the backups |
 
-**The open space** is therefore not "inventory cryptography". It is:
+**So the angle is taken.** At least one project does precisely what this one does,
+in another language, at the same stage. Pretending otherwise would make every
+other claim in this document suspect.
 
-1. **tying the inventory to data lifetime** — nobody does it;
-2. **a report you can put in front of a decision-maker**, not a static-analysis
-   table;
-3. **zero dependency, no account, nothing sent** — on a tool that reads where the
-   keys are, that is structural rather than commercial.
+What is left, and it is narrower than what we first wrote:
 
-This is precisely the PhpMetrics manoeuvre: the metrics existed; legibility and
-the absence of friction did not.
+1. **The refusals.** Inventory is not usage, test code is not production, a digest
+   used as a cache key is not a control, and a report that buries three real
+   findings under forty false ones has failed. Every one of those rules came from
+   a false positive this tool actually printed, and each is measurable.
+2. **Signatures are not harvestable.** Mosca's inequality is about
+   confidentiality. Applying `X + Y − Z` to a signature scores it as if traffic
+   could be captured and opened later, which is wrong. A tool that does not make
+   that distinction over-reports every signing key it finds. **To verify against
+   the tools above rather than assume.**
+3. **The live probe.** Static analysis reads intentions. On the first real project
+   the probe found a hybrid post-quantum key exchange that no file in the
+   repository mentioned — and the backup encryption, the most sensitive operation
+   there, was in no file either.
+4. **Nothing leaves the machine.** No service, no database, no account, no
+   dependency. Some of the tools above ship a local web console and a scan
+   history; that is a different posture, not a worse one, but it is a different
+   promise.
+5. **Refusing to model Z.** Others model the arrival of a quantum computer as a
+   probability distribution. We use the regulatory deadline and say we do not
+   predict. Theirs is more sophisticated; ours is more honest about what nobody
+   knows. That is a defensible choice, not a superiority.
 
----
+And one thing this document should have said from the first line: PhpMetrics did
+not invent code metrics either.
 
-## 3. What static analysis can see, and what it never will
+## 3. What static analysis can see## 3. What static analysis can see, and what it never will
 
 The most important section of this study. A security tool that lets you believe
 it saw everything is worse than no tool: it manufactures false assurance.

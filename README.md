@@ -7,9 +7,9 @@ What is encrypted in your project, and **how long it holds**.
 *Scoping study: [docs/scoping.md](docs/scoping.md)*
 
 Sablier reads a project, inventories its cryptography, and crosses that inventory
-with something no tool knows: **how long each kind of data has to stay
-confidential.** Out of that crossing comes the only question that matters about
-post-quantum today:
+with the one input no scanner can find on its own: **how long each kind of data
+has to stay confidential.** Out of that crossing comes the only question that
+matters about post-quantum today:
 
 > Data encrypted today with RSA or an elliptic curve, and required to stay secret
 > past the expiry of those algorithms, is **already lost**. Migration protects
@@ -19,8 +19,13 @@ This is the *harvest now, decrypt later* model: an adversary captures today what
 they will decrypt later. For the data concerned, the compromise date is the day
 it was encrypted, not the day of the attack.
 
-Status: **prototype**. The full scoping study — problem, prior art, admitted
-limits, risk model — is in [`docs/scoping.md`](docs/scoping.md).
+The formula is **Mosca's inequality** (2015), simplified: the framework is
+standard and named, and other tools implement it. [`docs/scoping.md`](docs/scoping.md)
+lists them honestly and says what is left that is ours — mostly a set of refusals,
+and a live probe that reads what a server actually negotiates rather than what a
+file claims.
+
+Status: **prototype**.
 
 ## Try it
 
