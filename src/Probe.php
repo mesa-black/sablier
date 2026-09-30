@@ -188,11 +188,18 @@ final class Probe
         );
         $output = (string) @shell_exec($command);
 
-        if (preg_match('/Negotiated TLS1\.3 group:\s*(\S+)/i', $output, $m) === 1) {
-            return $m[1];
-        }
-        if (preg_match('/Server Temp Key:\s*(\S+)/i', $output, $m) === 1) {
-            return $m[1];
+        // Three spellings for one fact, because the label depends on the
+        // OpenSSL build and on the negotiated version. Missing one of them does
+        // not fail loudly — it silently drops the most important field of the
+        // probe, which is how this was found: only by pointing the tool at a
+        // server we controlled.
+        foreach ([
+            '/Negotiated TLS1\.3 group:\s*(\S+)/i',
+            '/(?:Server|Peer) Temp Key:\s*([^,\n]+)/i',
+        ] as $pattern) {
+            if (preg_match($pattern, $output, $m) === 1) {
+                return trim($m[1]);
+            }
         }
 
         return null;

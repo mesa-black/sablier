@@ -266,6 +266,27 @@ lessons that changed the tool the same evening.
    have understated the project's actual posture — which is the mirror image of
    the failure mode everyone expects.
 
+### A second corpus, and what it did not show
+
+`pitch`, another PHP project on the same machine: 155 files read, one finding.
+Eighteen source files — the two thousand others were Symfony's cache under
+`var/`, correctly skipped. Nothing to learn about noise from a project that
+small, which is itself worth recording: the noise criterion needs a codebase
+with history, not a second young one.
+
+### The probe bug a stranger's server would have hidden
+
+Testing the "classical key exchange" path meant finding a server that still uses
+one. Rather than point the tool at somebody else's host, a local TLS server
+pinned to X25519 — and it immediately exposed a real defect: OpenSSL 3 labels the
+field `Peer Temp Key`, while the parser only knew `Server Temp Key` and the
+TLS 1.3 `Negotiated group` line. On any server without that last line, the probe
+was silently dropping its most important field. Silently, because a missing group
+is reported as "assumed classical" rather than as a parsing failure.
+
+It is now a regression test: the suite starts a TLS server, probes it, and checks
+the group comes back.
+
 ## 9. What happens next
 
 1. Write the declaration for a real project, and measure how long it actually
