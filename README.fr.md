@@ -1,3 +1,5 @@
+<img src="assets/logo.svg" alt="" width="22" height="30" align="left" hspace="10">
+
 # Sablier
 
 *English: [README.md](README.md)*

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 30" width="22" height="30" role="img" aria-label="Sablier">
+  <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M1.6 1.2h18.8M1.6 28.8h18.8"/>
+    <path d="M3.4 3.4h15.2L11 14.6z"/>
+    <path d="M11 15.4l7.6 11.2H3.4z"/>
+  </g>
+  <path fill="currentColor" d="M6 6h10l-2.8 4.2H8.8z"/>
+  <path fill="currentColor" d="M11 20.4l3.4 6.2H7.6z"/>
+  <path fill="currentColor" d="M10.3 16.4h1.4v2.6h-1.4z"/>
+</svg>

@@ -16,9 +16,24 @@ declare(strict_types=1);
 
 namespace Sablier;
 
-foreach (['Lang', 'Catalogue', 'Declaration', 'Finding', 'Scanner', 'Assessor', 'Probe', 'Pdf', 'Report'] as $class) {
-    require __DIR__.'/../src/'.$class.'.php';
-}
+// A four-line autoloader rather than a require list that has to be kept in
+// order: adding a detector must not mean editing this file.
+spl_autoload_register(static function (string $class): void {
+    if (str_starts_with($class, 'Sablier\\')) {
+        $path = __DIR__.'/../src/'.str_replace('\\', '/', substr($class, 8)).'.php';
+        if (is_file($path)) {
+            require $path;
+        }
+    }
+});
+
+use Sablier\Detector\DependencyDetector;
+use Sablier\Detector\KeyMaterialDetector;
+use Sablier\Detector\PhpDetector;
+use Sablier\Detector\ShellDetector;
+use Sablier\Detector\TlsConfigDetector;
+use Sablier\Reporter\HtmlReporter;
+use Sablier\Reporter\JsonReporter;
 
 $argv = $_SERVER['argv'];
 $command = $argv[1] ?? 'help';
@@ -86,7 +101,16 @@ $actualYear = (int) date('Y');
 $currentYear = $options['year'] !== null ? (int) $options['year'] : $actualYear;
 
 $startedAt = microtime(true);
-$scan = (new Scanner())->scan($target);
+
+// Composition happens here and nowhere else: the scanner receives what it must
+// run, instead of knowing the list itself.
+$scan = (new Scanner([
+    new PhpDetector(),
+    new ShellDetector(),
+    new KeyMaterialDetector(),
+    new TlsConfigDetector(),
+    new DependencyDetector(),
+]))->scan($target);
 
 // Live probes come from the declaration: what a server negotiates belongs to
 // the same inventory as what the code says, and it is the only part a file can
@@ -104,15 +128,22 @@ if (!$options['no-probe']) {
 $findings = (new Assessor($declaration, $currentYear))->assess([...$scan['findings'], ...$probeFindings]);
 $duration = microtime(true) - $startedAt;
 
-$report = new Report($findings, $declaration, $target, $scan['files'], $scan['blind'], $currentYear, $duration, $probes, $currentYear !== $actualYear);
-file_put_contents($options['out'], $report->html());
+$analysis = new Analysis(
+    findings: $findings,
+    declaration: $declaration,
+    target: $target,
+    filesRead: $scan['files'],
+    blindSpots: $scan['blind'],
+    currentYear: $currentYear,
+    duration: $duration,
+    probes: $probes,
+    projected: $currentYear !== $actualYear,
+);
+
+file_put_contents($options['out'], (new HtmlReporter())->render($analysis));
 
 if ($options['json'] !== null) {
-    file_put_contents($options['json'], json_encode(array_map(static fn (Finding $f): array => [
-        'algorithm' => $f->algorithm, 'purpose' => $f->purpose, 'file' => $f->file, 'line' => $f->line,
-        'domain' => $f->domain, 'declared' => $f->domainDeclared, 'lifetime_years' => $f->lifetime,
-        'verdict' => $f->verdict, 'confidence' => $f->confidence, 'because' => $f->because,
-    ], $findings), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES));
+    file_put_contents($options['json'], (new JsonReporter())->render($analysis));
 }
 
 $pdfMessage = null;

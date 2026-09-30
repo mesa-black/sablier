@@ -166,4 +166,8 @@ return [
 
     // --- projection ---
     'report.projection' => '⚠ Projection: this report simulates the situation in %d. It is not a current state — the verdicts are those the same data would get if it were encrypted that year.',
+
+    // --- deadline freshness ---
+    'report.deadline_checked' => 'Deadline last checked against its sources on %s.',
+    'report.deadline_stale' => 'That check is %d months old: redo it before quoting this date.',
 ];

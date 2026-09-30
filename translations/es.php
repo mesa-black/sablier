@@ -166,4 +166,8 @@ return [
 
     // --- projection ---
     'report.projection' => '⚠ Proyección: este informe simula la situación en %d. No es un estado actual: los veredictos son los que tendrían los mismos datos si se cifraran ese año.',
+
+    // --- deadline freshness ---
+    'report.deadline_checked' => 'Plazo verificado con sus fuentes el %s.',
+    'report.deadline_stale' => 'Esa verificación tiene %d meses: repítala antes de citar esta fecha.',
 ];

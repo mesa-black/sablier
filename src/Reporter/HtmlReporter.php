@@ -2,7 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Sablier;
+namespace Sablier\Reporter;
+
+use Sablier\Analysis;
+use Sablier\Assessor;
+use Sablier\Catalogue;
+use Sablier\Finding;
+use Sablier\Lang;
 
 /**
  * The report is the product.
@@ -11,37 +17,30 @@ namespace Sablier;
  * to anything. A tool that reads where the keys are must not open a socket to
  * render its own output — and it makes the file safe to send as an attachment.
  */
-final class Report
+final class HtmlReporter implements Reporter
 {
-    /** @param list<Finding> $findings */
-    public function __construct(
-        private readonly array $findings,
-        private readonly Declaration $declaration,
-        private readonly string $target,
-        private readonly int $filesRead,
-        /** @var list<string> */
-        private readonly array $blindSpots,
-        private readonly int $currentYear,
-        private readonly float $duration = 0.0,
-        /** @var list<array{target:string, facts:array<string,string>, notes:list<string>}> */
-        private readonly array $probes = [],
-        private readonly bool $projected = false,
-    ) {
+    public function render(Analysis $analysis): string
+    {
+        $this->analysis = $analysis;
+
+        return $this->html();
     }
 
-    public function html(): string
+    private Analysis $analysis;
+
+    private function html(): string
     {
         $byVerdict = [];
         foreach (Assessor::order() as $verdict) {
             $byVerdict[$verdict] = [];
         }
-        foreach ($this->findings as $finding) {
+        foreach ($this->analysis->findings as $finding) {
             $byVerdict[$finding->verdict][] = $finding;
         }
 
         $compromised = \count($byVerdict[Assessor::COMPROMISED]);
         $urgent = \count($byVerdict[Assessor::URGENT]);
-        $actionable = \count($this->findings) - \count($byVerdict[Assessor::NOISE]);
+        $actionable = \count($this->analysis->findings) - \count($byVerdict[Assessor::NOISE]);
 
         $headline = $compromised > 0
             ? Lang::t($compromised > 1 ? 'headline.compromised.plural' : 'headline.compromised', $compromised)
@@ -57,26 +56,31 @@ final class Report
             $rows .= $this->section($verdict, $group);
         }
 
-        $elapsed = $this->duration < 1
-            ? number_format($this->duration * 1000, 0, ',', ' ').' ms'
-            : number_format($this->duration, 1, ',', ' ').' s';
-        $projection = $this->projected
-            ? '<p class="projection">'.htmlspecialchars(Lang::t('report.projection', $this->currentYear)).'</p>'
+        $elapsed = $this->analysis->duration < 1
+            ? number_format($this->analysis->duration * 1000, 0, ',', ' ').' ms'
+            : number_format($this->analysis->duration, 1, ',', ' ').' s';
+        $logo = self::logo();
+        $projection = $this->analysis->projected
+            ? '<p class="projection">'.htmlspecialchars(Lang::t('report.projection', $this->analysis->currentYear)).'</p>'
             : '';
         $probeBlock = $this->probeBlock();
         $timeline = $this->timeline();
         $blind = $this->blind($byVerdict[Assessor::DECLARE] ?? []);
         $css = $this->css();
-        $target = htmlspecialchars($this->target);
+        $target = htmlspecialchars($this->analysis->target);
         $date = (new \DateTimeImmutable())->format('d/m/Y');
-        $project = htmlspecialchars($this->declaration->project !== '' ? $this->declaration->project : basename($this->target));
+        $project = htmlspecialchars($this->analysis->declaration->project !== '' ? $this->analysis->declaration->project : basename($this->analysis->target));
 
         $lang = Lang::locale();
         $about = Lang::t('about.tool');
         $pq = Lang::t('about.postquantum');
-        $subtitle = Lang::t('report.subtitle', $actionable, $this->declaration->expiryYear);
+        $declaration = $this->analysis->declaration;
+        $checked = \DateTimeImmutable::createFromFormat('Y-m-d', $declaration->deadlinesCheckedOn);
+        $subtitle = Lang::t('report.subtitle', $actionable, $declaration->expiryYear)
+            .' '.Lang::t('report.deadline_checked', $checked === false ? $declaration->deadlinesCheckedOn : $checked->format('d/m/Y'))
+            .($declaration->deadlinesAreStale() ? ' <strong class="stale">'.htmlspecialchars(Lang::t('report.deadline_stale', $declaration->monthsSinceCheck())).'</strong>' : '');
         $footer = Lang::t('report.footer');
-        $filesLabel = Lang::t('report.files_read', $this->filesRead);
+        $filesLabel = Lang::t('report.files_read', $this->analysis->filesRead);
         $elapsedLabel = Lang::t('report.elapsed', $elapsed);
 
         return <<<HTML
@@ -87,7 +91,7 @@ final class Report
             <style>$css</style></head>
             <body>
             <header>
-              <div class="brand">SABLIER</div>
+              <div class="brand">$logo<span>SABLIER</span></div>
               <div class="meta">$project · $date · $filesLabel · $elapsedLabel</div>
             </header>
 
@@ -108,12 +112,37 @@ final class Report
             HTML;
     }
 
+    /**
+     * The mark. Inline, geometric, drawn in currentColor so it holds in both
+     * themes and on paper — an external image would be the one request this
+     * report promises never to make.
+     *
+     * The top funnel is half drained and the bottom one has a pile: which is the
+     * product's whole argument, that what matters is how much time is left for
+     * this particular data, not whether it is encrypted.
+     */
+    private static function logo(): string
+    {
+        return <<<'SVG'
+            <svg class="logo" viewBox="0 0 22 30" width="20" height="27" aria-hidden="true" focusable="false">
+              <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+                <path d="M1.6 1.2h18.8M1.6 28.8h18.8"/>
+                <path d="M3.4 3.4h15.2L11 14.6z"/>
+                <path d="M11 15.4l7.6 11.2H3.4z"/>
+              </g>
+              <path fill="currentColor" d="M6 6h10l-2.8 4.2H8.8z"/>
+              <path fill="currentColor" d="M11 20.4l3.4 6.2H7.6z"/>
+              <path fill="currentColor" d="M10.3 16.4h1.4v2.6h-1.4z"/>
+            </svg>
+            SVG;
+    }
+
     private function timeline(): string
     {
         // One bar per declared domain: how long its data must stay secret,
         // against the date its protection expires.
-        $start = $this->currentYear;
-        $end = max($this->declaration->expiryYear + 5, $start + 20);
+        $start = $this->analysis->currentYear;
+        $end = max($this->analysis->declaration->expiryYear + 5, $start + 20);
         $span = $end - $start;
 
         // A long lifetime is not by itself an exposure: it only becomes one when
@@ -121,7 +150,7 @@ final class Report
         // duration alone made the chart contradict the verdict above it.
         $domains = [];
         $exposed = [];
-        foreach ($this->findings as $finding) {
+        foreach ($this->analysis->findings as $finding) {
             if ($finding->verdict === Assessor::NOISE) {
                 continue;
             }
@@ -134,8 +163,8 @@ final class Report
         }
         arsort($domains);
 
-        $expiryLeft = round((($this->declaration->expiryYear - $start) / $span) * 100, 2);
-        $deprLeft = round((($this->declaration->deprecationYear - $start) / $span) * 100, 2);
+        $expiryLeft = round((($this->analysis->declaration->expiryYear - $start) / $span) * 100, 2);
+        $deprLeft = round((($this->analysis->declaration->deprecationYear - $start) / $span) * 100, 2);
 
         $bars = '';
         foreach (\array_slice($domains, 0, 8, true) as $name => $lifetime) {
@@ -159,8 +188,8 @@ final class Report
             <section class="timeline">
               <h2>$title</h2>
               <div class="chart">
-                <div class="mark" style="left:{$deprLeft}%"><span>{$this->declaration->deprecationYear}<br>$deprecationLabel</span></div>
-                <div class="mark expiry" style="left:{$expiryLeft}%"><span>{$this->declaration->expiryYear}<br>$expiryLabel</span></div>
+                <div class="mark" style="left:{$deprLeft}%"><span>{$this->analysis->declaration->deprecationYear}<br>$deprecationLabel</span></div>
+                <div class="mark expiry" style="left:{$expiryLeft}%"><span>{$this->analysis->declaration->expiryYear}<br>$expiryLabel</span></div>
                 $bars
               </div>
               <p class="legend">$legend</p>
@@ -213,12 +242,12 @@ final class Report
 
     private function probeBlock(): string
     {
-        if ($this->probes === []) {
+        if ($this->analysis->probes === []) {
             return '';
         }
 
         $blocks = '';
-        foreach ($this->probes as $probe) {
+        foreach ($this->analysis->probes as $probe) {
             $rows = '';
             foreach ($probe['facts'] as $key => $value) {
                 $rows .= '<div><dt>'.htmlspecialchars((string) $key).'</dt><dd>'.htmlspecialchars($value).'</dd></div>';
@@ -279,12 +308,12 @@ final class Report
             Lang::t('blind.managed_services'),
             Lang::t('blind.runtime'),
             Lang::t('blind.hsm'),
-            Lang::t('blind.lifetime', $this->declaration->defaultLifetime),
+            Lang::t('blind.lifetime', $this->analysis->declaration->defaultLifetime),
         ];
         if ($undetermined !== []) {
             $lines[] = Lang::t(\count($undetermined) > 1 ? 'blind.undetermined.plural' : 'blind.undetermined', \count($undetermined));
         }
-        foreach ($this->blindSpots as $spot) {
+        foreach ($this->analysis->blindSpots as $spot) {
             $lines[] = $spot;
         }
 
@@ -306,7 +335,9 @@ final class Report
                  max-width:52rem;margin-inline:auto}
             header{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;
                    border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin-bottom:2rem}
-            .brand{font-weight:700;letter-spacing:.22em;font-size:.95rem}
+            .brand{font-weight:700;letter-spacing:.22em;font-size:.95rem;
+                   display:flex;align-items:center;gap:.6rem}
+            .logo{flex:none;display:block}
             .meta{color:var(--muted);font-size:.82rem}
             .headline{font-size:1.5rem;line-height:1.32;font-weight:500;margin:0 0 .8rem;text-wrap:balance}
             .sub{color:var(--muted);margin:0 0 2.4rem;font-size:.92rem}
@@ -348,6 +379,7 @@ final class Report
                    text-align:justify;hyphens:auto;-webkit-hyphens:auto}
             @media (max-width:34rem){.about{text-align:left;hyphens:manual}}
             .about strong{color:var(--ink)}
+            .stale{color:var(--warn)}
             .projection{border:1px solid var(--warn);color:var(--warn);border-radius:3px;
                         padding:.6rem .85rem;margin:0 0 1.4rem;font-size:.86rem}
             .probe{border-top:1px solid var(--line);padding:.9rem 0}

@@ -175,4 +175,8 @@ return [
 
     // --- projection ---
     'report.projection' => '⚠ Projection : ce rapport simule la situation en %d. Ce n\'est pas un état actuel — les verdicts sont ceux qu\'auraient les mêmes données si elles étaient chiffrées cette année-là.',
+
+    // --- deadline freshness ---
+    'report.deadline_checked' => 'Échéance vérifiée auprès de ses sources le %s.',
+    'report.deadline_stale' => 'Cette vérification date de %d mois : à refaire avant de citer cette date.',
 ];
