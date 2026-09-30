@@ -79,7 +79,7 @@ final class ActionPlan
             if ($declarationFirst && $urgentWork) {
                 array_unshift($actions, $declaration);
             } elseif ($declarationFirst) {
-                array_splice($actions, 1, 0, [$declaration]); // juste après « rien d'urgent »
+                array_splice($actions, 1, 0, [$declaration]); // right after "nothing urgent"
             } else {
                 $actions[] = $declaration;
             }

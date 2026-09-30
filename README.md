@@ -183,7 +183,10 @@ somebody had a key.
 
 And the uncomfortable part, printed in the report rather than buried in a
 footnote: **the signature is Ed25519, which this very tool classifies as
-quantum-vulnerable.** It is what PHP ships. That is defensible for a report
+quantum-vulnerable.** PHP offers no post-quantum signature at all — RSA and
+ECDSA through ext-openssl, Ed25519 through ext-sodium, all three broken by the
+same algorithm — so the choice was never "Ed25519 or nothing" but "Ed25519 or
+equally exposed". That is defensible for a report
 whose authenticity matters for months — a signature cannot be harvested, and
 breaking the curve in 2035 does not forge a 2026 signature anyone still cares
 about. It is not defensible for a report you must still prove genuine after the

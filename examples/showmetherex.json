@@ -3,25 +3,25 @@
   "expiry_year": 2035,
   "default_lifetime_years": 3,
   "domains": {
-    "contenu public": {
+    "public content": {
       "paths": [
         "src/Entity/Feedback*",
         "templates/*",
         "src/Controller/Public*"
       ],
       "lifetime_years": 0,
-      "note": "Les REX sont publiés : leur confidentialité n'a aucune durée à protéger."
+      "note": "Case studies are published: their confidentiality has no duration to protect."
     },
-    "facturation": {
+    "accounting": {
       "paths": [
         "src/Billing/*",
         "src/Entity/Invoice*",
         "src/Entity/Subscription*"
       ],
       "lifetime_years": 10,
-      "note": "Pièces comptables : dix ans de conservation légale."
+      "note": "Accounting records: ten years of legal retention."
     },
-    "authentification": {
+    "authentication": {
       "paths": [
         "src/Security/*",
         "src/Entity/Credential*",
@@ -29,9 +29,9 @@
         "config/packages/security.yaml"
       ],
       "lifetime_years": 3,
-      "note": "Secrets d'authentification, rotation raisonnable."
+      "note": "Authentication secrets, on a reasonable rotation."
     },
-    "transport et session": {
+    "transport and session": {
       "paths": [
         "Caddyfile",
         "*.conf",
@@ -40,13 +40,13 @@
       ],
       "lifetime_years": 1
     },
-    "dépendances déclarées": {
+    "declared dependencies": {
       "paths": [
         "composer.lock",
         "package-lock.json"
       ],
       "lifetime_years": 0,
-      "note": "Inventaire, pas usage : la durée ne s'applique pas ici."
+      "note": "Inventory, not usage: the lifetime does not apply here."
     }
   },
   "probe": [

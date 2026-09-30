@@ -94,7 +94,7 @@ final class Declaration
 
         $raw = json_decode((string) file_get_contents($path), true);
         if (!\is_array($raw)) {
-            throw new \RuntimeException("Déclaration illisible : $path");
+            throw new \RuntimeException("unreadable declaration: $path");
         }
 
         $self->project = (string) ($raw['project'] ?? '');
@@ -187,6 +187,7 @@ final class Declaration
             }
         }
 
-        return ['name' => 'non déclaré', 'lifetime' => $this->defaultLifetime, 'trust_anchor' => false, 'declared' => false];
+        // The label is translated: a hardcoded one printed French in every report.
+        return ['name' => Lang::t('domain.undeclared'), 'lifetime' => $this->defaultLifetime, 'trust_anchor' => false, 'declared' => false];
     }
 }

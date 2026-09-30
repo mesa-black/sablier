@@ -282,4 +282,5 @@ Première action : %s',
     'cli.key_missing' => 'clé introuvable : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
+    'domain.undeclared' => 'non déclaré',
 ];

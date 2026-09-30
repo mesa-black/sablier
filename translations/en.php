@@ -273,4 +273,5 @@ First action: %s',
     'cli.key_missing' => 'key not found: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage: sablier verify <report.html.sig> [--declare=sablier.json]',
+    'domain.undeclared' => 'undeclared',
 ];

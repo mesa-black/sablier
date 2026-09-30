@@ -13,10 +13,10 @@
     "README.md"
   ],
   "domains": {
-    "signature des rapports": {
+    "report signatures": {
       "paths": ["src/Signature.php"],
       "lifetime_years": 1,
-      "note": "Un rapport se présente dans le trimestre. Mettre 15 ici si vous archivez pour un régulateur : le verdict change, et c'est le sujet."
+      "note": "A report is presented within the quarter. Put 15 here if you archive for a regulator: the verdict changes, and that is the point."
     }
   }
 }

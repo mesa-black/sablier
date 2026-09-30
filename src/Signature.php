@@ -13,9 +13,13 @@ namespace Sablier;
  * findings themselves: same inventory, same digest, whatever the language the
  * report was rendered in.
  *
- * The uncomfortable part, stated in the report rather than buried here: the
- * only signature algorithm PHP ships is Ed25519, which this tool's own
- * catalogue classifies as quantum-vulnerable. That is defensible for a report
+ * The uncomfortable part, stated in the report rather than buried here: PHP
+ * offers no post-quantum signature at all. RSA and ECDSA come with ext-openssl,
+ * Ed25519 with ext-sodium, and all three fall to Shor — so the choice was never
+ * "Ed25519 or nothing" but "Ed25519 or equally exposed". Ed25519 is the
+ * soundest of the three: modern, compact, no parameter to get wrong. It stays
+ * quantum-vulnerable, which this tool's own catalogue says. That is defensible
+ * for a report
  * whose authenticity matters for months — a signature cannot be harvested, and
  * breaking the curve in 2035 does not forge a 2026 signature anyone still
  * cares about. It is not defensible for a report you must still prove genuine

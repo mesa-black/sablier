@@ -9,7 +9,7 @@ final class Finding
     public const string CONFIDENCE_HIGH = 'haute';
     public const string CONFIDENCE_MEDIUM = 'moyenne';
 
-    public string $domain = 'non déclaré';
+    public string $domain = '';
     public bool $domainDeclared = false;
     public int $lifetime = 0;
     public bool $trustAnchor = false;

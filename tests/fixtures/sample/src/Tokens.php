@@ -1,5 +1,5 @@
 <?php
-// Jeu d'essai : signature de jetons et empreintes.
+// Fixture: token signing and digests.
 final class Tokens
 {
     public function sign(array $claims): string
@@ -9,7 +9,7 @@ final class Tokens
 
     public function cacheKey(string $url): string
     {
-        return md5($url); // clé de cache : pas un contrôle de sécurité
+        return md5($url); // cache key: not a security control
     }
 
     public function legacyDigest(string $payload): string
