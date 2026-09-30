@@ -275,6 +275,28 @@ Trois partis pris :
 
 ---
 
+### Un second corpus, et ce qu'il n'a pas montré
+
+`pitch`, autre projet PHP sur la même machine : 155 fichiers lus, un constat.
+Dix-huit fichiers source — les deux mille autres étaient le cache Symfony sous
+`var/`, correctement ignoré. Rien à apprendre sur le bruit avec un projet de
+cette taille, et c'est en soi un enseignement : le critère du bruit demande une
+base avec de l'historique, pas une seconde base jeune.
+
+### Le bug que le serveur d'un tiers aurait caché
+
+Tester le chemin « échange de clés classique » demandait un serveur qui en
+utilise encore un. Plutôt que de pointer l'outil vers l'hôte de quelqu'un
+d'autre, un serveur TLS local forcé en X25519 — et il a immédiatement révélé un
+vrai défaut : OpenSSL 3 nomme le champ `Peer Temp Key`, là où l'analyseur ne
+connaissait que `Server Temp Key` et la ligne `Negotiated group` de TLS 1.3. Sur
+tout serveur dépourvu de cette dernière ligne, la sonde perdait silencieusement
+son champ le plus important. Silencieusement, parce qu'un groupe absent est
+rapporté comme « présumé classique » et non comme un échec d'analyse.
+
+C'est devenu un test de non-régression : la suite lance un serveur TLS, le sonde,
+et vérifie que le groupe revient.
+
 ## 8. Ce qu'on fait maintenant
 
 1. ~~Scanner Show me the REX. Compter les vraies alertes et les fausses.~~

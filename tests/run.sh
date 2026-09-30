@@ -44,7 +44,9 @@ if command -v openssl >/dev/null 2>&1; then
 
 	group=$(./bin/sablier probe 127.0.0.1:14433 2>/dev/null | grep -o 'X25519[A-Za-z0-9]*' | head -1)
 	kill "$server" 2>/dev/null
-	wait "$server" 2>/dev/null   # sinon le shell annonce lui-même la fin du job
+	# `|| true` matters: wait returns the killed process's status, and set -e
+	# would end the run here with everything reported as passing.
+	wait "$server" 2>/dev/null || true
 	rm -rf "$tmp"
 
 	if [ "$group" = "X25519" ]; then
