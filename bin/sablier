@@ -28,10 +28,14 @@ spl_autoload_register(static function (string $class): void {
 });
 
 use Sablier\Detector\DependencyDetector;
+use Sablier\Detector\EnvDetector;
+use Sablier\Detector\FrameworkConfigDetector;
 use Sablier\Detector\KeyMaterialDetector;
 use Sablier\Detector\PhpDetector;
+use Sablier\Detector\ServerConfigDetector;
 use Sablier\Detector\ShellDetector;
-use Sablier\Detector\TlsConfigDetector;
+use Sablier\Detector\SshConfigDetector;
+use Sablier\Detector\SymfonyVaultDetector;
 use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
 
@@ -108,7 +112,11 @@ $scan = (new Scanner([
     new PhpDetector(),
     new ShellDetector(),
     new KeyMaterialDetector(),
-    new TlsConfigDetector(),
+    new ServerConfigDetector(),
+    new SshConfigDetector(),
+    new EnvDetector(),
+    new FrameworkConfigDetector(),
+    new SymfonyVaultDetector(),
     new DependencyDetector(),
 ]))->scan($target);
 
