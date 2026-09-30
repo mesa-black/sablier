@@ -145,6 +145,7 @@ return [
 
   bin/sablier scan <path> [options]
   bin/sablier probe <host>          what a server actually negotiates
+  bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
 
     --declare=FILE      data domain declaration (default: sablier.json at the scanned root)
     --out=FILE          HTML report (default: report.html)
@@ -233,4 +234,22 @@ First action: %s',
     'detail.framework.db_tls' => 'Encrypted database connection.',
     'detail.framework.session_plain' => 'Session payload left unencrypted.',
     'detail.env.not_deployed' => 'This file is a versioned default: the value actually deployed lives elsewhere, and that is the one to check.',
+
+    // --- accepted findings ---
+    'verdict.accepted' => 'ACCEPTED',
+    'reason.accepted' => 'A %s finding, accepted by the project until %s.',
+    'reason.acceptance_expired' => '⚠ The acceptance of this finding expired on %s: it is back.',
+    'accepted.reason' => 'Stated reason',
+    'accepted.until' => 'Until',
+    'falsepositive.title' => 'False positive?',
+    'falsepositive.intro' => 'Two cases, and they do not go to the same place.',
+    'falsepositive.accept' => 'The tool is right, but this finding is accepted here. That is a project decision: add this block to your declaration. It is versioned, so the review happens in code review. A reason and an expiry date are both required.',
+    'falsepositive.report' => 'The tool is wrong. That is a rule to fix, and it belongs in Sablier\'s own repository:',
+    'falsepositive.link' => 'Open a pre-filled report',
+    'falsepositive.cli' => 'On the command line:',
+    'accepted.rejected' => '%d acceptance(s) ignored for lacking a reason or an expiry date: a suppression with neither is not a decision.',
+    'cli.accept_usage' => 'usage: sablier accept <fingerprint> --reason="…" [--until=YYYY-MM-DD] [--declare=sablier.json]. The reason is required.',
+    'cli.accept_bad_date' => '--until expects a YYYY-MM-DD date.',
+    'cli.accept_unreadable' => 'unreadable declaration: %s',
+    'cli.accept_written' => '%s accepted until %s, written to %s. The finding stays visible in the report, in its own section.',
 ];

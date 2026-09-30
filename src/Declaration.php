@@ -44,6 +44,18 @@ final class Declaration
     public int $defaultLifetime = 3;
 
     /**
+     * Findings this project has decided to accept, by fingerprint.
+     *
+     * Two rules are enforced rather than suggested, because a suppression file
+     * that is easy to write is how these tools empty themselves out: a reason
+     * is required, and so is an expiry date. An acceptance that never expires
+     * is not a decision, it is a way of forgetting.
+     *
+     * @var array<string, array{reason:string, until:string}>
+     */
+    public array $accepted = [];
+
+    /**
      * Hosts to probe live. Declared next to the data domains on purpose: what a
      * server negotiates is part of the inventory, not a separate exercise.
      *
@@ -70,6 +82,19 @@ final class Declaration
         $self->probe = array_map(strval(...), (array) ($raw['probe'] ?? []));
         $self->deadlinesCheckedOn = (string) ($raw['deadlines_checked_on'] ?? $self->deadlinesCheckedOn);
 
+        foreach ((array) ($raw['accepted'] ?? []) as $fingerprint => $entry) {
+            $reason = trim((string) ($entry['reason'] ?? ''));
+            $until = trim((string) ($entry['until'] ?? ''));
+            // An entry missing either half is ignored outright and reported as
+            // such: silently honouring it would be the failure mode this whole
+            // design exists to avoid.
+            if ($reason === '' || $until === '') {
+                $self->rejectedAcceptances[] = (string) $fingerprint;
+                continue;
+            }
+            $self->accepted[(string) $fingerprint] = ['reason' => $reason, 'until' => $until];
+        }
+
         foreach ((array) ($raw['domains'] ?? []) as $name => $domain) {
             $self->domains[] = [
                 'name' => (string) $name,
@@ -81,6 +106,22 @@ final class Declaration
         }
 
         return $self;
+    }
+
+    /** @var list<string> Fingerprints declared without a reason or without an expiry. */
+    public array $rejectedAcceptances = [];
+
+    /** @return array{reason:string, until:string, expired:bool}|null */
+    public function acceptanceFor(string $fingerprint, ?\DateTimeImmutable $now = null): ?array
+    {
+        $entry = $this->accepted[$fingerprint] ?? null;
+        if ($entry === null) {
+            return null;
+        }
+
+        $until = \DateTimeImmutable::createFromFormat('Y-m-d', $entry['until']);
+
+        return $entry + ['expired' => $until === false || $until < ($now ?? new \DateTimeImmutable())];
     }
 
     /** Months elapsed since the deadlines were last checked against their sources. */

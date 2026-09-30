@@ -4,7 +4,7 @@
 
 What is encrypted in your project, and **how long it holds**.
 
-*Français : [README.fr.md](README.fr.md) · Scoping study: [docs/scoping.md](docs/scoping.md)*
+*Scoping study: [docs/scoping.md](docs/scoping.md)*
 
 Sablier reads a project, inventories its cryptography, and crosses that inventory
 with something no tool knows: **how long each kind of data has to stay
@@ -124,6 +124,38 @@ approximations delivered in a confident typeface.
 A share button hands the summary to Threema, which opens a local application
 with plain text. Nothing reaches a third-party server, which is the only kind of
 sharing this tool can offer without contradicting its own footer.
+
+## Wrong findings
+
+Two different things get called a false positive, and they do not go to the same
+place. The report says so under every finding, with the exact text to use.
+
+**The tool is right, but the finding is accepted here.** That is a project
+decision, so it lives in the declaration next to the data lifetimes — a
+versioned file, which means the review happens in code review, with no service
+and no database:
+
+```bash
+sablier accept a3f1c2 --reason="SHA-1 mandated by the TOTP specification" --until=2027-04-01
+```
+
+Three rules are enforced rather than suggested, because a suppression file that
+is easy to write is how these tools empty themselves out within six months:
+
+- **an accepted finding does not disappear.** It moves to its own section,
+  carrying the verdict it would have had, the stated reason and the date;
+- **an acceptance expires.** `until` is required, and the finding comes back on
+  its own the day it lapses — the same way the window closes by itself;
+- **the reason is required and written for a human.** It is what the person
+  approving the change actually reads.
+
+An acceptance is keyed on the evidence rather than the line number, so it lapses
+when the line it was about materially changes. That is wanted: the code moved,
+the decision deserves a second look.
+
+**The tool is wrong.** That is a rule to fix, and it belongs here. Every finding
+carries a link that opens a pre-filled report — the link opens your browser on a
+form you fill in yourself; the file still sends nothing.
 
 ## What the tool refuses to do
 

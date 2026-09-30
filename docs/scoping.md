@@ -1,7 +1,5 @@
 # Sablier — scoping study
 
-> *Français : [cadrage.fr.md](cadrage.fr.md)*
-
 > A working name. The hourglass is the product's metaphor: the sand does not run
 > out at the same speed for every piece of data, and the question is never "is it
 > encrypted" but "until when".

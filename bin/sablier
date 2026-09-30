@@ -50,6 +50,41 @@ foreach ($argv as $arg) {
     }
 }
 
+// --- accept a finding: bin/sablier accept <fingerprint> -----------------
+// The command-line twin of the report's button. It writes a decision into a
+// versioned file, which is what makes it reviewable; it never hides anything.
+if ($command === 'accept') {
+    $fingerprint = $argv[2] ?? '';
+    $reason = '';
+    $until = (new \DateTimeImmutable('+6 months'))->format('Y-m-d');
+    $file = 'sablier.json';
+    foreach (\array_slice($argv, 3) as $arg) {
+        if (preg_match('/^--(reason|until|declare)=(.+)$/', $arg, $m) === 1) {
+            ${$m[1] === 'declare' ? 'file' : $m[1]} = $m[2];
+        }
+    }
+
+    if (preg_match('/^[0-9a-f]{8}$/', $fingerprint) !== 1 || trim($reason) === '') {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.accept_usage')."\n");
+        exit(1);
+    }
+    if (\DateTimeImmutable::createFromFormat('Y-m-d', $until) === false) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.accept_bad_date')."\n");
+        exit(1);
+    }
+
+    $data = is_file($file) ? json_decode((string) file_get_contents($file), true) : [];
+    if (!\is_array($data)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.accept_unreadable', $file)."\n");
+        exit(1);
+    }
+    $data['accepted'][$fingerprint] = ['reason' => trim($reason), 'until' => $until];
+    file_put_contents($file, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES)."\n");
+
+    printf("  %s\n", Lang::t('cli.accept_written', $fingerprint, $until, $file));
+    exit(0);
+}
+
 // --- probe only: bin/sablier probe example.org --------------------------
 if ($command === 'probe') {
     $target = $argv[2] ?? null;

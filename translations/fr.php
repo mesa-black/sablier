@@ -154,6 +154,7 @@ return [
 
   bin/sablier scan <chemin> [options]
   bin/sablier probe <hôte>          ce qu\'un serveur négocie réellement
+  bin/sablier accept <empreinte> --reason=…  accepter un constat, avec sa date d\'expiration
 
     --declare=FICHIER   déclaration des domaines de données (défaut : sablier.json à la racine analysée)
     --out=FICHIER       rapport HTML (défaut : report.html)
@@ -242,4 +243,22 @@ Première action : %s',
     'detail.framework.db_tls' => 'Connexion à la base chiffrée.',
     'detail.framework.session_plain' => 'Contenu de session non chiffré.',
     'detail.env.not_deployed' => 'Ce fichier est une valeur par défaut versionnée : la valeur réellement déployée est ailleurs, et c\'est elle qu\'il faut vérifier.',
+
+    // --- accepted findings ---
+    'verdict.accepted' => 'ACCEPTÉ',
+    'reason.accepted' => 'Constat %s, accepté par le projet jusqu\'au %s.',
+    'reason.acceptance_expired' => '⚠ L\'acceptation de ce constat a expiré le %s : il revient.',
+    'accepted.reason' => 'Raison retenue',
+    'accepted.until' => 'Jusqu\'au',
+    'falsepositive.title' => 'Faux positif ?',
+    'falsepositive.intro' => 'Deux cas, et ils ne vont pas au même endroit.',
+    'falsepositive.accept' => 'L\'outil a raison, mais ce constat est accepté ici. C\'est une décision de projet : ajoutez ce bloc à votre déclaration, elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d\'expiration sont obligatoires.',
+    'falsepositive.report' => 'L\'outil a tort. C\'est une règle à corriger, et sa place est dans le dépôt de Sablier :',
+    'falsepositive.link' => 'Ouvrir un signalement pré-rempli',
+    'falsepositive.cli' => 'En ligne de commande :',
+    'accepted.rejected' => '%d acceptation(s) ignorée(s) faute de raison ou de date d\'expiration : une suppression sans motif ni échéance n\'est pas une décision.',
+    'cli.accept_usage' => 'usage : sablier accept <empreinte> --reason="…" [--until=AAAA-MM-JJ] [--declare=sablier.json]. La raison est obligatoire.',
+    'cli.accept_bad_date' => '--until attend une date AAAA-MM-JJ.',
+    'cli.accept_unreadable' => 'déclaration illisible : %s',
+    'cli.accept_written' => '%s accepté jusqu\'au %s, écrit dans %s. Le constat restera visible dans le rapport, dans sa propre section.',
 ];

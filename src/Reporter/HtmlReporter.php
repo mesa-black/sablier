@@ -20,6 +20,9 @@ use Sablier\Lang;
  */
 final class HtmlReporter implements Reporter
 {
+    /** Where a rule defect goes. The tool's own repository, not the reader's. */
+    private const string ISSUES_URL = 'https://github.com/mesa-black/sablier/issues/new';
+
     public function render(Analysis $analysis): string
     {
         $this->analysis = $analysis;
@@ -41,7 +44,9 @@ final class HtmlReporter implements Reporter
 
         $compromised = \count($byVerdict[Assessor::COMPROMISED]);
         $urgent = \count($byVerdict[Assessor::URGENT]);
-        $actionable = \count($this->analysis->findings) - \count($byVerdict[Assessor::NOISE]);
+        $actionable = \count($this->analysis->findings)
+            - \count($byVerdict[Assessor::NOISE])
+            - \count($byVerdict[Assessor::ACCEPTED]);
 
         $headline = $compromised > 0
             ? Lang::t($compromised > 1 ? 'headline.compromised.plural' : 'headline.compromised', $compromised)
@@ -269,6 +274,25 @@ final class HtmlReporter implements Reporter
 
         $items = '';
         foreach ($group as $finding) {
+            if ($verdict === Assessor::ACCEPTED) {
+                $items .= \sprintf(
+                    '<article class="accepted"><h3>%s <span class="dom">%s</span></h3>
+                     <div class="loc">%s · %s</div>
+                     <p>%s</p>
+                     <div class="fix"><span>%s</span> %s &nbsp;·&nbsp; <span>%s</span> %s</div></article>',
+                    htmlspecialchars(Catalogue::label($finding->algorithm)),
+                    htmlspecialchars($finding->domain),
+                    htmlspecialchars($finding->file.($finding->line > 0 ? ':'.$finding->line : '')),
+                    htmlspecialchars($finding->fingerprint()),
+                    htmlspecialchars($finding->because),
+                    htmlspecialchars(Lang::t('accepted.reason')),
+                    htmlspecialchars($finding->acceptedReason),
+                    htmlspecialchars(Lang::t('accepted.until')),
+                    htmlspecialchars($finding->acceptedUntil),
+                );
+                continue;
+            }
+
             $algo = Catalogue::get($finding->algorithm);
             $detail = $finding->detail !== '' ? '<span class="detail">'.htmlspecialchars($finding->detail).'</span>' : '';
             $fix = ($algo['replacement'] ?? '') !== ''
@@ -290,13 +314,60 @@ final class HtmlReporter implements Reporter
                 htmlspecialchars(mb_strimwidth($finding->evidence, 0, 160, '…')),
                 htmlspecialchars($finding->because),
                 $detail,
-                $fix,
+                $fix.$this->falsePositive($finding),
             );
         }
 
         return \sprintf(
             '<section class="verdict %s"><h2>%s <span class="count">%d</span></h2>%s</section>',
             $verdict, htmlspecialchars(Assessor::label($verdict)), \count($group), $items,
+        );
+    }
+
+    /**
+     * The two ways a finding can be wrong, and the two different places they go.
+     *
+     * Nothing here sends anything: the acceptance is a block of text to paste
+     * into a versioned file, and the report link opens the reader's browser on
+     * a form they fill in themselves. The footer's promise survives.
+     */
+    private function falsePositive(Finding $finding): string
+    {
+        $fingerprint = $finding->fingerprint();
+        $snippet = "\"accepted\": {\n  \"$fingerprint\": {\n    \"reason\": \"…\",\n    \"until\": \"".
+            (new \DateTimeImmutable('+6 months'))->format('Y-m-d')."\"\n  }\n}";
+        $cli = 'sablier accept '.$fingerprint.' --reason="…" --until='.(new \DateTimeImmutable('+6 months'))->format('Y-m-d');
+
+        $body = \sprintf(
+            "Empreinte : %s\nAlgorithme : %s\nVerdict : %s\nFichier : %s:%d\nPreuve : %s\n\nPourquoi ce constat est faux :\n",
+            $fingerprint,
+            $finding->algorithm,
+            Assessor::label($finding->verdict),
+            $finding->file,
+            $finding->line,
+            $finding->evidence,
+        );
+        $href = self::ISSUES_URL.'?title='.rawurlencode('Faux positif : '.$finding->algorithm.' dans '.basename($finding->file))
+            .'&body='.rawurlencode($body).'&labels='.rawurlencode('false-positive');
+
+        return \sprintf(
+            '<details class="fp"><summary>%s <code>%s</code></summary>
+               <p class="fp-intro">%s</p>
+               <p><strong>1.</strong> %s</p>
+               <pre>%s</pre>
+               <p class="fp-cli">%s <code>%s</code></p>
+               <p><strong>2.</strong> %s <a href="%s">%s</a></p>
+             </details>',
+            htmlspecialchars(Lang::t('falsepositive.title')),
+            htmlspecialchars($fingerprint),
+            htmlspecialchars(Lang::t('falsepositive.intro')),
+            htmlspecialchars(Lang::t('falsepositive.accept')),
+            htmlspecialchars($snippet),
+            htmlspecialchars(Lang::t('falsepositive.cli')),
+            htmlspecialchars($cli),
+            htmlspecialchars(Lang::t('falsepositive.report')),
+            htmlspecialchars($href),
+            htmlspecialchars(Lang::t('falsepositive.link')),
         );
     }
 
@@ -370,6 +441,9 @@ final class HtmlReporter implements Reporter
             Lang::t('blind.hsm'),
             Lang::t('blind.lifetime', $this->analysis->declaration->defaultLifetime),
         ];
+        if ($this->analysis->declaration->rejectedAcceptances !== []) {
+            $lines[] = Lang::t('accepted.rejected', \count($this->analysis->declaration->rejectedAcceptances));
+        }
         if ($undetermined !== []) {
             $lines[] = Lang::t(\count($undetermined) > 1 ? 'blind.undetermined.plural' : 'blind.undetermined', \count($undetermined));
         }
@@ -452,6 +526,14 @@ final class HtmlReporter implements Reporter
             .summary summary{cursor:pointer;font-size:.92rem}
             .summary .dom{margin-left:.4rem}
             .files{margin:.6rem 0 0;padding-left:1.1rem;font-family:ui-monospace,Menlo,monospace;font-size:.74rem;color:var(--muted)}
+            .fp{margin-top:.8rem;font-size:.84rem}
+            .fp summary{cursor:pointer;color:var(--muted)}
+            .fp summary code{font-size:.92em}
+            .fp p{margin:.7rem 0 .2rem}
+            .fp-intro{color:var(--muted)}
+            .fp-cli{color:var(--muted)}
+            .verdict.accepted .count{background:var(--muted)}
+            article.accepted h3{opacity:.85}
             .plan{margin-top:3rem;border-top:2px solid var(--ink);padding-top:1.2rem}
             .plan ol{margin:1.4rem 0 0;padding-left:0;list-style:none;counter-reset:step}
             .plan li{counter-increment:step;position:relative;padding:0 0 1.5rem 2.6rem;border-top:1px solid var(--line);padding-top:1.1rem}

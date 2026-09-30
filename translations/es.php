@@ -145,6 +145,7 @@ return [
 
   bin/sablier scan <ruta> [opciones]
   bin/sablier probe <host>          lo que un servidor negocia realmente
+  bin/sablier accept <huella> --reason=…  aceptar un hallazgo, con su fecha de caducidad
 
     --declare=ARCHIVO   declaración de dominios de datos (por defecto: sablier.json en la raíz analizada)
     --out=ARCHIVO       informe HTML (por defecto: report.html)
@@ -233,4 +234,22 @@ Primera acción: %s',
     'detail.framework.db_tls' => 'Conexión a la base de datos cifrada.',
     'detail.framework.session_plain' => 'Contenido de sesión sin cifrar.',
     'detail.env.not_deployed' => 'Este archivo es un valor por defecto versionado: el valor realmente desplegado está en otra parte, y es el que hay que comprobar.',
+
+    // --- accepted findings ---
+    'verdict.accepted' => 'ACEPTADO',
+    'reason.accepted' => 'Hallazgo %s, aceptado por el proyecto hasta el %s.',
+    'reason.acceptance_expired' => '⚠ La aceptación de este hallazgo caducó el %s: vuelve a estar abierto.',
+    'accepted.reason' => 'Motivo indicado',
+    'accepted.until' => 'Hasta',
+    'falsepositive.title' => '¿Falso positivo?',
+    'falsepositive.intro' => 'Dos casos, y no van al mismo sitio.',
+    'falsepositive.accept' => 'La herramienta tiene razón, pero aquí se acepta el hallazgo. Es una decisión del proyecto: añada este bloque a su declaración. Está versionada, así que la revisión ocurre en la revisión de código. El motivo y la fecha de caducidad son obligatorios.',
+    'falsepositive.report' => 'La herramienta se equivoca. Es una regla que corregir, y su sitio es el repositorio de Sablier:',
+    'falsepositive.link' => 'Abrir un aviso precargado',
+    'falsepositive.cli' => 'En línea de comandos:',
+    'accepted.rejected' => '%d aceptación(es) ignorada(s) por faltarle el motivo o la fecha de caducidad: una supresión sin ninguno de los dos no es una decisión.',
+    'cli.accept_usage' => 'uso: sablier accept <huella> --reason="…" [--until=AAAA-MM-DD] [--declare=sablier.json]. El motivo es obligatorio.',
+    'cli.accept_bad_date' => '--until espera una fecha AAAA-MM-DD.',
+    'cli.accept_unreadable' => 'declaración ilegible: %s',
+    'cli.accept_written' => '%s aceptado hasta el %s, escrito en %s. El hallazgo seguirá visible en el informe, en su propia sección.',
 ];

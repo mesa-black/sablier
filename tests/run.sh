@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 
 check() {
 	found=$(php -r '
-		$f = json_decode(file_get_contents("/tmp/sablier-test.json"), true);
+		$f = json_decode(file_get_contents(getenv("SABLIER_TEST_JSON") ?: "/tmp/sablier-test.json"), true);
 		$n = 0;
 		foreach ($f as $x) { if ($x["verdict"] === $argv[1] && $x["algorithm"] === $argv[2]) { ++$n; } }
 		echo $n;
@@ -28,6 +28,29 @@ check watch       rsa-sign 2   # a signature cannot be harvested
 check urgent      sha1     1   # a classical problem, not a quantum one
 check noise       md5      1   # md5 as a cache key is not a vulnerability
 echo
+
+# --- accepting a finding -----------------------------------------------------
+# The two rules that keep this feature from emptying the tool: an accepted
+# finding stays visible under its own verdict, and the acceptance expires.
+acc=$(mktemp -d)/sablier.json
+cp tests/fixtures/sample/sablier.json "$acc"
+fp=$(php -r '
+	$f = json_decode(file_get_contents("/tmp/sablier-test.json"), true);
+	foreach ($f as $x) { if ($x["verdict"] === "urgent") { echo $x["fingerprint"]; break; } }
+')
+
+./bin/sablier accept "$fp" --reason="test" --until=2099-01-01 --declare="$acc" >/dev/null
+export SABLIER_TEST_JSON=/tmp/sablier-acc.json
+./bin/sablier scan tests/fixtures/sample --declare="$acc" --json=/tmp/sablier-acc.json --out=/tmp/sablier-acc.html --quiet || true
+check accepted sha1 1
+
+# The same acceptance, expired, must hand the finding back.
+sed -i.bak 's/2099-01-01/2020-01-01/' "$acc"
+./bin/sablier scan tests/fixtures/sample --declare="$acc" --json=/tmp/sablier-acc.json --out=/tmp/sablier-acc.html --quiet || true
+check urgent sha1 1
+rm -rf "$(dirname "$acc")"
+
+unset SABLIER_TEST_JSON
 
 # --- live probe, against a server we control -------------------------------
 # Pointing the tool at somebody else's host to test our own code is neither

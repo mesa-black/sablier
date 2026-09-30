@@ -19,6 +19,7 @@ final class JsonReporter implements Reporter
     public function render(Analysis $analysis): string
     {
         $findings = array_map(static fn (Finding $f): array => [
+            'fingerprint' => $f->fingerprint(),
             'algorithm' => $f->algorithm,
             'purpose' => $f->purpose,
             'file' => $f->file,
@@ -30,6 +31,7 @@ final class JsonReporter implements Reporter
             'confidence' => $f->confidence,
             'inventory' => $f->inventory,
             'because' => $f->because,
+            'accepted_until' => $f->acceptedUntil,
         ], $analysis->findings);
 
         return (string) json_encode(

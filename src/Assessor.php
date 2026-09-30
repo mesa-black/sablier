@@ -23,6 +23,7 @@ final class Assessor
     public const string CLEAR = 'clear';
     public const string DECLARE = 'declare';
     public const string NOISE = 'noise';
+    public const string ACCEPTED = 'accepted';
 
     public function __construct(
         private readonly Declaration $declaration,
@@ -45,6 +46,7 @@ final class Assessor
             $finding->trustAnchor = $domain['trust_anchor'];
 
             [$finding->verdict, $finding->because] = $this->verdict($finding);
+            $this->applyAcceptance($finding);
         }
 
         return $findings;
@@ -58,7 +60,40 @@ final class Assessor
     /** Order in which a human should read the verdicts. */
     public static function order(): array
     {
-        return [self::COMPROMISED, self::URGENT, self::MIGRATE, self::DECLARE, self::WATCH, self::CLEAR, self::NOISE];
+        return [self::COMPROMISED, self::URGENT, self::MIGRATE, self::DECLARE, self::WATCH, self::ACCEPTED, self::CLEAR, self::NOISE];
+    }
+
+    /**
+     * An accepted finding moves section; it does not disappear.
+     *
+     * The whole value of this feature is in what it refuses to do. A tool where
+     * a finding vanishes in three seconds empties itself within six months —
+     * every linter suppression file ever written says so. So the original
+     * verdict stays attached, the reason is printed, and the acceptance expires
+     * on a date the reader can see.
+     */
+    private function applyAcceptance(Finding $finding): void
+    {
+        $acceptance = $this->declaration->acceptanceFor($finding->fingerprint());
+        if ($acceptance === null || \in_array($finding->verdict, [self::CLEAR, self::NOISE], true)) {
+            return;
+        }
+
+        $finding->acceptedReason = $acceptance['reason'];
+        $finding->acceptedUntil = $acceptance['until'];
+
+        if ($acceptance['expired']) {
+            // The decision lapsed: the finding reopens with its real verdict and
+            // says why it is back.
+            $finding->acceptanceExpired = true;
+            $finding->because = Lang::t('reason.acceptance_expired', $acceptance['until']).' '.$finding->because;
+
+            return;
+        }
+
+        $finding->originalVerdict = $finding->verdict;
+        $finding->verdict = self::ACCEPTED;
+        $finding->because = Lang::t('reason.accepted', Assessor::label($finding->originalVerdict), $acceptance['until']);
     }
 
     /** @return array{0:string, 1:string} */
