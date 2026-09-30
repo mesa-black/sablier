@@ -37,6 +37,15 @@ final class Catalogue
         'des' => ['label' => 'DES / 3DES', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
         'rc4' => ['label' => 'RC4', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
 
+        // No cryptography at all. In the catalogue because the report has to be
+        // able to say it in the same sentence structure as everything else.
+        'plaintext' => ['label' => 'Aucun chiffrement', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
+
+        // Not an algorithm but a protocol version; it belongs here because the
+        // report speaks about it in exactly the same terms: broken today,
+        // nothing to do with quantum computing.
+        'tls-obsolete' => ['label' => 'TLS 1.0 / 1.1', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
+
         'md5' => ['label' => 'MD5', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
         'sha1' => ['label' => 'SHA-1', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
         'sha256' => ['label' => 'SHA-256', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],

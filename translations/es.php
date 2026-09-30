@@ -198,4 +198,13 @@ return [
 Primera acción: %s',
     'action.declare.plural.body' => '%d dominios siguen con la duración por defecto. Mientras sea así, los veredictos anteriores son aproximaciones presentadas con aplomo. Es una hora de trabajo con alguien que conoce el negocio y no la técnica: ¿cuánto tiempo debe permanecer en secreto cada categoría de datos? El archivo se relee, se discute y se versiona.',
     'action.broken.plural.body' => '%d usos se apoyan en un algoritmo roto clásicamente. No hace falta ningún razonamiento cuántico: el plazo fue hace diez años, el reemplazo se conoce y no exige un proyecto. Hay que tratarlo antes que nada relacionado con la transición post-cuántica, porque es más barato y ya es explotable.',
+    'probe.fact.service' => 'servicio',
+    'algo.tls-obsolete.note' => 'Versión de TLS obsoleta: ataques conocidos, sin relación con lo cuántico.',
+    'algo.tls-obsolete.replacement' => 'TLS 1.2 como mínimo, TLS 1.3 preferiblemente',
+    'probe.fact.state' => 'estado',
+    'probe.state.plaintext' => 'responde, pero se niega a cifrar',
+    'probe.evidence.no_upgrade' => '%s accesible, solicitud de cifrado rechazada',
+    'probe.detail.no_upgrade' => 'El servicio acepta la conexión y rechaza el paso a TLS: la sesión queda legible en la red. Aquí no hay razonamiento cuántico: es texto claro hoy.',
+    'algo.plaintext.note' => 'Ninguna protección.',
+    'algo.plaintext.replacement' => 'Exigir TLS en el servidor y rechazar las conexiones en claro',
 ];

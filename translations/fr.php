@@ -207,4 +207,13 @@ return [
 Première action : %s',
     'action.declare.plural.body' => '%d domaines tournent encore avec la durée par défaut. Tant que c\'est le cas, les verdicts ci-dessus sont des approximations présentées avec assurance. C\'est une heure de travail avec quelqu\'un qui connaît le métier et non la technique : combien de temps chaque catégorie de donnée doit-elle rester secrète ? Le fichier se relit, se discute et se versionne.',
     'action.broken.plural.body' => '%d usages reposent sur un algorithme cassé classiquement. Aucun raisonnement quantique n\'est nécessaire : l\'échéance était il y a dix ans, le remplacement est connu et ne demande pas un projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c\'est moins cher et déjà exploitable.',
+    'probe.fact.service' => 'service',
+    'algo.tls-obsolete.note' => 'Version de TLS obsolète : attaques connues et indépendantes du quantique.',
+    'algo.tls-obsolete.replacement' => 'TLS 1.2 au minimum, TLS 1.3 de préférence',
+    'probe.fact.state' => 'état',
+    'probe.state.plaintext' => 'répond, mais refuse de chiffrer',
+    'probe.evidence.no_upgrade' => '%s joignable, demande de chiffrement refusée',
+    'probe.detail.no_upgrade' => 'Le service accepte la connexion et décline le passage en TLS : la session reste lisible sur le réseau. Aucun raisonnement quantique ici — c\'est du texte clair aujourd\'hui.',
+    'algo.plaintext.note' => 'Aucune protection.',
+    'algo.plaintext.replacement' => 'Imposer TLS côté serveur et refuser les connexions en clair',
 ];

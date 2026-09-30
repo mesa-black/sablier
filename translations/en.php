@@ -198,4 +198,13 @@ return [
 First action: %s',
     'action.declare.plural.body' => '%d domains still run on the default lifetime. While that holds, the verdicts above are approximations delivered in a confident typeface. It is an hour of work with someone who knows the business rather than the technology: how long must each category of data stay secret? The file gets read, argued over and versioned.',
     'action.broken.plural.body' => '%d uses rest on a classically broken algorithm. No quantum reasoning is needed: the deadline was ten years ago, the replacement is known and does not need a project. Handle this before anything about the post-quantum transition, because it is cheaper and already exploitable.',
+    'probe.fact.service' => 'service',
+    'algo.tls-obsolete.note' => 'Obsolete TLS version: known attacks, unrelated to quantum computing.',
+    'algo.tls-obsolete.replacement' => 'TLS 1.2 at minimum, TLS 1.3 preferably',
+    'probe.fact.state' => 'state',
+    'probe.state.plaintext' => 'answers, but refuses to encrypt',
+    'probe.evidence.no_upgrade' => '%s reachable, encryption request declined',
+    'probe.detail.no_upgrade' => 'The service accepts the connection and declines the upgrade to TLS: the session stays readable on the wire. No quantum reasoning here — it is cleartext today.',
+    'algo.plaintext.note' => 'No protection at all.',
+    'algo.plaintext.replacement' => 'Require TLS server-side and refuse cleartext connections',
 ];

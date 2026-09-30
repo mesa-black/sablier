@@ -58,5 +58,33 @@ if command -v openssl >/dev/null 2>&1; then
 else
 	echo "  · probe test skipped: no openssl binary"
 fi
+# --- STARTTLS dialogues ------------------------------------------------------
+# Mail servers belong to other people; these dialogues are checked against a
+# twenty-line local server instead.
+tmp=$(mktemp -d)
+openssl req -x509 -newkey rsa:2048 -keyout "$tmp/k.pem" -out "$tmp/c.pem" \
+	-days 2 -nodes -subj "/CN=localhost" 2>/dev/null
+
+port=14600
+for proto in smtp imap pop3; do
+	port=$((port + 1))
+	php tests/starttls-server.php "$proto" "$port" "$tmp/c.pem" "$tmp/k.pem" >/dev/null 2>&1 &
+	fake=$!
+	sleep 1
+
+	got=$(./bin/sablier probe "$proto://127.0.0.1:$port" 2>/dev/null | grep -c 'TLSv1' || true)
+	kill "$fake" 2>/dev/null || true
+	wait "$fake" 2>/dev/null || true
+
+	if [ "$got" -ge 1 ]; then
+		printf '  ✓ %-24s %-10s %s\n' "starttls" "$proto" "upgraded"
+	else
+		echo "✗ starttls $proto: no TLS after the upgrade"
+		rm -rf "$tmp"
+		exit 1
+	fi
+done
+rm -rf "$tmp"
+
 echo
-echo "✓ the risk model still discriminates, and the probe reads the group"
+echo "✓ the risk model still discriminates, and every transport reaches TLS"
