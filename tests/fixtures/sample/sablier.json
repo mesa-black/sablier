@@ -1,0 +1,18 @@
+{
+  "project": "Jeu d'essai",
+  "deprecation_year": 2030,
+  "expiry_year": 2035,
+  "default_lifetime_years": 3,
+  "domains": {
+    "sauvegardes": {
+      "paths": ["deploy/backup.sh", "deploy/*backup*"],
+      "lifetime_years": 10,
+      "note": "Contient la base entière, dont dix ans de pièces comptables."
+    },
+    "jetons de session": {
+      "paths": ["src/Tokens.php"],
+      "lifetime_years": 1,
+      "trust_anchor": false
+    }
+  }
+}

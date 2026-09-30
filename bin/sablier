@@ -1,0 +1,95 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Sablier — inventaire cryptographique, et date de péremption des protections.
+ *
+ *   bin/sablier scan <chemin> [--declare=sablier.json] [--out=report.html] [--json=cbom.json]
+ *
+ * Aucune dépendance, aucun réseau, aucune télémétrie. Sur un outil qui lit là
+ * où sont les clés, ce n'est pas une posture : chaque dépendance serait une
+ * chaîne d'approvisionnement de plus à défendre.
+ */
+
+namespace Sablier;
+
+foreach (['Catalogue', 'Declaration', 'Finding', 'Scanner', 'Assessor', 'Report'] as $class) {
+    require __DIR__.'/../src/'.$class.'.php';
+}
+
+$argv = $_SERVER['argv'];
+$command = $argv[1] ?? 'help';
+
+if ($command !== 'scan') {
+    fwrite(\STDOUT, <<<TXT
+        Sablier — ce qui est chiffré chez vous, et jusqu'à quand ça tient.
+
+          bin/sablier scan <chemin> [options]
+
+            --declare=FICHIER   déclaration des domaines de données (défaut : sablier.json à la racine analysée)
+            --out=FICHIER       rapport HTML (défaut : report.html)
+            --json=FICHIER      inventaire brut en JSON
+            --quiet             pas de résumé au terminal
+
+        TXT);
+    exit($command === 'help' ? 0 : 1);
+}
+
+$target = null;
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'quiet' => false];
+foreach (\array_slice($argv, 2) as $arg) {
+    if ($arg === '--quiet') {
+        $options['quiet'] = true;
+    } elseif (preg_match('/^--(declare|out|json)=(.+)$/', $arg, $m) === 1) {
+        $options[$m[1]] = $m[2];
+    } elseif (!str_starts_with($arg, '--')) {
+        $target = $arg;
+    }
+}
+
+if ($target === null || !is_dir($target)) {
+    fwrite(\STDERR, "✗ chemin à analyser manquant ou introuvable\n");
+    exit(1);
+}
+
+$declarationPath = $options['declare'] ?? (is_file($target.'/sablier.json') ? $target.'/sablier.json' : null);
+$declaration = Declaration::load($declarationPath);
+$currentYear = (int) date('Y');
+
+$scan = (new Scanner())->scan($target);
+$findings = (new Assessor($declaration, $currentYear))->assess($scan['findings']);
+
+$report = new Report($findings, $declaration, $target, $scan['files'], $scan['blind'], $currentYear);
+file_put_contents($options['out'], $report->html());
+
+if ($options['json'] !== null) {
+    file_put_contents($options['json'], json_encode(array_map(static fn (Finding $f): array => [
+        'algorithm' => $f->algorithm, 'purpose' => $f->purpose, 'file' => $f->file, 'line' => $f->line,
+        'domain' => $f->domain, 'declared' => $f->domainDeclared, 'lifetime_years' => $f->lifetime,
+        'verdict' => $f->verdict, 'confidence' => $f->confidence, 'because' => $f->because,
+    ], $findings), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES));
+}
+
+if ($options['quiet']) {
+    exit(0);
+}
+
+$counts = [];
+foreach ($findings as $finding) {
+    $counts[$finding->verdict] = ($counts[$finding->verdict] ?? 0) + 1;
+}
+
+printf("\n  %s — %d fichiers lus, %d constats\n", $target, $scan['files'], \count($findings));
+printf("  déclaration : %s\n\n", $declarationPath ?? 'aucune (durées par défaut)');
+foreach (Assessor::order() as $verdict) {
+    if (isset($counts[$verdict])) {
+        printf("    %-24s %d\n", $verdict, $counts[$verdict]);
+    }
+}
+printf("\n  → %s\n\n", $options['out']);
+
+// Sortie non nulle quand une donnée à longue durée est déjà exposée : c'est ce
+// qui permet d'en faire une étape de chaîne d'intégration.
+exit(($counts[Assessor::COMPROMISED] ?? 0) > 0 ? 2 : 0);

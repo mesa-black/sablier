@@ -1,0 +1,31 @@
+{
+  "project": "Show me the REX",
+  "expiry_year": 2035,
+  "default_lifetime_years": 3,
+  "domains": {
+    "contenu public": {
+      "paths": ["src/Entity/Feedback*", "templates/*", "src/Controller/Public*"],
+      "lifetime_years": 0,
+      "note": "Les REX sont publiés : leur confidentialité n'a aucune durée à protéger."
+    },
+    "facturation": {
+      "paths": ["src/Billing/*", "src/Entity/Invoice*", "src/Entity/Subscription*"],
+      "lifetime_years": 10,
+      "note": "Pièces comptables : dix ans de conservation légale."
+    },
+    "authentification": {
+      "paths": ["src/Security/*", "src/Entity/Credential*", "src/Entity/User*", "config/packages/security.yaml"],
+      "lifetime_years": 3,
+      "note": "Secrets d'authentification, rotation raisonnable."
+    },
+    "transport et session": {
+      "paths": ["Caddyfile", "*.conf", "config/packages/framework.yaml"],
+      "lifetime_years": 1
+    },
+    "dépendances déclarées": {
+      "paths": ["composer.lock", "package-lock.json"],
+      "lifetime_years": 0,
+      "note": "Inventaire, pas usage : la durée ne s'applique pas ici."
+    }
+  }
+}
