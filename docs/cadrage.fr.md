@@ -240,13 +240,16 @@ Trois partis pris :
 - Matériel de clé et certificats présents dans l'arborescence.
 - Configuration TLS déclarée (Caddy, nginx).
 - Fichier de déclaration des domaines de données et de leur durée.
-- Rapport HTML autonome + sortie JSON.
+- Rapport HTML autonome + sortie JSON, en trois langues.
+- **Sonde TLS active** : une poignée de main ordinaire, pour confronter ce que le
+  dépôt déclare à ce que le serveur négocie réellement. Livrée dès le premier
+  jet, contre le plan initial, parce que le premier scan a montré que l'essentiel
+  se joue souvent hors du dépôt.
 - **Zéro dépendance.** Pour un outil qui lit des clés, chaque dépendance est une
   chaîne d'approvisionnement à défendre. C'est aussi un argument de vente.
 
 **Dehors, explicitement**
 
-- Sonde réseau active (un autre outil, plus tard).
 - Autres langages (JS, Go, Python) — après validation de la thèse.
 - Correction automatique. Un outil qui réécrit de la cryptographie sans
   comprendre le contexte est un générateur d'incidents.
@@ -274,8 +277,11 @@ Trois partis pris :
 
 ## 8. Ce qu'on fait maintenant
 
-1. Scanner Show me the REX. Compter les vraies alertes et les fausses. Le
-   rapport bruit/signal décide de la suite, pas l'enthousiasme.
+1. ~~Scanner Show me the REX. Compter les vraies alertes et les fausses.~~
+   **Fait.** 17 constats, aucune alerte rouge, et deux faux positifs sur la
+   première version — corrigés depuis par la séparation entre inventaire et
+   usage. La sonde a par ailleurs trouvé ce qu'aucun fichier ne disait : le site
+   négocie déjà X25519MLKEM768.
 2. Écrire le fichier de déclaration pour ce projet-là — et mesurer combien de
    temps ça prend réellement à quelqu'un qui connaît le code.
 3. Si le résultat tient, publier le premier retour d'expérience.

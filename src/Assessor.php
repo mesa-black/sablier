@@ -16,13 +16,13 @@ namespace Sablier;
  */
 final class Assessor
 {
-    public const string COMPROMISED = 'COMPROMIS';
-    public const string MIGRATE = 'À MIGRER';
-    public const string URGENT = 'CASSÉ AUJOURD\'HUI';
-    public const string WATCH = 'SURVEILLER';
-    public const string CLEAR = 'CONFORME';
-    public const string DECLARE = 'À DÉCLARER';
-    public const string NOISE = 'PROBABLEMENT HORS SUJET';
+    public const string COMPROMISED = 'compromised';
+    public const string MIGRATE = 'migrate';
+    public const string URGENT = 'urgent';
+    public const string WATCH = 'watch';
+    public const string CLEAR = 'clear';
+    public const string DECLARE = 'declare';
+    public const string NOISE = 'noise';
 
     public function __construct(
         private readonly Declaration $declaration,
@@ -50,20 +50,31 @@ final class Assessor
         return $findings;
     }
 
+    public static function label(string $verdict): string
+    {
+        return Lang::t("verdict.$verdict");
+    }
+
+    /** Order in which a human should read the verdicts. */
+    public static function order(): array
+    {
+        return [self::COMPROMISED, self::URGENT, self::MIGRATE, self::DECLARE, self::WATCH, self::CLEAR, self::NOISE];
+    }
+
     /** @return array{0:string, 1:string} */
     private function verdict(Finding $finding): array
     {
-        if ($finding->algorithm === 'indéterminé') {
-            return [self::DECLARE, "L'algorithme n'est pas lisible depuis le code. À confirmer à la main plutôt qu'à deviner."];
+        if ($finding->algorithm === 'undetermined') {
+            return [self::DECLARE, Lang::t('reason.undetermined')];
         }
 
         $algo = Catalogue::get($finding->algorithm);
         if ($algo === null) {
-            return [self::DECLARE, 'Algorithme hors catalogue.'];
+            return [self::DECLARE, Lang::t('reason.unknown_algorithm')];
         }
 
         if ($finding->likelyNonCrypto) {
-            return [self::NOISE, "Ressemble à un identifiant (clé de cache, empreinte) plutôt qu'à un contrôle de sécurité. À confirmer, pas à corriger."];
+            return [self::NOISE, Lang::t('reason.noise')];
         }
 
         if ($algo['broken']) {
@@ -71,48 +82,37 @@ final class Assessor
             // mandate the weak primitive — TOTP is specified on SHA-1 — so this
             // is something to confirm, never something to declare broken.
             if ($finding->inventory) {
-                return [self::WATCH, "Dépendance déclarée employant {$algo['label']}. Peut être imposé par la spécification du protocole, ou jamais appelé : à confirmer avant toute action."];
+                return [self::WATCH, Lang::t('reason.inventory_broken', $algo['label'])];
             }
 
-            return [self::URGENT, "Cassé classiquement, indépendamment du quantique. L'échéance était hier."];
+            return [self::URGENT, Lang::t('reason.broken')];
         }
 
         if (!$algo['quantum']) {
-            return [self::CLEAR, $algo['note'] !== '' ? $algo['note'] : 'Résiste aux algorithmes quantiques connus.'];
+            return [self::CLEAR, $algo['note'] !== '' ? $algo['note'] : Lang::t('reason.quantum_safe')];
         }
 
         if ($algo['purpose'] === Catalogue::PURPOSE_AUTHENTICITY) {
             if ($finding->trustAnchor) {
-                return [self::MIGRATE, "Ancre de confiance à longue durée : une signature qui doit rester vérifiable après {$this->declaration->expiryYear} se prépare maintenant."];
+                return [self::MIGRATE, Lang::t('reason.trust_anchor', $this->declaration->expiryYear)];
             }
 
-            return [self::WATCH, "Signature : pas de récolte possible. À migrer avant {$this->declaration->deprecationYear} pour la conformité, sans urgence de confidentialité."];
+            return [self::WATCH, Lang::t('reason.signature', $this->declaration->deprecationYear)];
         }
 
         $exposureEnd = $this->currentYear + $finding->lifetime;
         if ($exposureEnd > $this->declaration->expiryYear) {
-            $suffix = $finding->domainDeclared ? '' : ' (durée par défaut, ce domaine n\'est pas déclaré : le chiffre est à confirmer)';
+            $gap = $exposureEnd - $this->declaration->expiryYear;
 
-            return [self::COMPROMISED, \sprintf(
-                'Chiffré aujourd\'hui, à garder confidentiel jusqu\'en %d — soit %d %s après la péremption de %s. Une capture faite maintenant sera lisible.%s',
+            return [self::COMPROMISED, Lang::t(
+                'reason.harvested',
                 $exposureEnd,
-                $gap = $exposureEnd - $this->declaration->expiryYear,
-                $gap > 1 ? 'ans' : 'an',
+                $gap,
+                Lang::t($gap > 1 ? 'unit.years' : 'unit.year'),
                 $algo['label'],
-                $suffix,
-            )];
+            ).($finding->domainDeclared ? '' : ' '.Lang::t('reason.undeclared_domain'))];
         }
 
-        return [self::WATCH, \sprintf(
-            'La donnée cesse d\'être sensible en %d, avant la péremption de %d. Migration à planifier pour le système, pas pour sauver cette donnée.',
-            $exposureEnd,
-            $this->declaration->expiryYear,
-        )];
-    }
-
-    /** Order in which a human should read the verdicts. */
-    public static function order(): array
-    {
-        return [self::COMPROMISED, self::URGENT, self::MIGRATE, self::DECLARE, self::WATCH, self::CLEAR, self::NOISE];
+        return [self::WATCH, Lang::t('reason.short_lived', $exposureEnd, $this->declaration->expiryYear)];
     }
 }

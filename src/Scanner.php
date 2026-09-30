@@ -93,18 +93,18 @@ final class Scanner
             // Symmetric encryption with a literal cipher.
             ['/openssl_(?:en|de)crypt\s*\(\s*[^,]+,\s*[\'"]([a-z0-9\-]+)[\'"]/i', 'capture', Catalogue::PURPOSE_CONFIDENTIALITY, ''],
             // …and with the cipher coming from somewhere else.
-            ['/openssl_(?:en|de)crypt\s*\(\s*[^,]+,\s*[\$A-Z]/', null, Catalogue::PURPOSE_CONFIDENTIALITY, "Le chiffre vient d'une variable ou d'une constante."],
+            ['/openssl_(?:en|de)crypt\s*\(\s*[^,]+,\s*[\$A-Z]/', null, Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.cipher_from_variable')],
             // Key generation.
-            ['/OPENSSL_KEYTYPE_RSA/', 'rsa', Catalogue::PURPOSE_CONFIDENTIALITY, 'Génération de clé RSA.'],
-            ['/OPENSSL_KEYTYPE_EC/', 'ecdsa', Catalogue::PURPOSE_AUTHENTICITY, 'Génération de clé sur courbe elliptique.'],
+            ['/OPENSSL_KEYTYPE_RSA/', 'rsa', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.rsa_keygen')],
+            ['/OPENSSL_KEYTYPE_EC/', 'ecdsa', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.ec_keygen')],
             // Signatures.
-            ['/openssl_sign\s*\(/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, 'Signature OpenSSL (clé à confirmer).'],
-            ['/openssl_verify\s*\(/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, 'Vérification de signature OpenSSL.'],
+            ['/openssl_sign\s*\(/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.openssl_sign')],
+            ['/openssl_verify\s*\(/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.openssl_verify')],
             // libsodium.
-            ['/sodium_crypto_box\w*\s*\(/', 'ecdh', Catalogue::PURPOSE_CONFIDENTIALITY, 'X25519 sous le capot.'],
-            ['/sodium_crypto_kx\w*\s*\(/', 'ecdh', Catalogue::PURPOSE_CONFIDENTIALITY, 'Échange de clés X25519.'],
-            ['/sodium_crypto_sign\w*\s*\(/', 'ed25519', Catalogue::PURPOSE_AUTHENTICITY, 'Signature Ed25519.'],
-            ['/sodium_crypto_secretbox\w*\s*\(/', 'chacha20', Catalogue::PURPOSE_CONFIDENTIALITY, 'XSalsa20-Poly1305.'],
+            ['/sodium_crypto_box\w*\s*\(/', 'ecdh', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.sodium_box')],
+            ['/sodium_crypto_kx\w*\s*\(/', 'ecdh', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.sodium_kx')],
+            ['/sodium_crypto_sign\w*\s*\(/', 'ed25519', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.sodium_sign')],
+            ['/sodium_crypto_secretbox\w*\s*\(/', 'chacha20', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.sodium_secretbox')],
             ['/sodium_crypto_aead_\w+\s*\(/', 'chacha20', Catalogue::PURPOSE_CONFIDENTIALITY, ''],
             // Hashes.
             ['/\bhash(?:_hmac)?\s*\(\s*[\'"]([a-z0-9\-]+)[\'"]/i', 'capture', Catalogue::PURPOSE_INTEGRITY, ''],
@@ -114,12 +114,12 @@ final class Scanner
             ['/PASSWORD_BCRYPT|PASSWORD_DEFAULT/', 'bcrypt', Catalogue::PURPOSE_INTEGRITY, ''],
             ['/PASSWORD_ARGON2\w*/', 'argon2', Catalogue::PURPOSE_INTEGRITY, ''],
             // JWT / JOSE algorithms as literals.
-            ['/[\'"](RS(?:256|384|512))[\'"]/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, 'Algorithme JWT.'],
-            ['/[\'"](PS(?:256|384|512))[\'"]/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, 'Algorithme JWT.'],
-            ['/[\'"](ES(?:256|384|512))[\'"]/', 'ecdsa', Catalogue::PURPOSE_AUTHENTICITY, 'Algorithme JWT.'],
-            ['/[\'"]EdDSA[\'"]/', 'ed25519', Catalogue::PURPOSE_AUTHENTICITY, 'Algorithme JWT.'],
+            ['/[\'"](RS(?:256|384|512))[\'"]/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.jwt')],
+            ['/[\'"](PS(?:256|384|512))[\'"]/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.jwt')],
+            ['/[\'"](ES(?:256|384|512))[\'"]/', 'ecdsa', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.jwt')],
+            ['/[\'"]EdDSA[\'"]/', 'ed25519', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.jwt')],
             // Dead libraries.
-            ['/\bmcrypt_\w+\s*\(/', 'des', Catalogue::PURPOSE_CONFIDENTIALITY, 'mcrypt est retiré de PHP depuis 7.2.'],
+            ['/\bmcrypt_\w+\s*\(/', 'des', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.mcrypt')],
         ];
 
         foreach ($rules as [$pattern, $algorithm, $purpose, $detail]) {
@@ -139,7 +139,7 @@ final class Scanner
                 }
 
                 $this->findings[] = new Finding(
-                    algorithm: $resolved ?? 'indéterminé',
+                    algorithm: $resolved ?? 'undetermined',
                     purpose: $purpose,
                     file: $rel,
                     line: $line,
@@ -172,14 +172,14 @@ final class Scanner
     private function shell(string $content, string $rel): void
     {
         $rules = [
-            ['/openssl\s+enc\b[^\n]*-(aes-?256[a-z0-9\-]*)/i', 'aes-256', Catalogue::PURPOSE_CONFIDENTIALITY, 'Chiffrement symétrique en ligne de commande.'],
-            ['/openssl\s+enc\b[^\n]*-(aes-?128[a-z0-9\-]*)/i', 'aes-128', Catalogue::PURPOSE_CONFIDENTIALITY, 'Chiffrement symétrique en ligne de commande.'],
+            ['/openssl\s+enc\b[^\n]*-(aes-?256[a-z0-9\-]*)/i', 'aes-256', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.cli_symmetric')],
+            ['/openssl\s+enc\b[^\n]*-(aes-?128[a-z0-9\-]*)/i', 'aes-128', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.cli_symmetric')],
             ['/openssl\s+enc\b[^\n]*-(des3|des)/i', 'des', Catalogue::PURPOSE_CONFIDENTIALITY, ''],
-            ['/openssl\s+genrsa|newkey\s+rsa:/i', 'rsa', Catalogue::PURPOSE_CONFIDENTIALITY, 'Génération de clé RSA.'],
-            ['/openssl\s+ecparam|newkey\s+ec:/i', 'ecdsa', Catalogue::PURPOSE_AUTHENTICITY, 'Génération de clé sur courbe elliptique.'],
-            ['/gpg\b[^\n]*--cipher-algo\s+(AES256|AES128|3DES)/i', 'capture', Catalogue::PURPOSE_CONFIDENTIALITY, 'Chiffrement GPG.'],
-            ['/ssh-keygen\b[^\n]*-t\s+(rsa|ed25519|ecdsa)/i', 'capture-ssh', Catalogue::PURPOSE_AUTHENTICITY, 'Génération de clé SSH.'],
-            ['/\bage\s+-r\b/', 'chacha20', Catalogue::PURPOSE_CONFIDENTIALITY, 'Chiffrement age (X25519 + ChaCha20).'],
+            ['/openssl\s+genrsa|newkey\s+rsa:/i', 'rsa', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.rsa_keygen')],
+            ['/openssl\s+ecparam|newkey\s+ec:/i', 'ecdsa', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.ec_keygen')],
+            ['/gpg\b[^\n]*--cipher-algo\s+(AES256|AES128|3DES)/i', 'capture', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.gpg')],
+            ['/ssh-keygen\b[^\n]*-t\s+(rsa|ed25519|ecdsa)/i', 'capture-ssh', Catalogue::PURPOSE_AUTHENTICITY, Lang::t('detail.ssh_keygen')],
+            ['/\bage\s+-r\b/', 'chacha20', Catalogue::PURPOSE_CONFIDENTIALITY, Lang::t('detail.age')],
         ];
 
         foreach ($rules as [$pattern, $algorithm, $purpose, $detail]) {
@@ -206,10 +206,10 @@ final class Scanner
     private function keyMaterial(string $content, string $rel): void
     {
         $map = [
-            'BEGIN RSA PRIVATE KEY' => ['rsa', 'Clé privée RSA en clair dans l\'arborescence.'],
-            'BEGIN EC PRIVATE KEY' => ['ecdsa', 'Clé privée sur courbe elliptique.'],
-            'BEGIN OPENSSH PRIVATE KEY' => ['ed25519', 'Clé privée OpenSSH (type à confirmer).'],
-            'BEGIN DSA PRIVATE KEY' => ['dh', 'Clé DSA.'],
+            'BEGIN RSA PRIVATE KEY' => ['rsa', Lang::t('detail.rsa_private_key')],
+            'BEGIN EC PRIVATE KEY' => ['ecdsa', Lang::t('detail.ec_private_key')],
+            'BEGIN OPENSSH PRIVATE KEY' => ['ed25519', Lang::t('detail.openssh_private_key')],
+            'BEGIN DSA PRIVATE KEY' => ['dh', Lang::t('detail.dsa_key')],
         ];
         foreach ($map as $marker => [$algorithm, $detail]) {
             if (str_contains($content, $marker)) {
@@ -222,13 +222,13 @@ final class Scanner
             if (\is_array($parsed)) {
                 $sig = (string) ($parsed['signatureTypeSN'] ?? '');
                 $algorithm = str_contains($sig, 'ECDSA') ? 'ecdsa' : 'rsa-sign';
-                $this->findings[] = new Finding($algorithm, Catalogue::PURPOSE_AUTHENTICITY, $rel, 1, $sig, Finding::CONFIDENCE_HIGH, false, 'Certificat X.509.');
+                $this->findings[] = new Finding($algorithm, Catalogue::PURPOSE_AUTHENTICITY, $rel, 1, $sig, Finding::CONFIDENCE_HIGH, false, Lang::t('detail.x509'));
             }
         }
 
         foreach (['ssh-rsa' => 'rsa-sign', 'ecdsa-sha2-' => 'ecdsa', 'ssh-ed25519' => 'ed25519'] as $marker => $algorithm) {
             if (str_contains($content, $marker)) {
-                $this->findings[] = new Finding($algorithm, Catalogue::PURPOSE_AUTHENTICITY, $rel, 1, $marker, Finding::CONFIDENCE_HIGH, false, 'Clé SSH.');
+                $this->findings[] = new Finding($algorithm, Catalogue::PURPOSE_AUTHENTICITY, $rel, 1, $marker, Finding::CONFIDENCE_HIGH, false, Lang::t('detail.ssh_key'));
             }
         }
     }
@@ -246,23 +246,23 @@ final class Scanner
                 line: $this->lineOf($content, $offset),
                 evidence: trim($hit),
                 confidence: Finding::CONFIDENCE_MEDIUM,
-                detail: "Configuration TLS déclarée. Ce qui est réellement négocié demande une sonde active.",
+                detail: Lang::t('detail.tls_config'),
             );
         }
-        $this->blindSpots[] = "Configuration TLS lue dans $rel : c'est la déclaration, pas la négociation réelle.";
+        $this->blindSpots[] = Lang::t('blind.tls_config', $rel);
     }
 
     private function composerLock(string $content, string $rel): void
     {
         $known = [
-            'firebase/php-jwt' => ['rsa-sign', 'Jetons JWT.'],
-            'lcobucci/jwt' => ['rsa-sign', 'Jetons JWT.'],
-            'web-token/jwt-framework' => ['rsa-sign', 'JOSE.'],
-            'phpseclib/phpseclib' => ['rsa', 'Cryptographie généraliste en PHP pur.'],
-            'paragonie/halite' => ['chacha20', 'Surcouche libsodium.'],
-            'defuse/php-encryption' => ['aes-256', 'Chiffrement symétrique.'],
-            'web-auth/webauthn-lib' => ['ecdsa', 'Passkeys : signatures ECDSA/EdDSA côté authentificateur.'],
-            'spomky-labs/otphp' => ['sha1', 'TOTP : SHA-1 par spécification, sans enjeu quantique.'],
+            'firebase/php-jwt' => ['rsa-sign', 'detail.pkg.jwt'],
+            'lcobucci/jwt' => ['rsa-sign', 'detail.pkg.jwt'],
+            'web-token/jwt-framework' => ['rsa-sign', 'detail.pkg.jose'],
+            'phpseclib/phpseclib' => ['rsa', 'detail.pkg.phpseclib'],
+            'paragonie/halite' => ['chacha20', 'detail.pkg.halite'],
+            'defuse/php-encryption' => ['aes-256', 'detail.pkg.symmetric'],
+            'web-auth/webauthn-lib' => ['ecdsa', 'detail.pkg.webauthn'],
+            'spomky-labs/otphp' => ['sha1', 'detail.pkg.totp'],
         ];
         foreach ($known as $package => [$algorithm, $detail]) {
             $pos = strpos($content, '"'.$package.'"');
@@ -276,7 +276,7 @@ final class Scanner
                 line: $this->lineOf($content, $pos),
                 evidence: $package,
                 confidence: Finding::CONFIDENCE_MEDIUM,
-                detail: $detail.' Dépendance déclarée : l\'usage réel reste à confirmer.',
+                detail: Lang::t($detail).' '.Lang::t('detail.declared_dependency'),
                 inventory: true,
             );
         }

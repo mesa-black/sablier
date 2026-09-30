@@ -11,6 +11,9 @@ namespace Sablier;
  * cryptographically relevant quantum computer arrives. It uses the regulatory
  * deadline as the planning date, which is a fact we can cite rather than a
  * number we invented.
+ *
+ * Only structure lives here. Labels are universal (RSA is RSA everywhere);
+ * notes and replacement advice are sentences, so they live in the translations.
  */
 final class Catalogue
 {
@@ -19,67 +22,45 @@ final class Catalogue
     public const string PURPOSE_INTEGRITY = 'integrity';
     public const string PURPOSE_UNKNOWN = 'unknown';
 
-    /**
-     * @var array<string, array{label:string, purpose:string, quantum:bool, broken:bool, replacement:string, note:string}>
-     */
+    /** @var array<string, array{label:string, purpose:string, quantum:bool, broken:bool}> */
     private const array ALGORITHMS = [
-        // Asymmetric — the whole point of the exercise.
-        'rsa' => ['label' => 'RSA', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => true, 'broken' => false,
-            'replacement' => 'ML-KEM (chiffrement) ou ML-DSA (signature), en hybride pendant la transition',
-            'note' => "Cassable par l'algorithme de Shor. La taille de clé n'y change rien."],
-        'rsa-sign' => ['label' => 'RSA (signature)', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => true, 'broken' => false,
-            'replacement' => 'ML-DSA, ou SLH-DSA pour une ancre de confiance longue durée',
-            'note' => "Signature : pas de récolte possible, l'urgence dépend de la durée de vie de la clé."],
-        'ecdsa' => ['label' => 'ECDSA', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => true, 'broken' => false,
-            'replacement' => 'ML-DSA', 'note' => "Même exposition que RSA à Shor, sur des clés plus courtes."],
-        'ecdh' => ['label' => 'ECDH / X25519', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => true, 'broken' => false,
-            'replacement' => 'X25519 + ML-KEM en hybride',
-            'note' => "Échange de clés : la cible principale de la récolte, puisqu'il protège le trafic."],
-        'ed25519' => ['label' => 'Ed25519', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => true, 'broken' => false,
-            'replacement' => 'ML-DSA', 'note' => "Excellent classiquement, vulnérable quantiquement comme toute courbe."],
-        'dh' => ['label' => 'Diffie-Hellman', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => true, 'broken' => false,
-            'replacement' => 'ML-KEM en hybride', 'note' => ''],
+        'rsa' => ['label' => 'RSA', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => true, 'broken' => false],
+        'rsa-sign' => ['label' => 'RSA', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => true, 'broken' => false],
+        'ecdsa' => ['label' => 'ECDSA', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => true, 'broken' => false],
+        'ecdh' => ['label' => 'ECDH / X25519', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => true, 'broken' => false],
+        'ed25519' => ['label' => 'Ed25519', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => true, 'broken' => false],
+        'dh' => ['label' => 'Diffie-Hellman', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => true, 'broken' => false],
 
-        // Symmetric — mostly fine, and saying so avoids pointless migrations.
-        'aes-128' => ['label' => 'AES-128', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false,
-            'replacement' => 'AES-256', 'note' => "Grover ramène la marge à 64 bits : suffisant aujourd'hui, inconfortable à long terme."],
-        'aes-256' => ['label' => 'AES-256', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => "Tient face à Grover. Rien à faire."],
-        'chacha20' => ['label' => 'ChaCha20-Poly1305', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => "Rien à faire."],
-        'des' => ['label' => 'DES / 3DES', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true,
-            'replacement' => 'AES-256', 'note' => "Cassé classiquement. Problème d'aujourd'hui, pas de 2035."],
-        'rc4' => ['label' => 'RC4', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true,
-            'replacement' => 'AES-256 ou ChaCha20', 'note' => "Cassé classiquement."],
+        'aes-128' => ['label' => 'AES-128', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false],
+        'aes-256' => ['label' => 'AES-256', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false],
+        'chacha20' => ['label' => 'ChaCha20-Poly1305', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false],
+        'des' => ['label' => 'DES / 3DES', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
+        'rc4' => ['label' => 'RC4', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
 
-        // Hashes.
-        'md5' => ['label' => 'MD5', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true,
-            'replacement' => 'SHA-256, ou rien si l\'usage n\'est pas cryptographique',
-            'note' => "Collisions triviales depuis 2004. Sans aucun rapport avec le quantique."],
-        'sha1' => ['label' => 'SHA-1', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true,
-            'replacement' => 'SHA-256', 'note' => "Collisions démontrées depuis 2017."],
-        'sha256' => ['label' => 'SHA-256', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => ''],
-        'sha512' => ['label' => 'SHA-512', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => ''],
+        'md5' => ['label' => 'MD5', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
+        'sha1' => ['label' => 'SHA-1', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
+        'sha256' => ['label' => 'SHA-256', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
+        'sha512' => ['label' => 'SHA-512', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
 
-        // Password hashing — neither quantum nor classical concern here.
-        'bcrypt' => ['label' => 'bcrypt', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => "Hachage de mot de passe : hors du périmètre post-quantique."],
-        'argon2' => ['label' => 'Argon2', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => "Hachage de mot de passe : hors du périmètre post-quantique."],
+        'bcrypt' => ['label' => 'bcrypt', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
+        'argon2' => ['label' => 'Argon2', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
 
-        // Already post-quantum.
-        'ml-kem' => ['label' => 'ML-KEM', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => "Normalisé FIPS 203."],
-        'ml-dsa' => ['label' => 'ML-DSA', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => false, 'broken' => false,
-            'replacement' => '', 'note' => "Normalisé FIPS 204."],
+        'ml-kem' => ['label' => 'ML-KEM', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => false],
+        'ml-dsa' => ['label' => 'ML-DSA', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => false, 'broken' => false],
     ];
 
-    /** @return array{label:string, purpose:string, quantum:bool, broken:bool, replacement:string, note:string}|null */
+    /** @return array{label:string, purpose:string, quantum:bool, broken:bool, note:string, replacement:string}|null */
     public static function get(string $algorithm): ?array
     {
-        return self::ALGORITHMS[$algorithm] ?? null;
+        $entry = self::ALGORITHMS[$algorithm] ?? null;
+        if ($entry === null) {
+            return null;
+        }
+
+        return $entry + [
+            'note' => Lang::has("algo.$algorithm.note") ? Lang::t("algo.$algorithm.note") : '',
+            'replacement' => Lang::has("algo.$algorithm.replacement") ? Lang::t("algo.$algorithm.replacement") : '',
+        ];
     }
 
     public static function label(string $algorithm): string

@@ -25,6 +25,14 @@ final class Declaration
     /** Applied when nothing matches — flagged in the report as undeclared. */
     public int $defaultLifetime = 3;
 
+    /**
+     * Hosts to probe live. Declared next to the data domains on purpose: what a
+     * server negotiates is part of the inventory, not a separate exercise.
+     *
+     * @var list<string>
+     */
+    public array $probe = [];
+
     public static function load(?string $path): self
     {
         $self = new self();
@@ -41,6 +49,7 @@ final class Declaration
         $self->deprecationYear = (int) ($raw['deprecation_year'] ?? $self->deprecationYear);
         $self->expiryYear = (int) ($raw['expiry_year'] ?? $self->expiryYear);
         $self->defaultLifetime = (int) ($raw['default_lifetime_years'] ?? $self->defaultLifetime);
+        $self->probe = array_map(strval(...), (array) ($raw['probe'] ?? []));
 
         foreach ((array) ($raw['domains'] ?? []) as $name => $domain) {
             $self->domains[] = [

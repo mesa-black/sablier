@@ -1,87 +1,114 @@
 # Sablier
 
-Ce qui est chiffré chez vous, et **jusqu'à quand ça tient**.
+What is encrypted in your project, and **how long it holds**.
 
-Sablier lit un projet, inventorie sa cryptographie, et croise cet inventaire avec
-une information qu'aucun outil ne possède : **combien de temps chaque donnée doit
-rester confidentielle.** De ce croisement sort la seule question qui compte
-aujourd'hui sur le post-quantique :
+*Français : [README.fr.md](README.fr.md) · Scoping study: [docs/scoping.md](docs/scoping.md)*
 
-> Une donnée chiffrée aujourd'hui avec RSA ou une courbe elliptique, et qui doit
-> rester secrète au-delà de la péremption de ces algorithmes, **est déjà perdue**.
-> La migration protégera ce qui viendra après, pas elle.
+Sablier reads a project, inventories its cryptography, and crosses that inventory
+with something no tool knows: **how long each kind of data has to stay
+confidential.** Out of that crossing comes the only question that matters about
+post-quantum today:
 
-C'est le modèle *récolte maintenant, déchiffrement plus tard* : un adversaire
-capture aujourd'hui ce qu'il déchiffrera plus tard. Pour la donnée concernée, la
-date de compromission est le jour du chiffrement, pas le jour de l'attaque.
+> Data encrypted today with RSA or an elliptic curve, and required to stay secret
+> past the expiry of those algorithms, is **already lost**. Migration protects
+> what comes after it, not that data.
 
-État : **prototype**. Le cadrage complet — problème, état de l'art, limites
-assumées, modèle de risque — est dans [`docs/cadrage.md`](docs/cadrage.md).
+This is the *harvest now, decrypt later* model: an adversary captures today what
+they will decrypt later. For the data concerned, the compromise date is the day
+it was encrypted, not the day of the attack.
 
-## Essayer
+Status: **prototype**. The full scoping study — problem, prior art, admitted
+limits, risk model — is in [`docs/scoping.md`](docs/scoping.md).
+
+## Try it
 
 ```bash
-make demo                                   # jeu d'essai + rapport
-make scan DIR=/chemin/vers/projet           # un vrai projet
-make test                                   # le modèle discrimine-t-il encore ?
+make demo                                   # fixture project + report
+make scan DIR=/path/to/project LANG=en      # a real project
+make probe HOST=example.org                 # what a server actually negotiates
+make test                                   # does the risk model still discriminate?
 ```
 
-Le rapport est un fichier HTML autonome : aucune police distante, aucun script,
-aucune requête. Un outil qui lit là où sont les clés ne doit pas ouvrir de socket
-pour afficher son propre résultat.
+Reports are available in French, English and Spanish (`--lang=fr|en|es`).
 
-## Déclarer ses durées de confidentialité
+The report is a self-contained HTML file: no remote font, no script, no request.
+A tool that reads where the keys are must not open a socket to render its own
+output.
 
-Sans déclaration, l'outil applique une durée par défaut et le dit. Avec, il
-devient utile. Voir [`examples/showmetherex.json`](examples/showmetherex.json).
+## Two sources, because a repository can be wrong
+
+**Static analysis** reads what the code declares. **The probe** performs an
+ordinary TLS handshake and reports what the server actually negotiates — they
+disagree often enough that reporting only the first is misleading. A project with
+no post-quantum cryptography anywhere in its code can already be protected by its
+CDN; a project that configured everything correctly can be terminated by an
+intermediary that undoes it.
+
+```
+$ make probe HOST=showmetherex.com
+
+  negotiated protocol          TLSv1.3
+  cipher suite                 TLS_AES_256_GCM_SHA384 (256 bits)
+  negotiated group             X25519MLKEM768
+  certificate signature        ecdsa-with-SHA256
+  accepted versions            TLSv1.2, TLSv1.3
+```
+
+The probe only belongs against hosts you are responsible for.
+
+## Declaring confidentiality lifetimes
+
+Without a declaration the tool applies a default lifetime and says so. With one,
+it becomes useful. See [`examples/showmetherex.json`](examples/showmetherex.json).
 
 ```json
 {
   "expiry_year": 2035,
+  "probe": ["example.org"],
   "domains": {
-    "sauvegardes": { "paths": ["deploy/backup.sh"], "lifetime_years": 10 },
-    "contenu public": { "paths": ["templates/*"], "lifetime_years": 0 }
+    "backups":       { "paths": ["deploy/backup.sh"], "lifetime_years": 10 },
+    "public content":{ "paths": ["templates/*"],      "lifetime_years": 0 }
   }
 }
 ```
 
-Ce fichier est le seul artefact du projet qui engage des humains plutôt qu'une
-machine. Il se relit, il se discute, il se versionne.
+This file is the one artefact in the project that commits people rather than
+tooling. It gets read, argued over, and versioned.
 
-## Ce que l'outil refuse de faire
+## What the tool refuses to do
 
-- **Deviner.** Un algorithme qui vient d'une variable est signalé comme
-  indéterminé, avec son emplacement. Un inventaire faux est pire qu'un
-  inventaire incomplet : personne ne le vérifie deux fois.
-- **Prédire.** La date de péremption employée est l'échéance réglementaire
-  (2035 par défaut, paramétrable), pas une prophétie sur l'arrivée d'un
-  calculateur quantique.
-- **Crier.** Le symétrique fort est déclaré conforme, une signature n'est pas
-  traitée comme une fuite, un `md5()` en clé de cache est rangé hors sujet, et
-  une dépendance déclarée n'est jamais une alerte rouge — c'est un usage à
-  confirmer.
-- **Corriger tout seul.** Réécrire de la cryptographie sans comprendre le
-  contexte est un générateur d'incidents.
-- **Sortir.** Aucun compte, aucun envoi, aucune télémétrie, aucune dépendance.
+- **Guess.** An algorithm coming from a variable is reported as undetermined,
+  with its location. A wrong inventory is worse than an incomplete one, because
+  nobody checks an inventory twice.
+- **Predict.** The expiry date used is the regulatory deadline (2035 by default,
+  configurable), not a prophecy about when a quantum computer arrives.
+- **Shout.** Strong symmetric cryptography is reported as clear, a signature is
+  not treated as a leak, an `md5()` used as a cache key is filed as off-topic,
+  and a declared dependency is never a red alert — it is a use to confirm.
+- **Fix by itself.** Rewriting cryptography without understanding the context is
+  an incident generator.
+- **Leave.** No account, no upload, no telemetry, no dependency.
 
-## Ce qu'il ne voit pas
+## What it does not see
 
-Le rapport imprime lui-même ses angles morts, à la même taille que le reste :
-cryptographie des services gérés, négociation TLS réelle à l'exécution, clés en
-HSM, et la durée de vie des données quand personne ne l'a déclarée.
+The report prints its own blind spots, at the same size as everything else: the
+cryptography of managed services, live TLS negotiation for undeclared hosts, keys
+held in an HSM, and data lifetimes nobody declared.
 
-Un inventaire qui ne dit pas ce qu'il n'a pas regardé n'est pas un inventaire.
+An inventory that does not say what it failed to look at is not an inventory.
 
-## Premiers résultats
+## First results
 
-Premier scan sur un vrai projet (Show me the REX, ~1 900 fichiers) : 15 constats,
-dont **zéro alerte rouge** — et deux enseignements qui ont immédiatement changé
-l'outil.
+First scan on a real project (Show me the REX, ~1,900 files): 17 findings, **no
+red alert** — and three lessons that changed the tool immediately.
 
-1. Le chiffrement des sauvegardes, l'opération la plus sensible du projet, **n'est
-   pas dans le dépôt** : il vit dans un script sur le serveur. L'analyse statique
-   seule ne verra jamais l'essentiel si on ne le lui déclare pas.
-2. La première version signalait un `md5()` de test et une dépendance TOTP — dont
-   SHA-1 est imposé par la spécification — comme des ruptures. Deux faux positifs
-   sur quinze constats : de quoi perdre le lecteur. D'où la séparation entre
-   *inventaire* et *usage*, et la mise hors sujet du code de test.
+1. Backup encryption, the most sensitive operation in the project, **is not in
+   the repository**: it lives in a script on the server. Static analysis alone
+   will never see what matters most unless you declare it.
+2. The first version reported a `md5()` in a test and a TOTP dependency — whose
+   SHA-1 is mandated by the specification — as breaks. Two false positives out of
+   fifteen findings is enough to lose the reader. Hence the separation between
+   *inventory* and *use*, and test code filed as off-topic.
+3. The probe found what no file could say: the site already negotiates
+   **X25519MLKEM768**, a hybrid post-quantum key exchange. Nothing in the
+   repository mentions it.

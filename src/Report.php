@@ -22,6 +22,9 @@ final class Report
         /** @var list<string> */
         private readonly array $blindSpots,
         private readonly int $currentYear,
+        private readonly float $duration = 0.0,
+        /** @var list<array{target:string, facts:array<string,string>, notes:list<string>}> */
+        private readonly array $probes = [],
     ) {
     }
 
@@ -40,13 +43,10 @@ final class Report
         $actionable = \count($this->findings) - \count($byVerdict[Assessor::NOISE]);
 
         $headline = $compromised > 0
-            ? \sprintf(
-                '%d usage%s cryptographique%s protège%s des données dont la confidentialité doit durer au-delà de la péremption de l\'algorithme qui les protège.',
-                $compromised, $compromised > 1 ? 's' : '', $compromised > 1 ? 's' : '', $compromised > 1 ? 'nt' : '',
-            )
+            ? Lang::t($compromised > 1 ? 'headline.compromised.plural' : 'headline.compromised', $compromised)
             : ($urgent > 0
-                ? \sprintf('Aucune donnée à longue durée n\'est exposée à la récolte, mais %d usage%s repose%s sur un algorithme déjà cassé aujourd\'hui.', $urgent, $urgent > 1 ? 's' : '', $urgent > 1 ? 'nt' : '')
-                : 'Aucune donnée dont la durée de confidentialité dépasse la péremption des algorithmes qui la protègent.');
+                ? Lang::t($urgent > 1 ? 'headline.urgent.plural' : 'headline.urgent', $urgent)
+                : Lang::t('headline.clear'));
 
         $rows = '';
         foreach ($byVerdict as $verdict => $group) {
@@ -56,6 +56,10 @@ final class Report
             $rows .= $this->section($verdict, $group);
         }
 
+        $elapsed = $this->duration < 1
+            ? number_format($this->duration * 1000, 0, ',', ' ').' ms'
+            : number_format($this->duration, 1, ',', ' ').' s';
+        $probeBlock = $this->probeBlock();
         $timeline = $this->timeline();
         $blind = $this->blind($byVerdict[Assessor::DECLARE] ?? []);
         $css = $this->css();
@@ -63,29 +67,38 @@ final class Report
         $date = (new \DateTimeImmutable())->format('d/m/Y');
         $project = htmlspecialchars($this->declaration->project !== '' ? $this->declaration->project : basename($this->target));
 
+        $lang = Lang::locale();
+        $about = Lang::t('about.tool');
+        $pq = Lang::t('about.postquantum');
+        $subtitle = Lang::t('report.subtitle', $actionable, $this->declaration->expiryYear);
+        $footer = Lang::t('report.footer');
+        $filesLabel = Lang::t('report.files_read', $this->filesRead);
+        $elapsedLabel = Lang::t('report.elapsed', $elapsed);
+
         return <<<HTML
             <!DOCTYPE html>
-            <html lang="fr"><head><meta charset="utf-8">
+            <html lang="$lang"><head><meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>Sablier — $project</title>
             <style>$css</style></head>
             <body>
             <header>
               <div class="brand">SABLIER</div>
-              <div class="meta">$project · $date · $this->filesRead fichiers lus</div>
+              <div class="meta">$project · $date · $filesLabel · $elapsedLabel</div>
             </header>
 
+            <div class="about">$pq</div>
+            <div class="about">$about</div>
+
             <p class="headline">$headline</p>
-            <p class="sub">$actionable constats retenus sur l'ensemble analysé. Date de péremption retenue : <strong>{$this->declaration->expiryYear}</strong> — c'est l'échéance réglementaire, pas une prédiction de rupture cryptographique.</p>
+            <p class="sub">$subtitle</p>
 
             $timeline
+            $probeBlock
             $rows
             $blind
 
-            <footer>
-              Sablier n'envoie rien, n'enregistre rien et ne dépend de rien. Ce fichier ne
-              charge aucune ressource externe : il peut être lu hors ligne et transmis tel quel.
-            </footer>
+            <footer>$footer</footer>
             </body></html>
             HTML;
     }
@@ -122,22 +135,30 @@ final class Report
         $bars = '';
         foreach (\array_slice($domains, 0, 8, true) as $name => $lifetime) {
             $width = min(100, round(($lifetime / $span) * 100, 2));
-            $over = $exposed[$name] ?? false;
             $bars .= \sprintf(
                 '<div class="row"><div class="lbl">%s</div><div class="track"><div class="bar %s" style="width:%s%%"></div></div><div class="yrs">%d %s</div></div>',
-                htmlspecialchars($name), $over ? 'over' : '', $width, $lifetime, $lifetime > 1 ? 'ans' : 'an',
+                htmlspecialchars((string) $name),
+                ($exposed[$name] ?? false) ? 'over' : '',
+                $width,
+                $lifetime,
+                Lang::t($lifetime > 1 ? 'unit.years' : 'unit.year'),
             );
         }
 
+        $title = htmlspecialchars(Lang::t('timeline.title'));
+        $legend = htmlspecialchars(Lang::t('timeline.legend'));
+        $deprecationLabel = htmlspecialchars(Lang::t('timeline.deprecation'));
+        $expiryLabel = htmlspecialchars(Lang::t('timeline.expiry'));
+
         return <<<HTML
             <section class="timeline">
-              <h2>Durée de confidentialité des données, face à la péremption des algorithmes</h2>
+              <h2>$title</h2>
               <div class="chart">
-                <div class="mark" style="left:{$deprLeft}%"><span>{$this->declaration->deprecationYear}<br>dépréciation</span></div>
-                <div class="mark expiry" style="left:{$expiryLeft}%"><span>{$this->declaration->expiryYear}<br>péremption</span></div>
+                <div class="mark" style="left:{$deprLeft}%"><span>{$this->declaration->deprecationYear}<br>$deprecationLabel</span></div>
+                <div class="mark expiry" style="left:{$expiryLeft}%"><span>{$this->declaration->expiryYear}<br>$expiryLabel</span></div>
                 $bars
               </div>
-              <p class="legend">Chaque barre est la durée pendant laquelle la donnée doit rester confidentielle. Elle passe en rouge quand un algorithme récoltable la protège au-delà du trait de péremption — dépasser le trait sans être rouge signifie que la donnée dure longtemps, mais qu'elle est protégée par de la cryptographie qui tiendra.</p>
+              <p class="legend">$legend</p>
             </section>
             HTML;
     }
@@ -145,34 +166,33 @@ final class Report
     /** @param list<Finding> $group */
     private function section(string $verdict, array $group): string
     {
-        $slug = strtolower(preg_replace('/[^a-z]+/i', '-', $verdict) ?? '');
-
         // What is fine gets counted, not enumerated. The first scan of a real
         // project produced twenty-two identical SHA-256 rows above four findings
         // that mattered — a report that buries its own signal is a failed report.
         if (\in_array($verdict, [Assessor::CLEAR, Assessor::NOISE], true)) {
-            return $this->summarised($verdict, $slug, $group);
+            return $this->summarised($verdict, $verdict, $group);
         }
 
         $items = '';
         foreach ($group as $finding) {
-            $detail = $finding->detail !== '' ? '<span class="detail">'.htmlspecialchars($finding->detail).'</span>' : '';
             $algo = Catalogue::get($finding->algorithm);
+            $detail = $finding->detail !== '' ? '<span class="detail">'.htmlspecialchars($finding->detail).'</span>' : '';
             $fix = ($algo['replacement'] ?? '') !== ''
-                ? '<div class="fix"><span>Remplacement</span> '.htmlspecialchars($algo['replacement']).'</div>'
+                ? '<div class="fix"><span>'.htmlspecialchars(Lang::t('label.replacement')).'</span> '.htmlspecialchars($algo['replacement']).'</div>'
                 : '';
-            $conf = $finding->confidence === Finding::CONFIDENCE_MEDIUM ? '<span class="conf">confiance moyenne</span>' : '';
+            $confidence = $finding->confidence === Finding::CONFIDENCE_MEDIUM
+                ? '<span class="conf">'.htmlspecialchars(Lang::t('label.medium_confidence')).'</span>'
+                : '';
 
             $items .= \sprintf(
                 '<article><h3>%s <span class="dom">%s</span> %s</h3>
-                 <div class="loc">%s:%d</div>
+                 <div class="loc">%s</div>
                  <pre>%s</pre>
                  <p>%s %s</p>%s</article>',
                 htmlspecialchars(Catalogue::label($finding->algorithm)),
                 htmlspecialchars($finding->domain),
-                $conf,
-                htmlspecialchars($finding->file),
-                $finding->line,
+                $confidence,
+                htmlspecialchars($finding->file.($finding->line > 0 ? ':'.$finding->line : '')),
                 htmlspecialchars(mb_strimwidth($finding->evidence, 0, 160, '…')),
                 htmlspecialchars($finding->because),
                 $detail,
@@ -182,8 +202,37 @@ final class Report
 
         return \sprintf(
             '<section class="verdict %s"><h2>%s <span class="count">%d</span></h2>%s</section>',
-            $slug, htmlspecialchars($verdict), \count($group), $items,
+            $verdict, htmlspecialchars(Assessor::label($verdict)), \count($group), $items,
         );
+    }
+
+    private function probeBlock(): string
+    {
+        if ($this->probes === []) {
+            return '';
+        }
+
+        $blocks = '';
+        foreach ($this->probes as $probe) {
+            $rows = '';
+            foreach ($probe['facts'] as $key => $value) {
+                $rows .= '<div><dt>'.htmlspecialchars((string) $key).'</dt><dd>'.htmlspecialchars($value).'</dd></div>';
+            }
+            $notes = '';
+            foreach ($probe['notes'] as $note) {
+                $notes .= '<li>'.htmlspecialchars($note).'</li>';
+            }
+
+            $blocks .= \sprintf(
+                '<div class="probe"><h3>%s</h3><dl>%s</dl>%s</div>',
+                htmlspecialchars($probe['target']),
+                $rows,
+                $notes !== '' ? '<ul class="probe-notes">'.$notes.'</ul>' : '',
+            );
+        }
+
+        return '<section class="probes"><h2>'.htmlspecialchars(Lang::t('probe.title')).'</h2>'.$blocks
+            .'<p class="legend">'.htmlspecialchars(Lang::t('probe.legend')).'</p></section>';
     }
 
     /**
@@ -203,10 +252,10 @@ final class Report
             sort($files);
             $note = $items[0]->because;
             $rows .= \sprintf(
-                '<details><summary><strong>%s</strong> · %d usage%s <span class="dom">%s</span></summary><ul class="files">%s</ul></details>',
+                '<details><summary><strong>%s</strong> · %d %s <span class="dom">%s</span></summary><ul class="files">%s</ul></details>',
                 htmlspecialchars(Catalogue::label((string) $algorithm)),
                 \count($items),
-                \count($items) > 1 ? 's' : '',
+                Lang::t(\count($items) > 1 ? 'unit.uses' : 'unit.use'),
                 htmlspecialchars($note),
                 implode('', array_map(static fn (string $f): string => '<li>'.htmlspecialchars($f).'</li>', \array_slice($files, 0, 40))),
             );
@@ -214,7 +263,7 @@ final class Report
 
         return \sprintf(
             '<section class="verdict %s summary"><h2>%s <span class="count">%d</span></h2>%s</section>',
-            $slug, htmlspecialchars($verdict), \count($group), $rows,
+            $slug, htmlspecialchars(Assessor::label($verdict)), \count($group), $rows,
         );
     }
 
@@ -222,13 +271,13 @@ final class Report
     private function blind(array $undetermined): string
     {
         $lines = [
-            "la cryptographie de vos services gérés — base de données, stockage objet, terminaison TLS chez un intermédiaire — n'apparaît dans aucun fichier de ce dépôt",
-            "ce qui est réellement négocié à l'exécution : seule une sonde active face au vrai serveur peut le dire",
-            'les clés détenues dans un HSM ou chez un fournisseur',
-            "la durée de vie réelle des données : elle vient de votre déclaration, pas du code — un domaine non déclaré est calculé avec une durée par défaut de {$this->declaration->defaultLifetime} ans",
+            Lang::t('blind.managed_services'),
+            Lang::t('blind.runtime'),
+            Lang::t('blind.hsm'),
+            Lang::t('blind.lifetime', $this->declaration->defaultLifetime),
         ];
         if ($undetermined !== []) {
-            $lines[] = \sprintf('%d usage%s où l\'algorithme vient d\'une variable : listés ci-dessus, à confirmer à la main', \count($undetermined), \count($undetermined) > 1 ? 's' : '');
+            $lines[] = Lang::t(\count($undetermined) > 1 ? 'blind.undetermined.plural' : 'blind.undetermined', \count($undetermined));
         }
         foreach ($this->blindSpots as $spot) {
             $lines[] = $spot;
@@ -236,8 +285,8 @@ final class Report
 
         $items = implode('', array_map(static fn (string $l): string => '<li>'.htmlspecialchars($l).'</li>', $lines));
 
-        return '<section class="blind"><h2>Ce que ce rapport n\'a pas regardé</h2><ul>'.$items.'</ul>
-            <p>Un inventaire qui ne dit pas ce qu\'il n\'a pas vu n\'est pas un inventaire.</p></section>';
+        return '<section class="blind"><h2>'.htmlspecialchars(Lang::t('blind.title')).'</h2><ul>'.$items.'</ul>
+            <p>'.htmlspecialchars(Lang::t('blind.motto')).'</p></section>';
     }
 
     private function css(): string
@@ -282,13 +331,22 @@ final class Report
             .detail{color:var(--muted)}
             .fix{margin-top:.5rem;font-size:.85rem}
             .fix span{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ok);margin-right:.4rem}
-            .verdict.compromis h2 .count,.verdict.cass-aujourd-hui h2 .count{background:var(--bad)}
-            .verdict.-migrer h2 .count{background:var(--warn)}
+            .verdict.compromised h2 .count,.verdict.urgent h2 .count{background:var(--bad)}
+            .verdict.migrate h2 .count{background:var(--warn)}
             .blind{border:1px solid var(--line);border-radius:3px;padding:1.1rem 1.3rem;margin-top:3rem;background:#00000004}
             .blind h2{margin-top:0}
             .blind ul{margin:0;padding-left:1.1rem}
             .blind li{margin-bottom:.4rem}
             .blind p{color:var(--muted);font-size:.85rem;margin:.9rem 0 0}
+            .about{border-left:2px solid var(--sand);padding:.1rem 0 .1rem 1rem;margin:0 0 2rem;
+                   color:var(--muted);font-size:.88rem;line-height:1.55}
+            .about strong{color:var(--ink)}
+            .probe{border-top:1px solid var(--line);padding:.9rem 0}
+            .probe h3{margin:0 0 .5rem;font-family:ui-monospace,Menlo,monospace;font-size:.85rem;font-weight:600}
+            .probe dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.35rem 1.2rem}
+            .probe dt{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+            .probe dd{margin:0 0 .3rem;font-size:.88rem;font-variant-numeric:tabular-nums}
+            .probe-notes{margin:.7rem 0 0;padding-left:1.1rem;font-size:.82rem;color:var(--warn)}
             .summary details{border-top:1px solid var(--line);padding:.6rem 0}
             .summary summary{cursor:pointer;font-size:.92rem}
             .summary .dom{margin-left:.4rem}
