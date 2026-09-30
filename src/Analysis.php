@@ -27,6 +27,8 @@ final readonly class Analysis
         public float $duration = 0.0,
         public array $probes = [],
         public bool $projected = false,
+        /** @var array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string}|null */
+        public ?array $signature = null,
     ) {
     }
 }

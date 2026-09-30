@@ -52,6 +52,49 @@ rm -rf "$(dirname "$acc")"
 
 unset SABLIER_TEST_JSON
 
+# --- signing ------------------------------------------------------------------
+# A signature that verifies against whatever key came with it proves only that
+# someone had a key; the expected key comes from the versioned declaration.
+keydir=$(mktemp -d)
+./bin/sablier keygen --out="$keydir/a.key" >"$keydir/a.out"
+./bin/sablier keygen --out="$keydir/b.key" >"$keydir/b.out"
+pub=$(grep -o '"signing_public_key": "[^"]*"' "$keydir/a.out" | cut -d'"' -f4)
+other=$(grep -o '"signing_public_key": "[^"]*"' "$keydir/b.out" | cut -d'"' -f4)
+
+php -r '
+	$d = json_decode(file_get_contents("tests/fixtures/sample/sablier.json"), true);
+	$d["signing_public_key"] = $argv[1];
+	file_put_contents($argv[2], json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$pub" "$keydir/right.json"
+php -r '
+	$d = json_decode(file_get_contents("tests/fixtures/sample/sablier.json"), true);
+	$d["signing_public_key"] = $argv[1];
+	file_put_contents($argv[2], json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$other" "$keydir/wrong.json"
+
+./bin/sablier scan tests/fixtures/sample --declare="$keydir/right.json" --sign="$keydir/a.key" \
+	--out="$keydir/r.html" --quiet >/dev/null || true
+
+signcheck() {
+	if ./bin/sablier verify "$1" ${2:+--declare=$2} >/dev/null 2>&1; then result=valid; else result=rejected; fi
+	if [ "$result" != "$3" ]; then
+		echo "✗ signature $4: expected $3, got $result"
+		rm -rf "$keydir"
+		exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "signature" "$4" "$3"
+}
+
+signcheck "$keydir/r.html.sig" "$keydir/right.json" valid "declared key"
+signcheck "$keydir/r.html.sig" "$keydir/wrong.json" rejected "another key"
+php -r '
+	$b = json_decode(file_get_contents($argv[1]), true);
+	$b["digest"] = str_repeat("0", 64);
+	file_put_contents($argv[2], json_encode($b));
+' "$keydir/r.html.sig" "$keydir/tampered.sig"
+signcheck "$keydir/tampered.sig" "" rejected "tampered digest"
+rm -rf "$keydir"
+
 # --- live probe, against a server we control -------------------------------
 # Pointing the tool at somebody else's host to test our own code is neither
 # necessary nor polite. A local TLS server pinned to a classical group tests

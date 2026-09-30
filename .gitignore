@@ -4,3 +4,5 @@
 /cbom.json
 /.DS_Store
 /vendor/
+/*.sig
+/sablier.key

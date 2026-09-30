@@ -157,6 +157,35 @@ the decision deserves a second look.
 carries a link that opens a pre-filled report — the link opens your browser on a
 form you fill in yourself; the file still sends nothing.
 
+## Signing a report
+
+```bash
+sablier keygen                                   # private key, mode 600
+sablier scan /path --sign=sablier.key            # writes report.html.sig
+sablier verify report.html.sig --declare=sablier.json
+```
+
+What is signed is **a digest of the findings, not the file**. Two runs of the
+same inventory differ byte for byte — a rendering date, a duration — while
+saying exactly the same thing; two renderings in two languages give the same
+digest. The expected public key lives in the versioned declaration, because a
+signature that verifies against whatever key came with it proves only that
+somebody had a key.
+
+And the uncomfortable part, printed in the report rather than buried in a
+footnote: **the signature is Ed25519, which this very tool classifies as
+quantum-vulnerable.** It is what PHP ships. That is defensible for a report
+whose authenticity matters for months — a signature cannot be harvested, and
+breaking the curve in 2035 does not forge a 2026 signature anyone still cares
+about. It is not defensible for a report you must still prove genuine after the
+expiry year. Sablier tells you which of the two you are in and lets you decide.
+
+There is no blockchain here and there will not be one. A chain of your own is
+one node, which is one person: no more trustworthy than the signature it would
+replace. A public chain means the digest leaves the machine, which breaks the
+promise in the report's own footer. When a date has to be opposable to someone
+who does not trust you, a timestamping authority answers it in one request.
+
 ## What the tool refuses to do
 
 - **Guess.** An algorithm coming from a variable is reported as undetermined,

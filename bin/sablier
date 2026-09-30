@@ -50,6 +50,48 @@ foreach ($argv as $arg) {
     }
 }
 
+// --- keys and verification ---------------------------------------------
+if ($command === 'keygen') {
+    $out = 'sablier.key';
+    foreach (\array_slice($argv, 2) as $arg) {
+        if (preg_match('/^--out=(.+)$/', $arg, $m) === 1) {
+            $out = $m[1];
+        }
+    }
+    if (is_file($out)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.key_exists', $out)."\n");
+        exit(1);
+    }
+
+    $pair = Signature::keypair();
+    file_put_contents($out, $pair['secret']."\n");
+    chmod($out, 0600);
+
+    printf("  %s\n\n    \"signing_public_key\": \"%s\"\n\n  %s\n", Lang::t('cli.key_written', $out), $pair['public'], Lang::t('cli.key_next'));
+    exit(0);
+}
+
+if ($command === 'verify') {
+    $signaturePath = $argv[2] ?? '';
+    $declarePath = null;
+    foreach (\array_slice($argv, 3) as $arg) {
+        if (preg_match('/^--declare=(.+)$/', $arg, $m) === 1) {
+            $declarePath = $m[1];
+        }
+    }
+    if (!is_file($signaturePath)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.verify_usage')."\n");
+        exit(1);
+    }
+
+    $block = json_decode((string) file_get_contents($signaturePath), true);
+    $expectedKey = $declarePath !== null ? Declaration::load($declarePath)->signingPublicKey : null;
+    $result = Signature::verify(\is_array($block) ? $block : [], null, $expectedKey);
+
+    printf("  %s\n", Lang::t($result['reason']));
+    exit($result['valid'] ? 0 : 1);
+}
+
 // --- accept a finding: bin/sablier accept <fingerprint> -----------------
 // The command-line twin of the report's button. It writes a decision into a
 // versioned file, which is what makes it reviewable; it never hides anything.
@@ -114,11 +156,11 @@ if ($command !== 'scan') {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'year' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|pdf|year)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|pdf|year|sign)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -171,6 +213,20 @@ if (!$options['no-probe']) {
 $findings = (new Assessor($declaration, $currentYear))->assess([...$scan['findings'], ...$probeFindings]);
 $duration = microtime(true) - $startedAt;
 
+// Signing happens after the analysis and over the findings, never over the
+// rendered file: two runs of the same inventory differ byte for byte and say
+// exactly the same thing.
+$signature = null;
+if ($options['sign'] !== null) {
+    if (!is_file($options['sign'])) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.key_missing', $options['sign'])."\n");
+        exit(1);
+    }
+    $preliminary = new Analysis($findings, $declaration, $target, $scan['files'], $scan['blind'], $currentYear);
+    $signature = Signature::sign(Signature::digest($preliminary), trim((string) file_get_contents($options['sign'])));
+    file_put_contents($options['out'].'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
+}
+
 $analysis = new Analysis(
     findings: $findings,
     declaration: $declaration,
@@ -181,6 +237,7 @@ $analysis = new Analysis(
     duration: $duration,
     probes: $probes,
     projected: $currentYear !== $actualYear,
+    signature: $signature,
 );
 
 file_put_contents($options['out'], (new HtmlReporter())->render($analysis));
@@ -216,6 +273,9 @@ foreach (Assessor::order() as $verdict) {
 printf("\n  → %s\n", $options['out']);
 if ($pdfMessage !== null) {
     printf("  → %s\n", $pdfMessage);
+}
+if ($signature !== null) {
+    printf("  → %s\n", Lang::t('cli.signed', $options['out'].'.sig'));
 }
 echo "\n";
 

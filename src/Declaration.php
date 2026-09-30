@@ -35,6 +35,15 @@ final class Declaration
     /** Overridable per project: a team that checked more recently should say so. */
     public string $deadlinesCheckedOn = self::DEADLINES_CHECKED_ON;
 
+    /**
+     * The public key reports from this project are expected to be signed with.
+     *
+     * It lives in the versioned declaration on purpose: a signature that
+     * verifies against whatever key came with it proves only that someone had
+     * a key. Here, changing the expected key is a reviewable commit.
+     */
+    public string $signingPublicKey = '';
+
     public string $project = '';
 
     /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, note:string}> */
@@ -81,6 +90,7 @@ final class Declaration
         $self->defaultLifetime = (int) ($raw['default_lifetime_years'] ?? $self->defaultLifetime);
         $self->probe = array_map(strval(...), (array) ($raw['probe'] ?? []));
         $self->deadlinesCheckedOn = (string) ($raw['deadlines_checked_on'] ?? $self->deadlinesCheckedOn);
+        $self->signingPublicKey = (string) ($raw['signing_public_key'] ?? '');
 
         foreach ((array) ($raw['accepted'] ?? []) as $fingerprint => $entry) {
             $reason = trim((string) ($entry['reason'] ?? ''));

@@ -10,6 +10,7 @@ use Sablier\Assessor;
 use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
+use Sablier\Signature;
 
 /**
  * The report is the product.
@@ -69,6 +70,7 @@ final class HtmlReporter implements Reporter
         $projection = $this->analysis->projected
             ? '<p class="projection">'.htmlspecialchars(Lang::t('report.projection', $this->analysis->currentYear)).'</p>'
             : '';
+        $seal = $this->seal();
         $plan = $this->actionPlan($headline, $actionable);
         $probeBlock = $this->probeBlock();
         $timeline = $this->timeline();
@@ -115,6 +117,7 @@ final class HtmlReporter implements Reporter
             $blind
             $plan
 
+            $seal
             <footer>$footer</footer>
             </body></html>
             HTML;
@@ -371,6 +374,38 @@ final class HtmlReporter implements Reporter
         );
     }
 
+    /**
+     * The report's own fingerprint, and the signature over it when there is one.
+     *
+     * The caveat is printed, not hidden: this tool classifies Ed25519 as
+     * quantum-vulnerable, and it signs with Ed25519, because that is what PHP
+     * ships. Saying so is the whole point — a signature cannot be harvested, so
+     * it holds as long as the curve holds, and the only question that matters
+     * is whether this report must still be provable after the expiry year.
+     */
+    private function seal(): string
+    {
+        $digest = Signature::digest($this->analysis);
+        $rows = '<div><dt>'.htmlspecialchars(Lang::t('seal.digest')).'</dt><dd><code>'.htmlspecialchars($digest).'</code></dd></div>';
+
+        $caveat = '';
+        if ($this->analysis->signature !== null) {
+            $block = $this->analysis->signature;
+            $signedAt = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $block['signed_at']);
+            $rows .= '<div><dt>'.htmlspecialchars(Lang::t('seal.signed')).'</dt><dd>'
+                .htmlspecialchars($block['algorithm'].' · '.($signedAt === false ? $block['signed_at'] : $signedAt->format('d/m/Y H:i'))).'</dd></div>'
+                .'<div><dt>'.htmlspecialchars(Lang::t('seal.key')).'</dt><dd><code>'
+                .htmlspecialchars(substr($block['public_key'], 0, 16).'…').'</code></dd></div>';
+            $caveat = '<p class="seal-caveat">'
+                .htmlspecialchars(Lang::t('seal.caveat', $this->analysis->declaration->expiryYear)).'</p>';
+        }
+
+        return '<section class="seal"><h2>'.htmlspecialchars(Lang::t('seal.title')).'</h2>'
+            .'<dl class="probe-facts">'.$rows.'</dl>'
+            .'<p class="legend">'.htmlspecialchars(Lang::t('seal.legend')).'</p>'
+            .$caveat.'</section>';
+    }
+
     private function probeBlock(): string
     {
         if ($this->analysis->probes === []) {
@@ -526,6 +561,13 @@ final class HtmlReporter implements Reporter
             .summary summary{cursor:pointer;font-size:.92rem}
             .summary .dom{margin-left:.4rem}
             .files{margin:.6rem 0 0;padding-left:1.1rem;font-family:ui-monospace,Menlo,monospace;font-size:.74rem;color:var(--muted)}
+            .seal{margin-top:2.6rem;border-top:1px solid var(--line);padding-top:1.1rem}
+            .seal dl,.probe dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:.35rem 1.2rem}
+            .seal dt{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+            .seal dd{margin:0 0 .3rem;font-size:.84rem;word-break:break-all}
+            .seal code{font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:.82em}
+            .seal-caveat{border-left:2px solid var(--warn);padding-left:.9rem;color:var(--warn);
+                         font-size:.84rem;margin:.9rem 0 0;text-align:justify;hyphens:auto}
             .fp{margin-top:.8rem;font-size:.84rem}
             .fp summary{cursor:pointer;color:var(--muted)}
             .fp summary code{font-size:.92em}
