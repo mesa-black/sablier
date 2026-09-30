@@ -98,13 +98,18 @@ final class Report
         $end = max($this->declaration->expiryYear + 5, $start + 20);
         $span = $end - $start;
 
+        // A long lifetime is not by itself an exposure: it only becomes one when
+        // a harvestable algorithm protects that domain. Colouring the bar on the
+        // duration alone made the chart contradict the verdict above it.
         $domains = [];
+        $exposed = [];
         foreach ($this->findings as $finding) {
             if ($finding->verdict === Assessor::NOISE) {
                 continue;
             }
             $key = $finding->domain;
             $domains[$key] = max($domains[$key] ?? 0, $finding->lifetime);
+            $exposed[$key] = ($exposed[$key] ?? false) || $finding->verdict === Assessor::COMPROMISED;
         }
         if ($domains === []) {
             return '';
@@ -117,7 +122,7 @@ final class Report
         $bars = '';
         foreach (\array_slice($domains, 0, 8, true) as $name => $lifetime) {
             $width = min(100, round(($lifetime / $span) * 100, 2));
-            $over = ($start + $lifetime) > $this->declaration->expiryYear;
+            $over = $exposed[$name] ?? false;
             $bars .= \sprintf(
                 '<div class="row"><div class="lbl">%s</div><div class="track"><div class="bar %s" style="width:%s%%"></div></div><div class="yrs">%d %s</div></div>',
                 htmlspecialchars($name), $over ? 'over' : '', $width, $lifetime, $lifetime > 1 ? 'ans' : 'an',
@@ -132,7 +137,7 @@ final class Report
                 <div class="mark expiry" style="left:{$expiryLeft}%"><span>{$this->declaration->expiryYear}<br>péremption</span></div>
                 $bars
               </div>
-              <p class="legend">Une barre qui dépasse le trait de péremption décrit une donnée chiffrée aujourd'hui et encore sensible quand l'algorithme ne la protégera plus.</p>
+              <p class="legend">Chaque barre est la durée pendant laquelle la donnée doit rester confidentielle. Elle passe en rouge quand un algorithme récoltable la protège au-delà du trait de péremption — dépasser le trait sans être rouge signifie que la donnée dure longtemps, mais qu'elle est protégée par de la cryptographie qui tiendra.</p>
             </section>
             HTML;
     }
