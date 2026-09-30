@@ -120,22 +120,26 @@ final class HtmlReporter implements Reporter
      * themes and on paper — an external image would be the one request this
      * report promises never to make.
      *
-     * The top funnel is half drained and the bottom one has a pile: which is the
-     * product's whole argument, that what matters is how much time is left for
-     * this particular data, not whether it is encrypted.
+     * Redrawn rather than imported: the repository ships under MIT, and a
+     * stock asset dropped into it would purport to licence artwork we do not
+     * own. The shape says the argument anyway — sand still in the top, a pile
+     * already fallen, and the question is only how much time is left.
      */
     private static function logo(): string
     {
         return <<<'SVG'
-            <svg class="logo" viewBox="0 0 22 30" width="20" height="27" aria-hidden="true" focusable="false">
-              <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
-                <path d="M1.6 1.2h18.8M1.6 28.8h18.8"/>
-                <path d="M3.4 3.4h15.2L11 14.6z"/>
-                <path d="M11 15.4l7.6 11.2H3.4z"/>
+            <svg class="logo" viewBox="0 0 24 32" width="21" height="28" aria-hidden="true" focusable="false">
+              <g fill="currentColor">
+              <rect x="3.1" y="1" width="17.8" height="2.7" rx="1.35"/>
+              <rect x="3.1" y="28.3" width="17.8" height="2.7" rx="1.35"/>
               </g>
-              <path fill="currentColor" d="M6 6h10l-2.8 4.2H8.8z"/>
-              <path fill="currentColor" d="M11 20.4l3.4 6.2H7.6z"/>
-              <path fill="currentColor" d="M10.3 16.4h1.4v2.6h-1.4z"/>
+              <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+              <path d="M6.2 3.9C6.2 10.6 11.3 13.3 11.3 16C11.3 18.7 6.2 21.4 6.2 28.1"/>
+              <path d="M17.8 3.9C17.8 10.6 12.7 13.3 12.7 16C12.7 18.7 17.8 21.4 17.8 28.1"/>
+              </g>
+              <path fill="currentColor" d="M8.7 6.2C10.7 5.8 12.3 6.9 14.6 6.6C15.1 6.5 15.4 6.4 15.6 6.2C15.4 9.1 12.9 12.1 12.15 14.4L11.85 14.4C11.1 12.1 8.9 9.1 8.7 6.2Z"/>
+              <path fill="currentColor" d="M7.1 27C7.8 24.7 8.9 23.7 9.9 23.9C10.8 24.1 11.2 23.6 12 23.7C13 23.8 13.7 24.5 14.5 24.2C15.6 24.8 16.2 25.7 16.9 27Z"/>
+              <path fill="currentColor" d="M11.68 16.2h0.64v7.3h-0.64z"/>
             </svg>
             SVG;
     }
