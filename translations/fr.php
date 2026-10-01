@@ -198,6 +198,7 @@ return [
     'pdf.missing_html' => 'export PDF impossible : %s est introuvable.',
     'pdf.failed' => 'export PDF échoué : %s n\'a produit aucun fichier.',
     'pdf.written' => '%s (%s Ko)',
+    'pdf.via_container' => 'rendu par %s, aucun navigateur sur cette machine',
 
     // --- imported inventory ---
     'report.imported_tag' => 'inventaire importé',

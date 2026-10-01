@@ -5,6 +5,7 @@
 PHP_IMAGE ?= php:8.4-cli-alpine
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
 TRIVY_IMAGE ?= aquasec/trivy:0.75.0
+CHROME_IMAGE ?= zenika/alpine-chrome:124
 .PHONY: help test scan judge demo probe phpstan cve
 
 help: ## Show this help
@@ -18,7 +19,7 @@ phpstan: ## Static analysis at level max (runs in a container: this project has 
 		$(PHPSTAN_IMAGE) analyse --no-progress
 
 cve: ## Prove the containers we ask you to run carry no known high or critical CVE
-	@set -e; for image in $(PHP_IMAGE) $(PHPSTAN_IMAGE) $(TRIVY_IMAGE); do \
+	@set -e; for image in $(PHP_IMAGE) $(PHPSTAN_IMAGE) $(CHROME_IMAGE) $(TRIVY_IMAGE); do \
 		printf '\n  %s\n' "$$image"; \
 		docker run --rm --volume "$(HOME)/.cache/trivy":/root/.cache $(TRIVY_IMAGE) image \
 			--image-src remote --scanners vuln --severity HIGH,CRITICAL \

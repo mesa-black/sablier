@@ -55,11 +55,24 @@ The report is a self-contained HTML file: no remote font, no script, no request.
 A tool that reads where the keys are must not open a socket to render its own
 output.
 
-`--pdf=FILE` writes a PDF as well, by borrowing a Chrome or Chromium the machine
-already has — the same rule as the TLS probe: use what is present, add nothing,
-and say plainly when it is missing. With no browser installed, the HTML report
-still prints to PDF from anywhere: it ships a print stylesheet that forces the
-light palette and keeps charts, findings and the probe block off page breaks.
+`--pdf=FILE` writes a PDF as well, by borrowing a browser rather than shipping
+one — the same rule as the TLS probe: use what is present, add nothing. It
+looks for Chrome, Chromium, Brave or Edge: the macOS bundles by path, and on
+Linux the usual PATH names (`google-chrome-stable`, `chromium`,
+`brave-browser`, …), the snap shim, the two `/opt` paths the Debian and RPM
+packages really install, and a Chromium that Playwright or Puppeteer already
+downloaded.
+
+**And if there is none**, it borrows one from a container
+(`zenika/alpine-chrome`, pinned, scanned by `make cve` like the rest): the page
+is mounted read-only, the destination directory writable, nothing else, and the
+PDF belongs to whoever ran the command. The report says which browser produced
+it, because one of the two did not exist on the machine five seconds earlier.
+
+With neither a browser nor Docker, the tool says so and stops there — the HTML
+report still prints to PDF from any browser, since it ships a print stylesheet
+that forces the light palette and keeps charts, findings and the probe block
+off page breaks.
 
 ## Two sources, because a repository can be wrong
 
@@ -433,9 +446,10 @@ who does not trust you, a timestamping authority answers it in one request.
 ## The three containers, and what is claimed about them
 
 A tool that reads where your keys are has no business telling you to run
-images it has not looked at. Three are named in this repository — `php:8.4-cli-alpine`
-for machines without PHP, `ghcr.io/phpstan/phpstan` for the static analysis,
-and the scanner itself — and one command re-checks all three:
+images it has not looked at. Four are named in this repository —
+`php:8.4-cli-alpine` for machines without PHP, `zenika/alpine-chrome` for
+machines without a browser, `ghcr.io/phpstan/phpstan` for the static analysis,
+and the scanner itself — and one command re-checks all four:
 
 ```bash
 make cve

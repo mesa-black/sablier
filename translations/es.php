@@ -189,6 +189,7 @@ return [
     'pdf.missing_html' => 'Exportación a PDF imposible: no se encuentra %s.',
     'pdf.failed' => 'Exportación a PDF fallida: %s no ha producido ningún archivo.',
     'pdf.written' => '%s (%s KB)',
+    'pdf.via_container' => 'renderizado por %s, sin navegador en esta máquina',
 
     // --- imported inventory ---
     'report.imported_tag' => 'inventario importado',

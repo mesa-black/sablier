@@ -189,6 +189,7 @@ return [
     'pdf.missing_html' => 'PDF export unavailable: %s not found.',
     'pdf.failed' => 'PDF export failed: %s produced no file.',
     'pdf.written' => '%s (%s KB)',
+    'pdf.via_container' => 'rendered by %s, no browser on this machine',
 
     // --- imported inventory ---
     'report.imported_tag' => 'imported inventory',
