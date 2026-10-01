@@ -87,6 +87,53 @@ printf '<?php\n\nreturn hash("sha1", $payload);\n' >"$work/src/NewToken.php"
 status "new file" 2
 rm -rf "$work"
 
+# --- somebody else's inventory ----------------------------------------------
+# The import is the whole claim that this tool is a judgement layer rather than
+# another scanner: a CBOM produced elsewhere, crossed with a declaration
+# written here, must come out with the same verdicts our own scan produces.
+cbom=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --cbom="$cbom/round.json" --json="$cbom/scan.json" \
+	--out="$cbom/r.html" --quiet >/dev/null || true
+./bin/sablier judge "$cbom/round.json" --declare=tests/fixtures/sample/sablier.json \
+	--json="$cbom/judged.json" --out="$cbom/j.html" --quiet >/dev/null || true
+
+same=$(php -r '
+	$key = static function (array $rows): array {
+		$o = [];
+		foreach ($rows as $r) { $o[$r["algorithm"]."|".$r["file"]] = $r["verdict"]; }
+		ksort($o);
+		return $o;
+	};
+	$a = $key(json_decode(file_get_contents($argv[1]), true));
+	$b = $key(json_decode(file_get_contents($argv[2]), true));
+	echo $a === $b && $a !== [] ? count($a) : "0";
+' "$cbom/scan.json" "$cbom/judged.json")
+if [ "$same" = "0" ]; then
+	echo "✗ cbom: the round trip changed the verdicts"
+	rm -rf "$cbom"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "cbom" "roundtrip" "$same verdicts"
+
+# A CBOM from another tool, in a language this one cannot read at all.
+export SABLIER_TEST_JSON="$cbom/foreign.json"
+./bin/sablier judge tests/fixtures/cbom/foreign.json --declare=tests/fixtures/cbom/sablier.json \
+	--json="$cbom/foreign.json" --out="$cbom/f.html" --quiet >/dev/null || true
+check compromised rsa      1   # RSA encrypting a backup kept twelve years
+check watch       rsa-sign 1   # the same algorithm signing: not harvestable
+check clear       aes-256  1   # and the symmetric cipher next to it is fine
+check urgent      sha1     1
+unset SABLIER_TEST_JSON
+
+# What it could not read must be named, not dropped.
+if ! grep -q "Camellia" "$cbom/f.html"; then
+	echo "✗ cbom: an unjudged component vanished instead of being printed"
+	rm -rf "$cbom"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
+rm -rf "$cbom"
+
 # --- signing ------------------------------------------------------------------
 # A signature that verifies against whatever key came with it proves only that
 # someone had a key; the expected key comes from the versioned declaration.

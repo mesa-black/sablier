@@ -90,7 +90,9 @@ final class HtmlReporter implements Reporter
             .' '.Lang::t('report.deadline_checked', $checked === false ? $declaration->deadlinesCheckedOn : $checked->format('d/m/Y'))
             .($declaration->deadlinesAreStale() ? ' <strong class="stale">'.htmlspecialchars(Lang::t('report.deadline_stale', $declaration->monthsSinceCheck())).'</strong>' : '');
         $footer = Lang::t('report.footer');
-        $filesLabel = Lang::t('report.files_read', $this->analysis->filesRead);
+        $filesLabel = $this->analysis->importedFrom !== ''
+            ? Lang::t('report.imported_from', $this->analysis->importedFrom, $this->analysis->filesRead)
+            : Lang::t('report.files_read', $this->analysis->filesRead);
         $elapsedLabel = Lang::t('report.elapsed', $elapsed);
 
         return <<<HTML

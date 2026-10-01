@@ -36,6 +36,7 @@ use Sablier\Detector\ServerConfigDetector;
 use Sablier\Detector\ShellDetector;
 use Sablier\Detector\SshConfigDetector;
 use Sablier\Detector\SymfonyVaultDetector;
+use Sablier\Reporter\CbomReporter;
 use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
 
@@ -150,29 +151,39 @@ if ($command === 'probe') {
     exit(0);
 }
 
-if ($command !== 'scan') {
+// Past this point, two commands share one body: `scan` builds the inventory by
+// reading a project, `judge` reads one somebody else's tool produced. Everything
+// after the inventory — the risk model, the report, the baseline, the exit code
+// — is the same, and that is the whole argument for the import.
+if (!\in_array($command, ['scan', 'judge'], true)) {
     fwrite(\STDOUT, Lang::t('cli.usage')."\n");
     exit($command === 'help' ? 0 : 1);
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|pdf|year|sign|baseline)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|pdf|year|sign|baseline)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
     }
 }
 
-if ($target === null || !is_dir($target)) {
-    fwrite(\STDERR, '✗ '.Lang::t('cli.missing_path')."\n");
+if ($target === null || ($command === 'scan' ? !is_dir($target) : !is_file($target))) {
+    fwrite(\STDERR, '✗ '.Lang::t($command === 'scan' ? 'cli.missing_path' : 'cli.missing_cbom')."\n");
     exit(1);
 }
 
-$declarationPath = $options['declare'] ?? (is_file($target.'/sablier.json') ? $target.'/sablier.json' : null);
+// A scanned project carries its declaration; an imported CBOM has none of its
+// own, so the declaration is the one in the hand that runs the command.
+$declarationPath = $options['declare'] ?? match (true) {
+    $command === 'scan' && is_file($target.'/sablier.json') => $target.'/sablier.json',
+    $command === 'judge' && is_file('sablier.json') => 'sablier.json',
+    default => null,
+};
 $declaration = Declaration::load($declarationPath);
 // --year projects the same codebase into a future year. The expiry date does
 // not move — it is a regulatory deadline — but the other side of the comparison
@@ -183,34 +194,64 @@ $currentYear = $options['year'] !== null ? (int) $options['year'] : $actualYear;
 
 $startedAt = microtime(true);
 
-// Composition happens here and nowhere else: the scanner receives what it must
-// run, instead of knowing the list itself.
-$scan = (new Scanner([
-    new PhpDetector(),
-    new ShellDetector(),
-    new KeyMaterialDetector(),
-    new ServerConfigDetector(),
-    new SshConfigDetector(),
-    new EnvDetector(),
-    new FrameworkConfigDetector(),
-    new SymfonyVaultDetector(),
-    new DependencyDetector(),
-], $declaration->exclude))->scan($target);
-
-// Live probes come from the declaration: what a server negotiates belongs to
-// the same inventory as what the code says, and it is the only part a file can
-// contradict.
 $probes = [];
-$probeFindings = [];
-if (!$options['no-probe']) {
-    foreach ($declaration->probe as $host) {
-        $result = (new Probe())->run($host);
-        $probes[] = ['target' => $host, 'facts' => $result['facts'], 'notes' => $result['notes']];
-        $probeFindings = [...$probeFindings, ...$result['findings']];
+$importedFrom = '';
+if ($command === 'scan') {
+    // Composition happens here and nowhere else: the scanner receives what it
+    // must run, instead of knowing the list itself.
+    $scan = (new Scanner([
+        new PhpDetector(),
+        new ShellDetector(),
+        new KeyMaterialDetector(),
+        new ServerConfigDetector(),
+        new SshConfigDetector(),
+        new EnvDetector(),
+        new FrameworkConfigDetector(),
+        new SymfonyVaultDetector(),
+        new DependencyDetector(),
+    ], $declaration->exclude))->scan($target);
+
+    // Live probes come from the declaration: what a server negotiates belongs
+    // to the same inventory as what the code says, and it is the only part a
+    // file can contradict.
+    $probeFindings = [];
+    if (!$options['no-probe']) {
+        foreach ($declaration->probe as $host) {
+            $result = (new Probe())->run($host);
+            $probes[] = ['target' => $host, 'facts' => $result['facts'], 'notes' => $result['notes']];
+            $probeFindings = [...$probeFindings, ...$result['findings']];
+        }
+    }
+
+    $inventory = [...$scan['findings'], ...$probeFindings];
+    $filesRead = $scan['files'];
+    $blind = $scan['blind'];
+    $label = $target;
+} else {
+    // Somebody else's inventory. We judge it; we did not detect it, and the
+    // report says so rather than borrowing the credit — along with what the
+    // import could not understand, which is the part a silent importer hides.
+    $imported = Cbom::read($target);
+    if ($imported === null) {
+        fwrite(\STDERR, '✗ '.Lang::t('cbom.unreadable', $target)."\n");
+        exit(1);
+    }
+
+    $inventory = $imported['findings'];
+    $filesRead = $imported['locations'];
+    $label = $imported['project'];
+    $importedFrom = $imported['producer'];
+    $blind = [Lang::t('cbom.blind.imported', \count($inventory), $imported['producer'])];
+    if ($imported['ignored'] !== []) {
+        $names = array_slice(array_values(array_unique($imported['ignored'])), 0, 8);
+        $blind[] = Lang::t('cbom.blind.ignored', \count($imported['ignored']), implode(', ', $names));
+    }
+    if ($imported['unplaced'] > 0) {
+        $blind[] = Lang::t('cbom.blind.no_location', $imported['unplaced']);
     }
 }
 
-$findings = (new Assessor($declaration, $currentYear))->assess([...$scan['findings'], ...$probeFindings]);
+$findings = (new Assessor($declaration, $currentYear))->assess($inventory);
 $duration = microtime(true) - $startedAt;
 
 // Signing happens after the analysis and over the findings, never over the
@@ -222,7 +263,7 @@ if ($options['sign'] !== null) {
         fwrite(\STDERR, '✗ '.Lang::t('cli.key_missing', $options['sign'])."\n");
         exit(1);
     }
-    $preliminary = new Analysis($findings, $declaration, $target, $scan['files'], $scan['blind'], $currentYear);
+    $preliminary = new Analysis($findings, $declaration, $label, $filesRead, $blind, $currentYear);
     $signature = Signature::sign(Signature::digest($preliminary), trim((string) file_get_contents($options['sign'])));
     file_put_contents($options['out'].'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
 }
@@ -230,20 +271,27 @@ if ($options['sign'] !== null) {
 $analysis = new Analysis(
     findings: $findings,
     declaration: $declaration,
-    target: $target,
-    filesRead: $scan['files'],
-    blindSpots: $scan['blind'],
+    target: $label,
+    filesRead: $filesRead,
+    blindSpots: $blind,
     currentYear: $currentYear,
     duration: $duration,
     probes: $probes,
     projected: $currentYear !== $actualYear,
     signature: $signature,
+    importedFrom: $importedFrom,
 );
 
 file_put_contents($options['out'], (new HtmlReporter())->render($analysis));
 
 if ($options['json'] !== null) {
     file_put_contents($options['json'], (new JsonReporter())->render($analysis));
+}
+
+// The inventory in the format other tools read. The house JSON stays for our
+// own baseline; this one is for everybody else's pipeline.
+if ($options['cbom'] !== null) {
+    file_put_contents($options['cbom'], (new CbomReporter())->render($analysis)."\n");
 }
 
 $pdfMessage = null;
@@ -317,7 +365,10 @@ if ($options['quiet']) {
     exit($status);
 }
 
-printf("\n  %s — %s, %s, %.1f s\n", $target, Lang::t('report.files_read', $scan['files']), Lang::t('cli.findings', \count($findings)), $duration);
+$sourceLabel = $importedFrom !== ''
+    ? Lang::t('report.imported_from', $importedFrom, $filesRead)
+    : Lang::t('report.files_read', $filesRead);
+printf("\n  %s — %s, %s, %.1f s\n", $label, $sourceLabel, Lang::t('cli.findings', \count($findings)), $duration);
 // The colon belongs to the label: French puts a space before it, English does not.
 printf("  %s %s\n\n", Lang::t('cli.declaration'), $declarationPath ?? Lang::t('cli.no_declaration'));
 foreach (Assessor::order() as $verdict) {
@@ -326,6 +377,9 @@ foreach (Assessor::order() as $verdict) {
     }
 }
 printf("\n  → %s\n", $options['out']);
+if ($options['cbom'] !== null) {
+    printf("  → %s\n", $options['cbom']);
+}
 if ($pdfMessage !== null) {
     printf("  → %s\n", $pdfMessage);
 }

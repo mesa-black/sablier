@@ -240,6 +240,11 @@ Available in French, English and Spanish.
 - **Live TLS probe** — pulled forward from "later" after the first real scan.
 - A declaration file for data domains and their lifetimes.
 - Self-contained HTML report plus JSON output, in three languages.
+- **CBOM in and out** (CycloneDX 1.6). Out, so the inventory is consumable by
+  tooling that already exists; in, so an inventory produced by a scanner for a
+  language we do not parse can still be crossed with a declaration and judged
+  here. The second direction is the one that matters: it says out loud that the
+  detectors are not the product.
 - **Zero dependencies.** On a tool that reads keys, each dependency is one more
   supply chain to defend. It is also a selling point.
 

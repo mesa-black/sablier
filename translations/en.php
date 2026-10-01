@@ -146,11 +146,13 @@ return [
 
   bin/sablier scan <path> [options]
   bin/sablier probe <host>          what a server actually negotiates
+  bin/sablier judge <cbom.json>     judge another tool\'s inventory (CycloneDX 1.6)
   bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
 
     --declare=FILE      data domain declaration (default: sablier.json at the scanned root)
     --out=FILE          HTML report (default: report.html)
     --json=FILE         raw inventory as JSON
+    --cbom=FILE         inventory as CycloneDX 1.6 (CBOM)
     --baseline=FILE     compare against a reference JSON inventory (exit 2 when a decision is due)
     --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
@@ -171,6 +173,15 @@ return [
     'cli.findings' => '%d findings',
     'cli.missing_host' => 'missing host: bin/sablier probe example.org',
     'cli.missing_path' => 'missing or unreachable path to scan',
+    'cli.missing_cbom' => 'missing or unreadable CBOM file: bin/sablier judge cbom.json',
+
+    // --- somebody else's inventory ---
+    'cbom.unreadable' => 'this file is not a readable CycloneDX CBOM: %s',
+    'cbom.unknown_producer' => 'an unidentified tool',
+    'report.imported_from' => 'inventory imported from %s, %d locations',
+    'cbom.blind.imported' => 'Findings imported: %d, from an inventory produced by %s. The detection was not redone here; only the judgement is this tool\'s.',
+    'cbom.blind.ignored' => 'Components of the CBOM left unjudged, for want of knowing what they are: %d (%s)',
+    'cbom.blind.no_location' => 'Components that arrived with no location: %d. Their domain cannot be resolved, so they fall under the default lifetime.',
 
     // --- PDF export ---
     'pdf.no_browser' => 'PDF export unavailable: no Chrome or Chromium found on this machine. The HTML report prints to PDF from any browser (a print stylesheet is included).',

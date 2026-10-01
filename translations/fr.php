@@ -155,11 +155,13 @@ return [
 
   bin/sablier scan <chemin> [options]
   bin/sablier probe <hôte>          ce qu\'un serveur négocie réellement
+  bin/sablier judge <cbom.json>     juger l\'inventaire d\'un autre outil (CycloneDX 1.6)
   bin/sablier accept <empreinte> --reason=…  accepter un constat, avec sa date d\'expiration
 
     --declare=FICHIER   déclaration des domaines de données (défaut : sablier.json à la racine analysée)
     --out=FICHIER       rapport HTML (défaut : report.html)
     --json=FICHIER      inventaire brut en JSON
+    --cbom=FICHIER      inventaire au format CycloneDX 1.6 (CBOM)
     --baseline=FICHIER  comparer à un inventaire JSON de référence (sortie 2 s\'il faut décider)
     --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
@@ -180,6 +182,15 @@ return [
     'cli.findings' => '%d constats',
     'cli.missing_host' => 'hôte manquant : bin/sablier probe exemple.fr',
     'cli.missing_path' => 'chemin à analyser manquant ou introuvable',
+    'cli.missing_cbom' => 'fichier CBOM manquant ou introuvable : bin/sablier judge cbom.json',
+
+    // --- somebody else's inventory ---
+    'cbom.unreadable' => 'ce fichier n\'est pas un CBOM CycloneDX lisible : %s',
+    'cbom.unknown_producer' => 'un outil non identifié',
+    'report.imported_from' => 'inventaire importé de %s, %d emplacements',
+    'cbom.blind.imported' => 'Constats importés : %d, depuis un inventaire produit par %s. La détection n\'a pas été refaite ici ; seul le jugement est de cet outil.',
+    'cbom.blind.ignored' => 'Composants du CBOM non jugés, faute de savoir ce qu\'ils sont : %d (%s)',
+    'cbom.blind.no_location' => 'Composants arrivés sans emplacement : %d. Leur domaine ne peut pas être résolu, ils tombent donc dans la durée par défaut.',
 
     // --- PDF export ---
     'pdf.no_browser' => 'export PDF impossible : aucun navigateur Chrome ou Chromium trouvé sur cette machine. Le rapport HTML s\'imprime en PDF depuis n\'importe quel navigateur (feuille d\'impression fournie).',

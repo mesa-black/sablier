@@ -1,0 +1,113 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-30T10:00:00Z",
+    "tools": {
+      "components": [
+        { "type": "application", "name": "another-scanner", "version": "2.1.0" }
+      ]
+    },
+    "component": { "type": "application", "bom-ref": "pkg:maven/com.example/service", "name": "example-service" }
+  },
+  "components": [
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/algorithm/rsa-2048",
+      "name": "RSA",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "pke",
+          "parameterSetIdentifier": "2048",
+          "cryptoFunctions": ["encrypt", "decrypt"]
+        }
+      },
+      "evidence": {
+        "occurrences": [{ "location": "src/main/java/com/example/BackupCipher.java", "line": 42 }]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/algorithm/rsa-4096-sign",
+      "name": "RSA",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "parameterSetIdentifier": "4096",
+          "cryptoFunctions": ["sign", "verify"]
+        }
+      },
+      "evidence": {
+        "occurrences": [{ "location": "src/main/java/com/example/TokenSigner.java", "line": 18 }]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/algorithm/aes-256-gcm",
+      "name": "AES",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "block-cipher",
+          "parameterSetIdentifier": "256",
+          "cryptoFunctions": ["encrypt", "decrypt"]
+        }
+      },
+      "evidence": {
+        "occurrences": [{ "location": "src/main/java/com/example/BackupCipher.java", "line": 51 }]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/algorithm/sha-1",
+      "name": "SHA-1",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": { "primitive": "hash", "cryptoFunctions": ["digest"] }
+      },
+      "evidence": {
+        "occurrences": [{ "location": "src/main/java/com/example/LegacyDigest.java", "line": 9 }]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/algorithm/x25519",
+      "name": "X25519",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": { "primitive": "key-agree", "curve": "curve25519" }
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/algorithm/camellia-128",
+      "name": "Camellia",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": { "primitive": "block-cipher", "parameterSetIdentifier": "128" }
+      },
+      "evidence": {
+        "occurrences": [{ "location": "src/main/java/com/example/Exotic.java", "line": 7 }]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/protocol/tls-1.2",
+      "name": "TLS",
+      "cryptoProperties": {
+        "assetType": "protocol",
+        "protocolProperties": { "type": "tls", "version": "1.2" }
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.bouncycastle/bcprov-jdk18on@1.78",
+      "name": "bcprov-jdk18on",
+      "version": "1.78"
+    }
+  ]
+}

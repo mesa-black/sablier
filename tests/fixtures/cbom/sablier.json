@@ -1,0 +1,16 @@
+{
+  "project": "Foreign",
+  "expiry_year": 2035,
+  "default_lifetime_years": 3,
+  "domains": {
+    "backups": {
+      "paths": ["src/main/java/com/example/Backup*"],
+      "lifetime_years": 12,
+      "note": "A Java project this tool cannot read: the inventory comes from elsewhere, the lifetime from here."
+    },
+    "session tokens": {
+      "paths": ["src/main/java/com/example/Token*"],
+      "lifetime_years": 1
+    }
+  }
+}

@@ -146,11 +146,13 @@ return [
 
   bin/sablier scan <ruta> [opciones]
   bin/sablier probe <host>          lo que un servidor negocia realmente
+  bin/sablier judge <cbom.json>     juzgar el inventario de otra herramienta (CycloneDX 1.6)
   bin/sablier accept <huella> --reason=…  aceptar un hallazgo, con su fecha de caducidad
 
     --declare=ARCHIVO   declaración de dominios de datos (por defecto: sablier.json en la raíz analizada)
     --out=ARCHIVO       informe HTML (por defecto: report.html)
     --json=ARCHIVO      inventario en bruto en JSON
+    --cbom=ARCHIVO      inventario en formato CycloneDX 1.6 (CBOM)
     --baseline=ARCHIVO  comparar con un inventario JSON de referencia (salida 2 si hay que decidir)
     --lang=fr|en|es     idioma del informe
     --no-probe          no sondear los hosts declarados
@@ -171,6 +173,15 @@ return [
     'cli.findings' => '%d hallazgos',
     'cli.missing_host' => 'falta el host: bin/sablier probe ejemplo.es',
     'cli.missing_path' => 'ruta por analizar ausente o no encontrada',
+    'cli.missing_cbom' => 'falta el archivo CBOM o no se encuentra: bin/sablier judge cbom.json',
+
+    // --- somebody else's inventory ---
+    'cbom.unreadable' => 'este archivo no es un CBOM CycloneDX legible: %s',
+    'cbom.unknown_producer' => 'una herramienta no identificada',
+    'report.imported_from' => 'inventario importado de %s, %d ubicaciones',
+    'cbom.blind.imported' => 'Hallazgos importados: %d, de un inventario producido por %s. La detección no se ha rehecho aquí; solo el juicio es de esta herramienta.',
+    'cbom.blind.ignored' => 'Componentes del CBOM sin juzgar, por no saber qué son: %d (%s)',
+    'cbom.blind.no_location' => 'Componentes llegados sin ubicación: %d. Su dominio no puede resolverse, así que caen en la duración por defecto.',
 
     // --- PDF export ---
     'pdf.no_browser' => 'Exportación a PDF imposible: no se ha encontrado Chrome ni Chromium en esta máquina. El informe HTML se imprime a PDF desde cualquier navegador (incluye hoja de impresión).',
