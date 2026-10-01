@@ -590,9 +590,20 @@ and the scanner itself — and one command re-checks all four:
 make cve
 ```
 
-It fails on any high or critical vulnerability, and it runs in CI on every
+It fails on any high or critical vulnerability, on **both architectures** — a
+multi-arch tag is several images rebuilt at different times, and a claim that
+only holds for the laptop it was made on is not a claim. It runs in CI on every
 push **and every Monday**, because an image with no known vulnerability today
-is not an image with no known vulnerability in March.
+is not an image with no known vulnerability in March. It has already caught
+one: a pcre2 advisory that landed in the PHPStan image between two runs, hours
+before upstream rebuilt it.
+
+Which is the case the gate has to survive without being switched off. When an
+image we do not control ships a hole with no fix published, the decision goes
+in `.trivyignore.yaml` — with a statement and an expiry date, the same two
+things `sablier accept` demands of its own users, and reviewed in the same
+place. No file ships with this repository: there is nothing to accept today,
+and the flag disappears along with it.
 
 The claim is exactly that, and no larger: *no known high or critical
 vulnerability, per Trivy's database at the time of the scan*. There is no

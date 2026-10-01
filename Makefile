@@ -18,13 +18,30 @@ phpstan: ## Static analysis at level max (runs in a container: this project has 
 	@docker run --rm --volume "$(CURDIR)":/app --workdir /app \
 		$(PHPSTAN_IMAGE) analyse --no-progress
 
+# Both architectures, because the claim has to hold for the machine the reader
+# runs rather than the one we wrote it on: a multi-arch tag is several images,
+# rebuilt at different times, and we were a fresh CI runner away from saying
+# "clean" about a platform nobody here uses.
+PLATFORMS ?= linux/amd64 linux/arm64
+
+# When an upstream image ships a hole we cannot fix, the decision goes in
+# .trivyignore.yaml with a statement and an expiry date — the same two things
+# `sablier accept` demands of its own users. No file, no exceptions, and the
+# flag disappears with it.
+IGNORE_FILE := $(wildcard .trivyignore.yaml)
+
 cve: ## Prove the containers we ask you to run carry no known high or critical CVE
 	@set -e; for image in $(PHP_IMAGE) $(PHPSTAN_IMAGE) $(CHROME_IMAGE) $(TRIVY_IMAGE); do \
-		printf '\n  %s\n' "$$image"; \
-		docker run --rm --volume "$(HOME)/.cache/trivy":/root/.cache $(TRIVY_IMAGE) image \
-			--image-src remote --scanners vuln --severity HIGH,CRITICAL \
-			--exit-code 1 --quiet "$$image"; \
-		printf '  ✓ no known high or critical vulnerability\n'; \
+		for platform in $(PLATFORMS); do \
+			printf '\n  %s (%s)\n' "$$image" "$$platform"; \
+			docker run --rm --volume "$(HOME)/.cache/trivy":/root/.cache \
+				$(if $(IGNORE_FILE),--volume "$(CURDIR)/.trivyignore.yaml":/.trivyignore.yaml:ro,) \
+				$(TRIVY_IMAGE) image --image-src remote --platform "$$platform" \
+				--scanners vuln --severity HIGH,CRITICAL \
+				$(if $(IGNORE_FILE),--ignorefile /.trivyignore.yaml,) \
+				--exit-code 1 --quiet "$$image"; \
+			printf '  ✓ no known high or critical vulnerability\n'; \
+		done; \
 	done
 
 demo: ## Scan the fixture project and open the report
