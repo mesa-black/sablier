@@ -207,10 +207,16 @@ final class Interview
     {
         $domains = Value::map($existing['domains'] ?? null);
         foreach ($answers as $answer) {
+            // The same name given twice is the same data in two places, not a
+            // second domain overwriting the first. A dry run produced "accès
+            // technique" and "acces" for two areas, and an earlier version
+            // would have kept one path and silently dropped the other.
+            $existingDomain = Value::map($domains[$answer['name']] ?? null);
+            $paths = [...Value::strings($existingDomain['paths'] ?? null), ...$answer['paths']];
             $domain = [
-                'paths' => $answer['paths'],
-                'lifetime_years' => $answer['lifetime'],
-                'note' => $answer['note'],
+                'paths' => array_values(array_unique($paths)),
+                'lifetime_years' => max($answer['lifetime'], Value::int($existingDomain['lifetime_years'] ?? null)),
+                'note' => trim(Value::string($existingDomain['note'] ?? null).' '.$answer['note']),
             ];
             // A long-lived trust anchor is a different claim from a long-lived
             // secret, and the declaration has a word for it.

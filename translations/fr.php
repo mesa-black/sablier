@@ -328,6 +328,7 @@ Première action : %s',
     // --- the screen rebuilt after the first dry run ---
     'web.subject.title' => 'Sujet %d sur %d · la partie « %s »',
     'web.q.name' => 'De quelles données parle-t-on, chez vous ?',
+    'web.q.name.reuse' => 'Déjà nommé :',
     'web.q.name.hint' => 'Un nom court, celui que vous utiliseriez en réunion : comptabilité, dossiers clients, accès techniques. Corrigez la proposition si elle est fausse.',
     'web.q.harm' => 'Si ça se retrouvait en ligne demain, pendant combien de temps est-ce que ça ferait encore du tort ?',
     'web.harm.none' => 'Aucun tort',

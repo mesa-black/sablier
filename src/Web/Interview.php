@@ -173,6 +173,18 @@ final class Interview
             );
         }
 
+        $used = '';
+        foreach ($this->session->map('answers') as $answer) {
+            $given = Value::string(Value::map($answer)['name'] ?? null);
+            if ($given !== '') {
+                $used .= '<button type="button" class="reuse" data-name="'.htmlspecialchars($given).'">'
+                    .htmlspecialchars($given).'</button>';
+            }
+        }
+        if ($used !== '') {
+            $used = '<p class="reuses"><span>'.htmlspecialchars(Lang::t('web.q.name.reuse')).'</span>'.$used.'</p>';
+        }
+
         return $this->page(
             Lang::t('web.subject.title', $index + 1, \count($areas), self::humanise($path)),
             '<p class="found">'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
@@ -180,7 +192,8 @@ final class Interview
             .'<input type="hidden" name="step" value="subject">'
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.q.name')).'</span>'
             .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.name.hint')).'</span>'
-            .'<input type="text" name="name" value="'.htmlspecialchars($suggested).'" autofocus autocomplete="off"></label>'
+            .'<input type="text" name="name" id="name" value="'.htmlspecialchars($suggested).'" autofocus autocomplete="off"></label>'
+            .$used
             .'<fieldset class="field"><legend class="q">'.htmlspecialchars(Lang::t($signature ? 'web.q.trust' : 'web.q.harm')).'</legend>'
             .'<span class="hint">'.htmlspecialchars(Lang::t($signature ? 'web.q.trust.hint' : 'web.q.harm.hint')).'</span>'
             .'<div class="years">'.$years.'</div></fieldset>'
@@ -486,7 +499,9 @@ final class Interview
             ? '<div class="clock" id="clock" aria-hidden="true">0:00</div>'
             .'<script>(function(){var s=Date.now(),e=document.getElementById("clock");'
             .'setInterval(function(){var t=Math.floor((Date.now()-s)/1000);'
-            .'e.textContent=Math.floor(t/60)+":"+String(t%60).padStart(2,"0");},1000);})();</script>'
+            .'e.textContent=Math.floor(t/60)+":"+String(t%60).padStart(2,"0");},1000);'
+            .'document.querySelectorAll(".reuse").forEach(function(b){b.addEventListener("click",function(){'
+            .'document.getElementById("name").value=b.dataset.name;});});})();</script>'
             : '';
 
         return <<<HTML
@@ -521,13 +536,15 @@ final class Interview
             .found{border-left:3px solid var(--accent);padding:.5rem 0 .5rem 1rem;margin:1.4rem 0 1.8rem;font-size:1.05rem}
             .purpose{background:#00000008;border-radius:3px;padding:.9rem 1.1rem;margin:0 0 1.6rem}
             .q{font-weight:600}
+            .reuses{margin:-.8rem 0 1.6rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;font-size:.85rem;color:var(--muted)}
+            .reuse{margin:0;padding:.25rem .6rem;font-size:.85rem;background:transparent;color:var(--ink);
+                   border:1px solid var(--line);border-radius:999px;cursor:pointer}
             .hint{display:block;color:var(--muted);font-size:.85rem;margin:.2rem 0 .5rem}
             .optional .q{font-weight:400;color:var(--muted)}
             .years{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}
             .year{border:1px solid var(--line);border-radius:3px;padding:.45rem .8rem;cursor:pointer;background:#fff}
             .year:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
             .year input{margin-right:.35rem}
-            @media (prefers-color-scheme:dark){.year,textarea{background:#1d1f24}.purpose{background:#ffffff0a}}
             .where{color:var(--muted);font-size:.85rem;font-family:ui-monospace,Menlo,monospace;margin:0 0 1.8rem}
             .field{display:block;margin:1.4rem 0}
             .field span{display:block;margin-bottom:.4rem}
@@ -555,10 +572,18 @@ final class Interview
             .verdicts li{margin:.3rem 0}
             .count{display:inline-block;min-width:1.8rem;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
             .note{color:var(--muted);font-size:.85rem;margin-top:2rem}
+            /* Every surface that was given a literal white above has to be
+               given one here too. A dark override placed before the rule it
+               overrides loses on source order, which is how a text area ended
+               up white with light grey text in it — unreadable, and only on
+               the screen somebody was typing a sentence into. */
             @media (prefers-color-scheme:dark){
                 :root{--ink:#e9e6e1;--paper:#15161a;--line:#33363d;--muted:#9a9790;--accent:#8aa8d8}
-                input[type=text]{background:#1d1f24}
+                input[type=text],textarea,.year{background:#1d1f24;color:var(--ink)}
+                input[type=text]::placeholder,textarea::placeholder{color:var(--muted)}
+                .purpose{background:#ffffff0a}
                 button,.button{background:var(--ink);color:var(--paper)}
+                button.ghost{background:transparent;color:var(--ink)}
             }
             CSS;
     }

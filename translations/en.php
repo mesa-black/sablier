@@ -319,6 +319,7 @@ First action: %s',
     // --- the screen rebuilt after the first dry run ---
     'web.subject.title' => 'Subject %d of %d · the "%s" part',
     'web.q.name' => 'Which of your data is this about?',
+    'web.q.name.reuse' => 'Already named:',
     'web.q.name.hint' => 'A short name, the one you would use in a meeting: accounting, customer records, technical access. Correct the suggestion if it is wrong.',
     'web.q.harm' => 'If this turned up online tomorrow, for how long would it still cause harm?',
     'web.harm.none' => 'No harm',

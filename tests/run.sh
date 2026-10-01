@@ -300,6 +300,26 @@ if [ "$derived" != "ok" ]; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "interview" "lifetime" "retention or harm, whichever is longer"
 
+# The same name twice is one domain in two places. A dry run produced "accès
+# technique" and "acces" for two areas, and keeping only the last path would
+# have dropped half of what was said.
+merged=$(php -r '
+	foreach (["Lang", "Value", "Assessor", "Catalogue", "Finding", "SourceFile", "Declaration", "Interview"] as $class) {
+		require "src/$class.php";
+	}
+	$merged = Sablier\Interview::merge([], [
+		["name" => "accès", "paths" => ["src/A/*"], "lifetime" => 3, "note" => "une"],
+		["name" => "accès", "paths" => ["src/B/*"], "lifetime" => 7, "note" => "deux"],
+	]);
+	$domain = $merged["domains"]["accès"];
+	echo count($domain["paths"]) === 2 && $domain["lifetime_years"] === 7 ? "ok" : "no";
+')
+if [ "$merged" != "ok" ]; then
+	echo "✗ interview: the same name twice must keep both places and the longer lifetime"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "same name" "two places, one domain"
+
 # And the declaration it writes must produce the verdicts the fixture expects.
 ./bin/sablier scan "$iv" --json="$iv/out.json" --out="$iv/r.html" --quiet >/dev/null || true
 if [ "$(php -r '
