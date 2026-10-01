@@ -70,7 +70,8 @@ final class Interview
 
         return $this->page(
             Lang::t('web.intro.title'),
-            '<p class="lead">'.htmlspecialchars(Lang::t('web.intro.lead', \count($areas))).'</p>'
+            '<p class="purpose">'.htmlspecialchars(Lang::t('web.purpose')).'</p>'
+            .'<p class="lead">'.htmlspecialchars(Lang::t('web.intro.lead', \count($areas))).'</p>'
             .'<ol class="questions">'
             .'<li>'.htmlspecialchars(Lang::t('declare.q.name.first')).'</li>'
             .'<li>'.htmlspecialchars(Lang::t('declare.q.retention')).'</li>'
@@ -120,6 +121,28 @@ final class Interview
         );
     }
 
+    /**
+     * One subject, one question that matters, and nothing to decipher.
+     *
+     * The first dry run with somebody playing the non-technical part produced
+     * four lessons, and this screen is what is left of them:
+     *
+     *   · a file path told the person nothing. "I do not know what this file
+     *     is" was typed into the name field, so the heading is now the part of
+     *     the application in words, and the paths are small print for whoever
+     *     wants them;
+     *   · "what would we be talking about" was answered with the incident —
+     *     "a hack of my server" — rather than with a name. So the field asks
+     *     for a name, carries examples, and comes pre-filled when the tool
+     *     honestly knows the answer;
+     *   · the duration question was answered three times out of four and the
+     *     retention question once. The one that works is now a row of buttons,
+     *     and the one that does not is optional and explicitly about a legal
+     *     obligation;
+     *   · "I do not know" is a button rather than a confession typed into a
+     *     text field, and it records the subject as skipped, which is exactly
+     *     what it is.
+     */
     private function subject(): string
     {
         $index = $this->session->int('index');
@@ -130,27 +153,51 @@ final class Interview
 
         $this->session->set('served_at', microtime(true));
         $area = Value::map($areas[$index]);
-        $names = Value::strings($area['names'] ?? null);
+        $algorithms = Value::strings($area['algorithms'] ?? null);
+        $path = Value::string($area['path'] ?? null);
+        $suggested = Lang::has(Questions::label($algorithms).'.name')
+            ? Lang::t(Questions::label($algorithms).'.name')
+            : '';
+
+        $years = '';
+        foreach ([0, 1, 3, 5, 10, 20, 30] as $value) {
+            $years .= \sprintf(
+                '<label class="year"><input type="radio" name="harm" value="%d"> %s</label>',
+                $value,
+                htmlspecialchars($value === 0 ? Lang::t('web.harm.none') : Lang::t('web.harm.years', $value)),
+            );
+        }
 
         return $this->page(
-            Lang::t('declare.area', $index + 1, \count($areas), Value::int($area['files'] ?? null)),
-            '<p class="found">'.htmlspecialchars(Lang::t(Questions::subject(Value::strings($area['algorithms'] ?? null)))).'</p>'
-            .'<p class="where">'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', $names))).'</p>'
+            Lang::t('web.subject.title', $index + 1, \count($areas), self::humanise($path)),
+            '<p class="found">'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
             .'<form method="post" action="/subject">'
             .'<input type="hidden" name="step" value="subject">'
-            .'<label class="field"><span>'.htmlspecialchars(Lang::t('declare.q.name')).'</span>'
-            .'<input type="text" name="name" autofocus autocomplete="off"></label>'
-            .'<label class="field"><span>'.htmlspecialchars(Lang::t('declare.q.retention')).'</span>'
+            .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.q.name')).'</span>'
+            .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.name.hint')).'</span>'
+            .'<input type="text" name="name" value="'.htmlspecialchars($suggested).'" autofocus autocomplete="off"></label>'
+            .'<fieldset class="field"><legend class="q">'.htmlspecialchars(Lang::t('web.q.harm')).'</legend>'
+            .'<div class="years">'.$years.'</div></fieldset>'
+            .'<label class="field optional"><span class="q">'.htmlspecialchars(Lang::t('web.q.retention')).'</span>'
+            .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.retention.hint')).'</span>'
             .'<input type="text" name="retention" inputmode="numeric" autocomplete="off"></label>'
-            .'<label class="field"><span>'.htmlspecialchars(Lang::t('declare.q.damage')).'</span>'
-            .'<input type="text" name="harm" inputmode="numeric" autocomplete="off"></label>'
-            .'<label class="field"><span>'.htmlspecialchars(Lang::t('declare.q.note')).'</span>'
-            .'<input type="text" name="note" autocomplete="off"></label>'
+            .'<label class="field optional"><span class="q">'.htmlspecialchars(Lang::t('declare.q.note')).'</span>'
+            .'<textarea name="note" rows="3"></textarea></label>'
             .'<div class="actions"><button type="submit" name="action" value="answer">'.htmlspecialchars(Lang::t('web.next')).'</button>'
+            .'<button type="submit" name="action" value="unknown" class="ghost">'.htmlspecialchars(Lang::t('web.unknown')).'</button>'
             .'<button type="submit" name="action" value="skip" class="ghost">'.htmlspecialchars(Lang::t('web.skip')).'</button></div>'
-            .'</form>',
+            .'</form>'
+            .'<p class="where">'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', Value::strings($area['names'] ?? null)))).'</p>',
             timer: true,
         );
+    }
+
+    /** `src/Feedback` reads as "Feedback": the last word, and no slash. */
+    private static function humanise(string $path): string
+    {
+        $parts = explode('/', $path);
+
+        return end($parts) ?: $path;
     }
 
     /** @param array<string, string> $post */
@@ -181,8 +228,16 @@ final class Interview
         $record = $this->session->map('record');
         $answers = $this->session->map('answers');
 
-        if (($post['action'] ?? '') === 'skip' || $name === '') {
-            $record[] = ['area' => Value::string($area['path'] ?? null), 'skipped' => true, 'seconds' => $seconds];
+        $action = $post['action'] ?? '';
+        if ($action === 'skip' || $action === 'unknown' || $name === '') {
+            $record[] = [
+                'area' => Value::string($area['path'] ?? null),
+                'skipped' => true,
+                // Not knowing and choosing not to answer are two results, and
+                // the difference is the whole point of running the session.
+                'reason' => $action === 'unknown' ? 'does_not_know' : 'skipped',
+                'seconds' => $seconds,
+            ];
         } else {
             $retention = $this->years($post['retention'] ?? '');
             $harm = $this->years($post['harm'] ?? '');
@@ -228,10 +283,10 @@ final class Interview
             Lang::t('web.feedback.title'),
             '<p class="lead">'.htmlspecialchars(Lang::t('web.feedback.lead')).'</p>'
             .'<form method="post" action="/feedback">'
-            .'<label class="field"><span>'.htmlspecialchars(Lang::t('web.feedback.missing')).'</span>'
-            .'<input type="text" name="missing" autofocus autocomplete="off"></label>'
-            .'<label class="field"><span>'.htmlspecialchars(Lang::t('web.feedback.unclear')).'</span>'
-            .'<input type="text" name="unclear" autocomplete="off"></label>'
+            .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.feedback.missing')).'</span>'
+            .'<textarea name="missing" rows="5" autofocus></textarea></label>'
+            .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.feedback.unclear')).'</span>'
+            .'<textarea name="unclear" rows="5"></textarea></label>'
             .'<button type="submit">'.htmlspecialchars(Lang::t('web.feedback.finish')).'</button>'
             .'</form>',
         );
@@ -443,13 +498,23 @@ final class Interview
             h1{font-size:1.5rem;line-height:1.25;margin:0 0 1.2rem;text-wrap:balance}
             h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:2.2rem 0 .6rem}
             .lead{font-size:1.05rem}
-            .found{border-left:3px solid var(--accent);padding:.5rem 0 .5rem 1rem;margin:1.4rem 0 .4rem;font-size:1.05rem}
+            .found{border-left:3px solid var(--accent);padding:.5rem 0 .5rem 1rem;margin:1.4rem 0 1.8rem;font-size:1.05rem}
+            .purpose{background:#00000008;border-radius:3px;padding:.9rem 1.1rem;margin:0 0 1.6rem}
+            .q{font-weight:600}
+            .hint{display:block;color:var(--muted);font-size:.85rem;margin:.2rem 0 .5rem}
+            .optional .q{font-weight:400;color:var(--muted)}
+            .years{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}
+            .year{border:1px solid var(--line);border-radius:3px;padding:.45rem .8rem;cursor:pointer;background:#fff}
+            .year:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+            .year input{margin-right:.35rem}
+            @media (prefers-color-scheme:dark){.year,textarea{background:#1d1f24}.purpose{background:#ffffff0a}}
             .where{color:var(--muted);font-size:.85rem;font-family:ui-monospace,Menlo,monospace;margin:0 0 1.8rem}
             .field{display:block;margin:1.4rem 0}
             .field span{display:block;margin-bottom:.4rem}
-            input[type=text]{width:100%;padding:.7rem .8rem;font-size:1rem;font-family:inherit;
+            input[type=text],textarea{width:100%;padding:.7rem .8rem;font-size:1rem;font-family:inherit;line-height:1.5;
                              border:1px solid var(--line);border-radius:3px;background:#fff;color:inherit}
-            input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
+            textarea{resize:vertical;min-height:4.5rem}
+            input[type=text]:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
             fieldset{border:1px solid var(--line);border-radius:3px;margin:1.4rem 0;padding:.8rem 1rem}
             legend{color:var(--muted);font-size:.85rem;padding:0 .3rem}
             .choice{display:block;margin:.4rem 0}
