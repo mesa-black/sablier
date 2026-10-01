@@ -342,6 +342,7 @@ First action: %s',
     'web.q.who.hint' => 'Name and role. It is printed next to each lifetime in the report: a lifetime with no author is one nobody will think to question.',
     // --- the screen rebuilt after the first dry run ---
     'web.subject.title' => 'Subject %d of %d · the "%s" part',
+    'web.subject.title.places' => 'Subject %d of %d · %d places in the application',
     'web.q.name' => 'Which of your data is this about?',
     'web.q.name.reuse' => 'Already named:',
     'web.q.name.hint' => 'A short name, the one you would use in a meeting: accounting, customer records, technical access. Correct the suggestion if it is wrong.',

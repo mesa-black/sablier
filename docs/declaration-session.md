@@ -170,48 +170,43 @@ Verdicts that moved between before.html and after.html:
 
 ## Show me the REX, first session
 
-Eight subjects, in the order the interview raises them. Count forty minutes, an
-hour with the report read in front of the person.
+Four subjects, in the order the interview raises them. Count twenty-five
+minutes, forty with the report read in front of the person.
 
 | # | Subject | What the person will be shown |
 |---|---|---|
-| 1 | `.env`, `.env.dev`, `.env.test` | settings read at startup: what it connects to, with which account and password |
-| 2 | `composer` | public-key encryption — so only the recipient can read it back, or to protect a backup |
-| 3 | `config/secrets` | a vault of secrets — passwords, keys, tokens, encrypted, protecting everything else |
-| 4 | `src/Billing` | a fingerprint computed over content |
-| 5 | `src/Entity` | a fingerprint computed over content |
-| 6 | `src/Feedback` | a fingerprint computed over content |
-| 7 | `src/Identity` | a fingerprint computed over content |
-| 8 | `src/Security` | a fingerprint computed over content |
+| 1 | 5 places — `src/Billing`, `src/Entity`, `src/Feedback`, `src/Identity`, `src/Security` | a fingerprint computed over content |
+| 2 | `.env`, `.env.dev`, `.env.test` | settings read at startup: what it connects to, with which account and password |
+| 3 | `composer` | public-key encryption — so only the recipient can read it back, or to protect a backup |
+| 4 | `config/secrets` | a vault of secrets — passwords, keys, tokens, encrypted, protecting everything else |
+
+The order comes from the number of files, not from importance: the subject
+covering the most comes first. So the first one is the most abstract of the
+four, which is a bad draw — if the person loses interest there, write it down:
+what needs revisiting is the sort rule, not the question.
 
 The two mislabelled images are deliberately **not** in the list: a `.png` that
-is a JPEG is a developer's confirmation, not a business decision, and spending
-one of forty minutes on it would be a waste of the only hour that matters.
+is a JPEG is a developer's confirmation, not a business decision.
 
-### The five twin subjects
+### The subject covering five places
 
-Subjects 4 to 8 carry **the same sentence**, and the person sees it on the
-agenda before they have even started: five rows reading "fingerprints over
-content". It is a known defect, left in place on purpose for this session —
-fixing it beforehand would mean guessing the correction to a problem nobody has
-measured, which is what this protocol exists to avoid.
+There were eight subjects last week, five of them asking exactly the same
+question about five different directories. The interview now groups them: one
+description, one question, and the five places named under the form. The
+declaration written at the end covers all five paths as one domain.
 
-What to do: **do not apologise and do not speed up.** Ask all five, and note the
-seconds. The name field offers the answers already given as chips — "Already
-named: technical access, invoices…" — and one click reuses a domain, merging the
-paths without retyping. Watch which of the two happens:
+What to listen for, because this is what the session has to settle:
 
-- they give **the same name five times** → the five subjects are one domain, and
-  the tool should group them;
-- they give **five different names** (billing, accounts, feedback…) → the
-  repetition is on the surface, the lifetimes genuinely differ, and the five
-  questions should stay but be titled better.
+- they answer **one thing** ("tokens", "file fingerprints") → the grouping is
+  right and nothing needs changing;
+- they hesitate and say **"it depends where"** → the grouping is too coarse, it
+  has to be split, and they have just told us how.
 
-Both answers are useful. Neither can be guessed from a desk.
+Write down their words, not only their conclusion.
 
 ### The line to watch
 
-The vault, subject 3. A dry run answering "twenty years" to the harm question
+The vault, subject 4. A dry run answering "twenty years" to the harm question
 turns that finding **COMPROMISED** and moves its crossing date to *already
 past* — a report that went from no red at all to one red, on the strength of a
 sentence somebody said out loud. The arithmetic is not the interesting part.

@@ -50,9 +50,17 @@ final class Interview
      * no identified algorithm raises no question here. Both refusals buy the
      * same thing — an hour spent on the questions only this person can answer.
      *
+     * Areas that would be introduced by the same sentence are then one subject,
+     * however many directories they live in. Five places computing a fingerprint
+     * were five questions whose only difference was a directory name nobody in
+     * the room recognises; the question now names the five places and is asked
+     * once. If the answer turns out to differ from one to the next, that is a
+     * second domain somebody adds to the declaration afterwards — which is a
+     * decision, where five identical questions were only a toll.
+     *
      * @param list<Finding> $findings
      *
-     * @return list<array{path:string, pattern:string, files:int, names:list<string>, algorithms:list<string>}>
+     * @return list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, files:int, names:list<string>, algorithms:list<string>}>
      */
     public static function areas(array $findings, Declaration $declaration): array
     {
@@ -86,6 +94,35 @@ final class Interview
             ];
         }
 
+        usort($out, static fn (array $a, array $b): int => $b['files'] <=> $a['files'] ?: strcmp($a['path'], $b['path']));
+
+        // One subject per sentence. The label is what the agenda prints, so two
+        // areas sharing it are, to the person being asked, the same question.
+        $merged = [];
+        foreach ($out as $area) {
+            $key = self::label($area['algorithms']);
+            if (!isset($merged[$key])) {
+                $merged[$key] = [
+                    'path' => $area['path'],
+                    'paths' => [$area['path']],
+                    'pattern' => $area['pattern'],
+                    'patterns' => [$area['pattern']],
+                    'files' => $area['files'],
+                    'names' => $area['names'],
+                    'algorithms' => $area['algorithms'],
+                ];
+
+                continue;
+            }
+
+            $merged[$key]['paths'][] = $area['path'];
+            $merged[$key]['patterns'][] = $area['pattern'];
+            $merged[$key]['files'] += $area['files'];
+            $merged[$key]['names'] = \array_slice([...$merged[$key]['names'], ...$area['names']], 0, 3);
+            $merged[$key]['algorithms'] = array_values(array_unique([...$merged[$key]['algorithms'], ...$area['algorithms']]));
+        }
+
+        $out = array_values($merged);
         usort($out, static fn (array $a, array $b): int => $b['files'] <=> $a['files'] ?: strcmp($a['path'], $b['path']));
 
         return $out;

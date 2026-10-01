@@ -489,9 +489,13 @@ if ($command === 'declare') {
         $areaStartedAt = microtime(true);
         printf("\n  ———\n  %s\n\n", Lang::t('declare.area', $index + 1, \count($areas), $area['files']));
         printf("  %s\n", wordwrap(Lang::t(Interview::subject($area['algorithms'])), 76, "\n  "));
-        printf("  %s\n", Lang::t('declare.area.where', $area['files'] === 1
-            ? $area['names'][0]
-            : implode(', ', array_map(basename(...), $area['names'])).($area['files'] > \count($area['names']) ? ' …' : '')));
+        // Several places under one description: name the places. One place:
+        // name the files in it.
+        printf("  %s\n", Lang::t('declare.area.where', match (true) {
+            \count($area['paths']) > 1 => implode(', ', $area['paths']),
+            $area['files'] === 1 => $area['names'][0],
+            default => implode(', ', array_map(basename(...), $area['names'])).($area['files'] > \count($area['names']) ? ' …' : ''),
+        }));
 
         $name = $ask(Lang::t($first ? 'declare.q.name.first' : 'declare.q.name'), true, $first);
         if ($name === null) {
@@ -520,7 +524,7 @@ if ($command === 'declare') {
 
         $answers[] = [
             'name' => $name,
-            'paths' => [$area['pattern']],
+            'paths' => $area['patterns'],
             'lifetime' => $lifetime,
             'note' => $ask(Lang::t('declare.q.note'), true, $first) ?? '',
         ];

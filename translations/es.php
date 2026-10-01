@@ -342,6 +342,7 @@ Primera acción: %s',
     'web.q.who.hint' => 'Nombre y puesto. Se imprime junto a cada duración en el informe: una duración sin autor es una que nadie pensará en cuestionar.',
     // --- the screen rebuilt after the first dry run ---
     'web.subject.title' => 'Asunto %d de %d · la parte «%s»',
+    'web.subject.title.places' => 'Asunto %d de %d · %d sitios de la aplicación',
     'web.q.name' => '¿De qué datos suyos se trata?',
     'web.q.name.reuse' => 'Ya nombrado:',
     'web.q.name.hint' => 'Un nombre corto, el que usaría en una reunión: contabilidad, expedientes de clientes, accesos técnicos. Corrija la propuesta si está mal.',

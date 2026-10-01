@@ -351,6 +351,7 @@ Première action : %s',
     'web.q.who.hint' => 'Nom et fonction. C\'est écrit à côté de chaque durée dans le rapport : une durée sans auteur est une durée que personne ne pensera à remettre en question.',
     // --- the screen rebuilt after the first dry run ---
     'web.subject.title' => 'Sujet %d sur %d · la partie « %s »',
+    'web.subject.title.places' => 'Sujet %d sur %d · %d endroits de l\'application',
     'web.q.name' => 'De quelles données parle-t-on, chez vous ?',
     'web.q.name.reuse' => 'Déjà nommé :',
     'web.q.name.hint' => 'Un nom court, celui que vous utiliseriez en réunion : comptabilité, dossiers clients, accès techniques. Corrigez la proposition si elle est fausse.',

@@ -175,49 +175,44 @@ Verdicts qui ont bougé entre avant.html et apres.html :
 
 ## Show me the REX, première séance
 
-Huit sujets, dans l'ordre où l'entretien les soulève. Comptez quarante minutes,
-une heure avec le rapport lu devant la personne.
+Quatre sujets, dans l'ordre où l'entretien les soulève. Comptez vingt-cinq
+minutes, quarante avec le rapport lu devant la personne.
 
 | # | Sujet | Ce que la personne verra |
 |---|---|---|
-| 1 | `.env`, `.env.dev`, `.env.test` | des réglages lus au démarrage : à qui l'application se connecte, avec quel compte et quel mot de passe |
-| 2 | `composer` | du chiffrement à clé publique — pour que seul le destinataire puisse relire, ou pour protéger une sauvegarde |
-| 3 | `config/secrets` | un coffre à secrets — mots de passe, clés, jetons, chiffrés, qui protège tout le reste |
-| 4 | `src/Billing` | une empreinte calculée sur un contenu |
-| 5 | `src/Entity` | une empreinte calculée sur un contenu |
-| 6 | `src/Feedback` | une empreinte calculée sur un contenu |
-| 7 | `src/Identity` | une empreinte calculée sur un contenu |
-| 8 | `src/Security` | une empreinte calculée sur un contenu |
+| 1 | 5 endroits — `src/Billing`, `src/Entity`, `src/Feedback`, `src/Identity`, `src/Security` | une empreinte calculée sur un contenu |
+| 2 | `.env`, `.env.dev`, `.env.test` | des réglages lus au démarrage : à qui l'application se connecte, avec quel compte et quel mot de passe |
+| 3 | `composer` | du chiffrement à clé publique — pour que seul le destinataire puisse relire, ou pour protéger une sauvegarde |
+| 4 | `config/secrets` | un coffre à secrets — mots de passe, clés, jetons, chiffrés, qui protège tout le reste |
+
+L'ordre vient du nombre de fichiers, pas de l'importance : le sujet qui en
+couvre le plus passe en premier. Le premier est donc le plus abstrait des
+quatre, et c'est un mauvais tirage — si la personne décroche là, notez-le,
+c'est la règle de tri qu'il faudra revoir et pas la question.
 
 Les deux images mal nommées n'y sont **délibérément pas** : un `.png` qui est
-un JPEG est une confirmation de développeur, pas une décision métier, et y
-passer une des quarante minutes serait gâcher la seule heure qui compte.
+un JPEG est une confirmation de développeur, pas une décision métier.
 
-### Les cinq sujets jumeaux
+### Le sujet qui couvre cinq endroits
 
-Les sujets 4 à 8 portent **la même phrase**, et la personne le verra sur
-l'ordre du jour avant même d'avoir commencé : cinq lignes « Empreintes de
-contenu ». C'est un défaut connu, laissé en place exprès pour cette séance —
-le corriger d'avance reviendrait à deviner la correction d'un problème qu'on
-n'a pas mesuré, ce que ce protocole existe précisément pour éviter.
+Il y avait huit sujets la semaine dernière, dont cinq posaient exactement la
+même question dans cinq dossiers différents. L'entretien les regroupe
+maintenant : une description, une question, et les cinq endroits nommés sous le
+formulaire. La déclaration écrite à la fin couvre les cinq chemins d'un seul
+domaine.
 
-Ce qu'il faut faire : **ne pas s'excuser et ne pas accélérer**. Posez les cinq,
-et notez les secondes. Le champ du nom propose les réponses déjà données sous
-forme de pastilles — « Déjà nommé : accès techniques, factures… » — et un clic
-suffit à réutiliser un domaine, ce qui fusionne les chemins sans retaper.
-Observez lequel des deux se produit :
+Ce qu'il faut écouter, parce que c'est le point que la séance doit trancher :
 
-- elle redonne **cinq fois le même nom** → les cinq sujets sont un seul domaine,
-  et il faudra les regrouper dans l'outil ;
-- elle donne **cinq noms différents** (facturation, comptes, retours…) → la
-  répétition est de surface, les durées diffèrent vraiment, et il faut garder
-  cinq questions mais mieux les titrer.
+- elle répond **une seule chose** (« des jetons », « des empreintes de
+  fichiers ») → le regroupement est juste, et il n'y a rien à changer ;
+- elle hésite et dit **« ça dépend des endroits »** → le regroupement est trop
+  grossier, il faut redécouper, et c'est elle qui vient de nous dire comment.
 
-Les deux réponses sont utiles. Aucune ne se devine depuis un bureau.
+Notez ses mots, pas seulement sa conclusion.
 
 ### La ligne à surveiller
 
-Le coffre, sujet 3. Un passage à blanc répondant « vingt ans » à la question du
+Le coffre, sujet 4. Un passage à blanc répondant « vingt ans » à la question du
 tort fait basculer ce constat en **COMPROMIS** et place sa date de bascule à
 *déjà franchie* — un rapport qui passe d'aucun rouge à un rouge, sur la foi
 d'une phrase dite à voix haute. L'arithmétique n'est pas la partie

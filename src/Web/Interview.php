@@ -57,33 +57,22 @@ final class Interview
     {
         $areas = $this->session->map('areas');
 
-        // One row per description, not per place. Five directories computing a
-        // fingerprint produced five rows reading the same sentence, and that is
-        // the first thing the person saw — before the clock had even started.
-        // The interview still asks about each place separately, because their
-        // lifetimes can differ; it is the agenda that stops repeating itself.
-        $grouped = [];
+        $subjects = '';
         foreach ($areas as $area) {
             $area = Value::map($area);
-            $label = Lang::t(Questions::label(Value::strings($area['algorithms'] ?? null)));
-            $grouped[$label]['paths'][] = Value::string($area['path'] ?? null);
-            $grouped[$label]['files'] = ($grouped[$label]['files'] ?? 0) + Value::int($area['files'] ?? null);
-        }
-
-        $subjects = '';
-        foreach ($grouped as $label => $group) {
+            $places = Value::strings($area['paths'] ?? null);
             $paths = array_map(
                 static fn (string $path): string => '<code>'.htmlspecialchars($path).'</code>',
-                $group['paths'],
+                $places,
             );
-            $many = \count($group['paths']) > 1;
+            $many = \count($places) > 1;
             $subjects .= \sprintf(
                 '<li%s><strong>%s</strong><span>%s · %s</span></li>',
                 $many ? ' class="many"' : '',
-                htmlspecialchars($label),
+                htmlspecialchars(Lang::t(Questions::label(Value::strings($area['algorithms'] ?? null)))),
                 htmlspecialchars($many
-                    ? Lang::t('web.intro.places', \count($group['paths']))
-                    : Lang::t('web.intro.files', $group['files'])),
+                    ? Lang::t('web.intro.places', \count($places))
+                    : Lang::t('web.intro.files', Value::int($area['files'] ?? null))),
                 implode(' ', $paths),
             );
         }
@@ -178,6 +167,7 @@ final class Interview
         $area = Value::map($areas[$index]);
         $algorithms = Value::strings($area['algorithms'] ?? null);
         $path = Value::string($area['path'] ?? null);
+        $places = Value::strings($area['paths'] ?? null);
         $suggested = Lang::has(Questions::label($algorithms).'.name')
             ? Lang::t(Questions::label($algorithms).'.name')
             : '';
@@ -209,7 +199,12 @@ final class Interview
         }
 
         return $this->page(
-            Lang::t('web.subject.title', $index + 1, \count($areas), self::humanise($path)),
+            // One place is named; several are counted, and listed under the
+            // form. "The « Billing » part" is a heading somebody recognises;
+            // "the « Billing » part and four others" is a riddle.
+            \count($places) > 1
+                ? Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($places))
+                : Lang::t('web.subject.title', $index + 1, \count($areas), self::humanise($path)),
             '<p class="found">'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
             .'<form method="post" action="/subject">'
             .'<input type="hidden" name="step" value="subject">'
@@ -235,7 +230,10 @@ final class Interview
             .'<button type="submit" name="action" value="unknown" class="ghost">'.htmlspecialchars(Lang::t('web.unknown')).'</button>'
             .'<button type="submit" name="action" value="skip" class="ghost">'.htmlspecialchars(Lang::t('web.skip')).'</button></div>'
             .'</form>'
-            .'<p class="where">'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', Value::strings($area['names'] ?? null)))).'</p>',
+            // Several places: name the places. One place: name the files in it.
+            .'<p class="where">'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', \count($places) > 1
+                ? $places
+                : Value::strings($area['names'] ?? null)))).'</p>',
             timer: true,
         );
     }
@@ -302,7 +300,7 @@ final class Interview
             $anchor = ($post['kind'] ?? '') === 'signature' && ($harm ?? 0) >= 10;
             $answers[] = [
                 'name' => $name,
-                'paths' => [Value::string($area['pattern'] ?? null)],
+                'paths' => Value::strings($area['patterns'] ?? null),
                 'lifetime' => $lifetime,
                 'note' => trim($post['note'] ?? ''),
                 'trust_anchor' => $anchor,
