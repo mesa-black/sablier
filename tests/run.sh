@@ -125,6 +125,19 @@ check clear       aes-256  1   # and the symmetric cipher next to it is fine
 check urgent      sha1     1
 unset SABLIER_TEST_JSON
 
+# A location of "./.env.example" keeps its dot and loses its prefix: the first
+# naive trim ate both, and .env is exactly the file this tool must keep reading.
+if [ "$(php -r '
+	foreach (json_decode(file_get_contents($argv[1]), true) as $x) {
+		if ($x["file"] === ".env.example") { echo "ok"; break; }
+	}
+' "$cbom/foreign.json")" != "ok" ]; then
+	echo "✗ cbom: a ./-prefixed dotfile location came out mangled"
+	rm -rf "$cbom"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "cbom" "location" "./ stripped, dot kept"
+
 # What it could not read must be named, not dropped.
 if ! grep -q "Camellia" "$cbom/f.html"; then
 	echo "✗ cbom: an unjudged component vanished instead of being printed"

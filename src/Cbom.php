@@ -86,7 +86,12 @@ final class Cbom
                 if (!\is_array($occurrence) || !\is_string($occurrence['location'] ?? null)) {
                     continue;
                 }
-                $location = ltrim($occurrence['location'], './');
+                // A leading "./" only — ltrim would eat the dot of a
+                // dotfile, and .env is exactly the kind of file this tool
+                // must keep looking at.
+                $location = str_starts_with($occurrence['location'], './')
+                    ? substr($occurrence['location'], 2)
+                    : $occurrence['location'];
                 $locations[$location] = true;
                 ++$placed;
                 $findings[] = new Finding(

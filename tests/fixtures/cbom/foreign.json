@@ -7,10 +7,18 @@
     "timestamp": "2026-09-30T10:00:00Z",
     "tools": {
       "components": [
-        { "type": "application", "name": "another-scanner", "version": "2.1.0" }
+        {
+          "type": "application",
+          "name": "another-scanner",
+          "version": "2.1.0"
+        }
       ]
     },
-    "component": { "type": "application", "bom-ref": "pkg:maven/com.example/service", "name": "example-service" }
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:maven/com.example/service",
+      "name": "example-service"
+    }
   },
   "components": [
     {
@@ -22,11 +30,19 @@
         "algorithmProperties": {
           "primitive": "pke",
           "parameterSetIdentifier": "2048",
-          "cryptoFunctions": ["encrypt", "decrypt"]
+          "cryptoFunctions": [
+            "encrypt",
+            "decrypt"
+          ]
         }
       },
       "evidence": {
-        "occurrences": [{ "location": "src/main/java/com/example/BackupCipher.java", "line": 42 }]
+        "occurrences": [
+          {
+            "location": "src/main/java/com/example/BackupCipher.java",
+            "line": 42
+          }
+        ]
       }
     },
     {
@@ -38,11 +54,19 @@
         "algorithmProperties": {
           "primitive": "signature",
           "parameterSetIdentifier": "4096",
-          "cryptoFunctions": ["sign", "verify"]
+          "cryptoFunctions": [
+            "sign",
+            "verify"
+          ]
         }
       },
       "evidence": {
-        "occurrences": [{ "location": "src/main/java/com/example/TokenSigner.java", "line": 18 }]
+        "occurrences": [
+          {
+            "location": "src/main/java/com/example/TokenSigner.java",
+            "line": 18
+          }
+        ]
       }
     },
     {
@@ -54,11 +78,19 @@
         "algorithmProperties": {
           "primitive": "block-cipher",
           "parameterSetIdentifier": "256",
-          "cryptoFunctions": ["encrypt", "decrypt"]
+          "cryptoFunctions": [
+            "encrypt",
+            "decrypt"
+          ]
         }
       },
       "evidence": {
-        "occurrences": [{ "location": "src/main/java/com/example/BackupCipher.java", "line": 51 }]
+        "occurrences": [
+          {
+            "location": "src/main/java/com/example/BackupCipher.java",
+            "line": 51
+          }
+        ]
       }
     },
     {
@@ -67,10 +99,20 @@
       "name": "SHA-1",
       "cryptoProperties": {
         "assetType": "algorithm",
-        "algorithmProperties": { "primitive": "hash", "cryptoFunctions": ["digest"] }
+        "algorithmProperties": {
+          "primitive": "hash",
+          "cryptoFunctions": [
+            "digest"
+          ]
+        }
       },
       "evidence": {
-        "occurrences": [{ "location": "src/main/java/com/example/LegacyDigest.java", "line": 9 }]
+        "occurrences": [
+          {
+            "location": "src/main/java/com/example/LegacyDigest.java",
+            "line": 9
+          }
+        ]
       }
     },
     {
@@ -79,7 +121,30 @@
       "name": "X25519",
       "cryptoProperties": {
         "assetType": "algorithm",
-        "algorithmProperties": { "primitive": "key-agree", "curve": "curve25519" }
+        "algorithmProperties": {
+          "primitive": "key-agree",
+          "curve": "curve25519"
+        }
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/algorithm/aes-128-cbc",
+      "name": "AES",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "block-cipher",
+          "parameterSetIdentifier": "128"
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "./.env.example",
+            "line": 3
+          }
+        ]
       }
     },
     {
@@ -88,10 +153,18 @@
       "name": "Camellia",
       "cryptoProperties": {
         "assetType": "algorithm",
-        "algorithmProperties": { "primitive": "block-cipher", "parameterSetIdentifier": "128" }
+        "algorithmProperties": {
+          "primitive": "block-cipher",
+          "parameterSetIdentifier": "128"
+        }
       },
       "evidence": {
-        "occurrences": [{ "location": "src/main/java/com/example/Exotic.java", "line": 7 }]
+        "occurrences": [
+          {
+            "location": "src/main/java/com/example/Exotic.java",
+            "line": 7
+          }
+        ]
       }
     },
     {
@@ -100,7 +173,10 @@
       "name": "TLS",
       "cryptoProperties": {
         "assetType": "protocol",
-        "protocolProperties": { "type": "tls", "version": "1.2" }
+        "protocolProperties": {
+          "type": "tls",
+          "version": "1.2"
+        }
       }
     },
     {
