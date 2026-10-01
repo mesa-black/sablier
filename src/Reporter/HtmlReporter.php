@@ -67,7 +67,6 @@ final class HtmlReporter implements ReporterInterface
         $elapsed = $this->analysis->duration < 1
             ? number_format($this->analysis->duration * 1000, 0, ',', ' ').' ms'
             : number_format($this->analysis->duration, 1, ',', ' ').' s';
-        $logo = self::logo();
         $projection = $this->analysis->projected
             ? '<p class="projection">'.htmlspecialchars(Lang::t('report.projection', $this->analysis->currentYear)).'</p>'
             : '';
@@ -112,7 +111,7 @@ final class HtmlReporter implements ReporterInterface
             <style>$css</style></head>
             <body>
             <header>
-              <div class="brand">$logo<span>SABLIER</span></div>
+              <div class="brand">SABLIER</div>
               <div class="meta">$project · $date · $filesLabel · $elapsedLabel</div>
             </header>
 
@@ -135,35 +134,6 @@ final class HtmlReporter implements ReporterInterface
             <footer>$footer</footer>
             </body></html>
             HTML;
-    }
-
-    /**
-     * The mark. Inline, geometric, drawn in currentColor so it holds in both
-     * themes and on paper — an external image would be the one request this
-     * report promises never to make.
-     *
-     * Redrawn rather than imported: the repository ships under MIT, and a
-     * stock asset dropped into it would purport to licence artwork we do not
-     * own. The shape says the argument anyway — sand still in the top, a pile
-     * already fallen, and the question is only how much time is left.
-     */
-    private static function logo(): string
-    {
-        return <<<'SVG'
-            <svg class="logo" viewBox="0 0 24 32" width="21" height="28" aria-hidden="true" focusable="false">
-              <g fill="currentColor">
-              <rect x="3.1" y="1" width="17.8" height="2.7" rx="1.35"/>
-              <rect x="3.1" y="28.3" width="17.8" height="2.7" rx="1.35"/>
-              </g>
-              <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-              <path d="M6.2 3.9C6.2 10.6 11.3 13.3 11.3 16C11.3 18.7 6.2 21.4 6.2 28.1"/>
-              <path d="M17.8 3.9C17.8 10.6 12.7 13.3 12.7 16C12.7 18.7 17.8 21.4 17.8 28.1"/>
-              </g>
-              <path fill="currentColor" d="M8.7 6.2C10.7 5.8 12.3 6.9 14.6 6.6C15.1 6.5 15.4 6.4 15.6 6.2C15.4 9.1 12.9 12.1 12.15 14.4L11.85 14.4C11.1 12.1 8.9 9.1 8.7 6.2Z"/>
-              <path fill="currentColor" d="M7.1 27C7.8 24.7 8.9 23.7 9.9 23.9C10.8 24.1 11.2 23.6 12 23.7C13 23.8 13.7 24.5 14.5 24.2C15.6 24.8 16.2 25.7 16.9 27Z"/>
-              <path fill="currentColor" d="M11.68 16.2h0.64v7.3h-0.64z"/>
-            </svg>
-            SVG;
     }
 
     /**
@@ -508,9 +478,7 @@ final class HtmlReporter implements ReporterInterface
                  max-width:52rem;margin-inline:auto}
             header{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;
                    border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin-bottom:2rem}
-            .brand{font-weight:700;letter-spacing:.22em;font-size:.95rem;
-                   display:flex;align-items:center;gap:.6rem}
-            .logo{flex:none;display:block}
+            .brand{font-weight:700;letter-spacing:.22em;font-size:.95rem}
             .meta{color:var(--muted);font-size:.82rem}
             .headline{font-size:1.5rem;line-height:1.32;font-weight:500;margin:0 0 .8rem;text-wrap:balance}
             .sub{color:var(--muted);margin:0 0 2.4rem;font-size:.92rem}

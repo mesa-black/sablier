@@ -321,6 +321,13 @@ Première action : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'non déclaré',
+    // --- binary assets: what hides where nobody reads ---
+    'blind.assets' => "Les fichiers binaires (images, polices, archives) ne sont lus que sur leurs premiers méga-octets, et seulement pour trois signes vérifiables : un bloc de clé, des octets après la fin de l'image, une extension qui ment sur le contenu. Un message dissimulé dans les bits d'une image n'est pas détecté ici, et ne prétend pas l'être.",
+    'detail.asset.key' => "Bloc de clé trouvé à l'octet %2\$d d'un fichier .%1\$s. Un asset binaire n'est pas un endroit où du matériel de clé arrive par accident.",
+    'evidence.asset.trailing' => '%d octets après la fin de l\'image',
+    'detail.asset.trailing' => "L'image se termine à l'octet %d et le fichier continue au-delà. C'est souvent anodin — profil colorimétrique, filigrane ajouté par un outil — et parfois non. À ouvrir pour confirmer, pas à corriger d'office.",
+    'evidence.asset.magic' => 'extension .%s, premiers octets %s',
+    'detail.asset.magic' => "Le contenu ne correspond pas à l'extension. Un fichier renommé est banal ; un fichier déguisé l'est moins. À confirmer.",
     // --- published vulnerabilities in declared libraries ---
     'advisories.no_docker' => "collecte impossible : Docker est requis pour exécuter le scanner de vulnérabilités sans rien installer sur cette machine.",
     'advisories.running' => 'collecte des vulnérabilités publiées avec %s…',

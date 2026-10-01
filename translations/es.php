@@ -312,6 +312,13 @@ Primera acción: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'uso: sablier verify <informe.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'sin declarar',
+    // --- binary assets: what hides where nobody reads ---
+    'blind.assets' => 'Los archivos binarios (imágenes, fuentes, archivos comprimidos) se leen solo en sus primeros megabytes, y solo en busca de tres señales verificables: un bloque de clave, bytes después del final de la imagen, una extensión que miente sobre el contenido. Un mensaje oculto en los bits de una imagen no se detecta aquí, y no se pretende lo contrario.',
+    'detail.asset.key' => 'Bloque de clave encontrado en el byte %2$d de un archivo .%1$s. Un asset binario no es un sitio donde el material de clave llegue por accidente.',
+    'evidence.asset.trailing' => '%d bytes después del final de la imagen',
+    'detail.asset.trailing' => 'La imagen termina en el byte %d y el archivo continúa más allá. A menudo es inocuo —un perfil de color, una marca de agua añadida por alguna herramienta— y a veces no. Hay que abrirlo para confirmarlo, no corregirlo de oficio.',
+    'evidence.asset.magic' => 'extensión .%s, primeros bytes %s',
+    'detail.asset.magic' => 'El contenido no corresponde a la extensión. Un archivo renombrado es banal; uno disfrazado lo es menos. Hay que confirmarlo.',
     // --- published vulnerabilities in declared libraries ---
     'advisories.no_docker' => 'no se puede recopilar: hace falta Docker para ejecutar el escáner de vulnerabilidades sin instalar nada en esta máquina.',
     'advisories.running' => 'recopilando vulnerabilidades publicadas con %s…',

@@ -147,6 +147,36 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- what hides in the files nobody reads ------------------------------------
+# Three verifiable facts, and one photo that must stay silent. The silent one
+# is the test that matters: a tool that cries wolf about an ordinary image
+# loses the right to be believed about a backup key.
+asset=$(mktemp -d)
+./bin/sablier scan tests/fixtures/assets --json="$asset/out.json" --out="$asset/r.html" --quiet >/dev/null || true
+shape=$(php -r '
+	$rows = json_decode(file_get_contents($argv[1]), true);
+	$byFile = [];
+	foreach ($rows as $row) { $byFile[basename($row["file"])][] = $row; }
+	$key = $byFile["logo-with-key.png"] ?? [];
+	$payload = $byFile["banner-with-payload.png"] ?? [];
+	$archive = $byFile["icon-is-an-archive.png"] ?? [];
+	echo count($key) === 1 && $key[0]["algorithm"] === "rsa"
+		&& count($payload) === 1 && $payload[0]["verdict"] === "declare" && $payload[0]["confidence"] !== "haute"
+		&& count($archive) === 1 && $archive[0]["verdict"] === "declare"
+		&& !isset($byFile["ordinary.png"])
+		? "ok" : "no";
+' "$asset/out.json")
+if [ "$shape" != "ok" ]; then
+	echo "✗ assets: expected one key finding, two to confirm, and silence on the ordinary image"
+	cat "$asset/out.json"
+	rm -rf "$asset"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "assets" "key" "reported once"
+printf '  ✓ %-24s %-10s %s\n' "assets" "hidden" "payload and disguise, to confirm"
+printf '  ✓ %-24s %-10s %s\n' "assets" "ordinary" "silent"
+rm -rf "$asset"
+
 # --- published vulnerabilities in declared libraries -------------------------
 # The claim that separates this from the rest of the report: a library with a
 # published hole is a problem today, not in 2035. Without the advisory file the

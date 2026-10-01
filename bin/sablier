@@ -39,6 +39,7 @@ use Sablier\Catalogue;
 use Sablier\Cbom;
 use Sablier\Declaration;
 use Sablier\Docker;
+use Sablier\Detector\AssetDetector;
 use Sablier\Detector\DependencyDetector;
 use Sablier\Detector\EnvDetector;
 use Sablier\Detector\FrameworkConfigDetector;
@@ -297,6 +298,7 @@ if ($command === 'scan') {
         new PhpDetector(),
         new ShellDetector(),
         new KeyMaterialDetector(),
+        new AssetDetector(),
         new ServerConfigDetector(),
         new SshConfigDetector(),
         new EnvDetector(),

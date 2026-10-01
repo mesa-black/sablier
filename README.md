@@ -312,6 +312,33 @@ figures — and an OID, which is never guessed. Support for cryptographic assets
 is recent in the tools that consume CBOMs; if yours rejects something we emit,
 that is a rule to fix and it belongs in this repository.
 
+## What hides in the files nobody reads
+
+A repository's images, fonts and archives are copied, reviewed by nobody and
+shipped. They are also a convenient place to leave something. Three checks,
+graded by what they actually prove:
+
+- **key material inside a binary asset.** A PEM header in a `.png` is not an
+  accident — and it was already being found, because the key detector reads
+  every file rather than the ones with key-shaped names. What is new is the
+  sentence that says where: *"Key block found at byte 73 of a .png file. A
+  binary asset is not a place key material arrives in by accident."*;
+- **bytes after the end of the image.** PNG ends at `IEND`, JPEG at `FFD9`, and
+  a file that continues past it carries something else. Reported as **to
+  confirm**, with the byte count, never as a verdict: a colour profile and an
+  exfiltrated archive look the same from here, and only one of them is a
+  problem;
+- **an extension that lies about the content.** The magic bytes say what a file
+  is. A `.png` that starts with `PK\x03\x04` is a zip, which is worth a look
+  and nothing more.
+
+This is deliberately **not** steganography detection, and the report says so in
+its blind spots. A message hidden in the low bits of an image is a research
+problem whose false positive rate would bury every real finding this tool
+prints. A tool that cries wolf about holiday photos loses the right to be
+believed about a backup key — which is why the regression test that matters
+most here is the one asserting silence on an ordinary image.
+
 ## A hole somebody already found
 
 The rest of this report argues about 2035. An advisory says somebody found a
