@@ -58,11 +58,12 @@ final class Interview
         $areas = $this->session->map('areas');
 
         $subjects = '';
-        foreach ($areas as $index => $area) {
+        foreach ($areas as $area) {
             $area = Value::map($area);
             $subjects .= \sprintf(
-                '<li><strong>%s</strong><span>%s</span></li>',
-                htmlspecialchars(Lang::t(Questions::subject(Value::strings($area['algorithms'] ?? null)))),
+                '<li><strong>%s</strong><span><code>%s</code> · %s</span></li>',
+                htmlspecialchars(Lang::t(Questions::label(Value::strings($area['algorithms'] ?? null)))),
+                htmlspecialchars(Value::string($area['path'] ?? null)),
                 htmlspecialchars(Lang::t('web.intro.files', Value::int($area['files'] ?? null))),
             );
         }

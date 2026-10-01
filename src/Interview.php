@@ -122,6 +122,21 @@ final class Interview
     }
 
     /**
+     * The same thing in three words, for a list rather than a question.
+     *
+     * The sentence above introduces a subject somebody is about to be asked
+     * about; stacked three times on an agenda it reads as the same paragraph
+     * repeated, and the reader cannot tell the items apart. A list wants a
+     * label, the question wants a sentence, and they are not the same text.
+     *
+     * @param list<string> $algorithms
+     */
+    public static function label(array $algorithms): string
+    {
+        return self::subject($algorithms).'.label';
+    }
+
+    /**
      * The subject a file belongs to, and the pattern that will catch its kin.
      *
      * Two levels of directory at most: `src/Billing/Application/Foo.php` is the
