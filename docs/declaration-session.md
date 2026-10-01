@@ -1,5 +1,8 @@
 # The declaration session
 
+*[Français](declaration-session.fr.md) · [Español](declaration-session.es.md) —
+the crib sheet to hold during the session is [here](session-script.en.md).*
+
 The one experiment that can kill this project, run on purpose rather than by
 accident.
 

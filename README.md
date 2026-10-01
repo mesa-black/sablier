@@ -120,9 +120,13 @@ undeclared and the report says so in its blind spots. A lifetime nobody chose
 would be worse than a gap, because the verdict above it would wear the same
 confident typeface as the rest.
 
-[`docs/declaration-session.md`](docs/declaration-session.md) is the protocol —
-what to measure during the session, and what result would falsify this tool's
-whole thesis.
+The protocol — what to measure during the session, and what result would
+falsify this tool's whole thesis — is in
+[English](docs/declaration-session.md), [French](docs/declaration-session.fr.md)
+and [Spanish](docs/declaration-session.es.md), because not every auditor reads
+English and a session run from a half-understood page measures the wrong thing.
+Each one links to a one-page crib sheet for the session itself:
+[what to ask, and what to answer when it stalls](docs/session-script.en.md).
 
 
 Without a declaration the tool applies a default lifetime and says so. With one,
