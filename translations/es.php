@@ -148,6 +148,7 @@ return [
   bin/sablier scan <ruta> [opciones]
   bin/sablier probe <host>          lo que un servidor negocia realmente
   bin/sablier judge <cbom.json>     juzgar el inventario de otra herramienta (CycloneDX 1.6)
+  bin/sablier declare <ruta>        entrevista: las duraciones de confidencialidad, en términos de negocio
   bin/sablier advisories <ruta>     recopilar las vulnerabilidades publicadas de las dependencias
   bin/sablier accept <huella> --reason=…  aceptar un hallazgo, con su fecha de caducidad
 
@@ -313,6 +314,26 @@ Primera acción: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'uso: sablier verify <informe.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'sin declarar',
+    // --- the interview: the only input no scanner can read ---
+    'declare.intro' => 'Esta entrevista rellena lo único que ninguna herramienta puede leer en el código: cuánto tiempo debe permanecer confidencial cada tipo de dato.\n  Nunca le pedirá esa cifra. Hace dos preguntas que se responden cada semana, y deduce el resto.\n  No se escribe nada hasta el final, y puede saltarse una pregunta: lo que quede sin responder queda sin responder en el informe.',
+    'declare.found' => '%d zona(s) sin duración declarada, encontradas en %s.',
+    'declare.area' => 'Zona %d de %d: %s',
+    'declare.area.detail' => '%d archivo(s) afectado(s) — criptografía detectada: %s',
+    'declare.area.detail.none' => '%d archivo(s) afectado(s)',
+    'declare.q.name' => '¿De qué se trata, en términos de negocio? (ejemplos: contabilidad, expedientes de clientes, adjuntos)',
+    'declare.q.retention' => '¿Cuántos años debe conservar estos datos? (obligación legal o contractual; 0 si nada lo exige)',
+    'declare.q.damage' => 'Si se filtraran hoy, ¿durante cuántos años seguirían causando daño? (0 si son públicos o inocuos)',
+    'declare.q.note' => '¿Por qué esa duración? Una frase, para quien lo lea después (opcional)',
+    'declare.q.skip' => '[intro para saltar]',
+    'declare.derived' => '→ Duración de confidencialidad: %d año(s). %s',
+    'declare.derived.why.retention' => 'Viene de la conservación: un dato que se guarda es un dato que todavía se puede robar.',
+    'declare.derived.why.damage' => 'Viene del daño: dura más que la obligación de conservar.',
+    'declare.derived.why.zero' => 'Nada que proteger en el tiempo: ni conservación obligatoria, ni daño duradero.',
+    'declare.skipped' => '→ Saltada. Esta zona queda sin declarar y se calcula con la duración por defecto.',
+    'declare.invalid' => 'Un número de años, por favor (0 si ninguno).',
+    'declare.written' => '%d dominio(s) escrito(s) en %s. Léalo, discútalo, versiónelo.',
+    'declare.nothing' => 'Ninguna zona sin duración: la declaración ya cubre todo lo que el análisis ha encontrado.',
+    'declare.elapsed' => 'Entrevista terminada en %s — %d pregunta(s) respondida(s), %d saltada(s).',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Fechas de cruce',
     'crossing.intro' => 'Un dato cifrado en el año Y sigue siendo sensible hasta Y más su duración. El año de cruce es, pues, aquel a partir del cual todo lo cifrado sobrevive a la caducidad de %d: antes, el dominio aguanta; a partir de él, lo que se emite ya está perdido el día en que caiga el algoritmo.',

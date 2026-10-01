@@ -148,6 +148,7 @@ return [
   bin/sablier scan <path> [options]
   bin/sablier probe <host>          what a server actually negotiates
   bin/sablier judge <cbom.json>     judge another tool\'s inventory (CycloneDX 1.6)
+  bin/sablier declare <path>        interview: the confidentiality lifetimes, in business terms
   bin/sablier advisories <path>     collect published vulnerabilities of the dependencies
   bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
 
@@ -313,6 +314,26 @@ First action: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage: sablier verify <report.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'undeclared',
+    // --- the interview: the only input no scanner can read ---
+    'declare.intro' => 'This interview fills in the one thing no tool can read from code: how long each kind of data has to stay confidential.\n  It will never ask you for that number. It asks two questions people answer every week, and derives the rest.\n  Nothing is written until the end, and you can skip a question: what stays unanswered stays unanswered in the report.',
+    'declare.found' => '%d area(s) with no declared lifetime, found in %s.',
+    'declare.area' => 'Area %d of %d: %s',
+    'declare.area.detail' => '%d file(s) concerned — cryptography found: %s',
+    'declare.area.detail.none' => '%d file(s) concerned',
+    'declare.q.name' => 'What is this, in business terms? (examples: accounting, customer records, attachments)',
+    'declare.q.retention' => 'How many years must you keep this data? (legal or contractual; 0 if nothing requires it)',
+    'declare.q.damage' => 'If it leaked today, for how many years would it still cause harm? (0 if it is public or harmless)',
+    'declare.q.note' => 'Why that duration? One sentence, for whoever reads this next (optional)',
+    'declare.q.skip' => '[enter to skip]',
+    'declare.derived' => '→ Confidentiality lifetime: %d year(s). %s',
+    'declare.derived.why.retention' => 'It comes from retention: data you keep is data that can still be stolen.',
+    'declare.derived.why.damage' => 'It comes from the harm: it outlasts the obligation to keep the data.',
+    'declare.derived.why.zero' => 'Nothing to protect over time: no retention required, no lasting harm.',
+    'declare.skipped' => '→ Skipped. This area stays undeclared and is computed with the default lifetime.',
+    'declare.invalid' => 'A number of years, please (0 if none).',
+    'declare.written' => '%d domain(s) written to %s. Read it, argue with it, commit it.',
+    'declare.nothing' => 'No area without a lifetime: the declaration already covers everything the analysis found.',
+    'declare.elapsed' => 'Interview finished in %s — %d question(s) answered, %d skipped.',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Crossing dates',
     'crossing.intro' => 'Data encrypted in year Y stays sensitive until Y plus its lifetime. The crossing year is therefore the one from which everything encrypted outlives the %d expiry: before it the domain holds; from it, what is emitted is already lost by the day the algorithm goes.',

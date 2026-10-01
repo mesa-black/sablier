@@ -147,6 +147,48 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- the interview ------------------------------------------------------------
+# The number nobody can state directly is derived from two they answer every
+# week, and the larger one wins: data you must keep is data that can still be
+# stolen. An answer the tool does not understand is asked again, never guessed.
+iv=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$iv/"
+rm -f "$iv/sablier.json"
+printf 'backups\n10\n2\nTen years of accounting in there.\nsession tokens\n0\n1\n\n' \
+	| ./bin/sablier declare "$iv" --out="$iv/sablier.json" >/dev/null 2>&1 || true
+
+derived=$(php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$backups = $d["domains"]["backups"] ?? null;
+	$tokens = $d["domains"]["session tokens"] ?? null;
+	// Retention 10 beats harm 2; harm 1 beats retention 0.
+	echo ($backups["lifetime_years"] ?? -1) === 10 && ($tokens["lifetime_years"] ?? -1) === 1
+		&& ($backups["note"] ?? "") !== "" ? "ok" : "no";
+' "$iv/sablier.json")
+if [ "$derived" != "ok" ]; then
+	echo "✗ interview: the lifetime must be the larger of retention and harm"
+	cat "$iv/sablier.json"
+	rm -rf "$iv"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "lifetime" "retention or harm, whichever is longer"
+
+# And the declaration it writes must produce the verdicts the fixture expects.
+./bin/sablier scan "$iv" --json="$iv/out.json" --out="$iv/r.html" --quiet >/dev/null || true
+if [ "$(php -r '
+	$n = 0;
+	foreach (json_decode(file_get_contents($argv[1]), true) as $row) {
+		if ($row["verdict"] === "compromised") { ++$n; }
+	}
+	echo $n;
+' "$iv/out.json")" != "1" ]; then
+	echo "✗ interview: the written declaration did not reproduce the expected verdict"
+	rm -rf "$iv"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "declaration" "scan agrees with the answers"
+rm -rf "$iv"
+
 # --- the date a domain crosses the line --------------------------------------
 # The arithmetic has one answer and the report must print it rather than draw
 # it: backups keep data ten years against a 2035 expiry, so anything encrypted

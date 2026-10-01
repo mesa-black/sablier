@@ -157,6 +157,7 @@ return [
   bin/sablier scan <chemin> [options]
   bin/sablier probe <hôte>          ce qu\'un serveur négocie réellement
   bin/sablier judge <cbom.json>     juger l\'inventaire d\'un autre outil (CycloneDX 1.6)
+  bin/sablier declare <chemin>      entretien : les durées de confidentialité, en langage métier
   bin/sablier advisories <chemin>   collecter les vulnérabilités publiées des dépendances
   bin/sablier accept <empreinte> --reason=…  accepter un constat, avec sa date d\'expiration
 
@@ -322,6 +323,26 @@ Première action : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'non déclaré',
+    // --- the interview: the only input no scanner can read ---
+    'declare.intro' => "Cet entretien remplit la seule information qu'aucun outil ne peut lire dans le code : combien de temps chaque catégorie de donnée doit rester confidentielle.\n  Il ne vous demandera jamais ce chiffre directement. Il pose deux questions auxquelles on répond tous les jours, et il en déduit la durée.\n  Rien n'est écrit avant la fin, et vous pouvez passer une question : ce qui reste sans réponse reste sans réponse dans le rapport.",
+    'declare.found' => '%d zone(s) sans durée déclarée, trouvées dans %s.',
+    'declare.area' => 'Zone %d/%d : %s',
+    'declare.area.detail' => '%d fichier(s) concerné(s) — cryptographie relevée : %s',
+    'declare.area.detail.none' => '%d fichier(s) concerné(s)',
+    'declare.q.name' => 'De quoi s\'agit-il, en langage métier ? (exemples : comptabilité, dossiers clients, pièces jointes)',
+    'declare.q.retention' => 'Combien d\'années devez-vous conserver ces données ? (obligation légale ou contractuelle ; 0 si rien ne l\'impose)',
+    'declare.q.damage' => 'Si elles fuitaient aujourd\'hui, pendant combien d\'années cela ferait-il encore du tort ? (0 si c\'est public ou sans conséquence)',
+    'declare.q.note' => 'Pourquoi cette durée ? Une phrase, pour la personne qui relira (facultatif)',
+    'declare.q.skip' => '[entrée pour passer]',
+    'declare.derived' => '→ Durée de confidentialité retenue : %d an(s). %s',
+    'declare.derived.why.retention' => 'Elle vient de la conservation : une donnée qu\'on garde est une donnée qu\'on peut encore voler.',
+    'declare.derived.why.damage' => 'Elle vient du tort causé : il dure plus longtemps que l\'obligation de conservation.',
+    'declare.derived.why.zero' => 'Rien à protéger dans la durée : ni conservation imposée, ni tort durable.',
+    'declare.skipped' => '→ Passée. Cette zone restera « non déclarée » et sera calculée avec la durée par défaut.',
+    'declare.invalid' => 'Un nombre d\'années, s\'il vous plaît (0 si aucune).',
+    'declare.written' => '%d domaine(s) écrit(s) dans %s. Relisez-le, discutez-le, versionnez-le.',
+    'declare.nothing' => "Aucune zone sans durée : la déclaration couvre déjà tout ce que l'analyse a trouvé.",
+    'declare.elapsed' => 'Entretien terminé en %s — %d question(s) répondue(s), %d passée(s).',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Dates de bascule',
     'crossing.intro' => "Une donnée chiffrée l'année Y reste sensible jusqu'à Y + sa durée. L'année de bascule est donc celle à partir de laquelle tout ce qui est chiffré survit à la péremption de %d : avant, le domaine tient ; à partir d'elle, ce qui est émis est déjà perdu le jour où l'algorithme tombe.",

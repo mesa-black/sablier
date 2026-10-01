@@ -1,5 +1,3 @@
-<img src="assets/logo.svg" alt="" width="22" height="30" align="left" hspace="10">
-
 # Sablier
 
 What is encrypted in your project, and **how long it holds**.
@@ -103,6 +101,29 @@ $ make probe HOST=showmetherex.com
 The probe only belongs against hosts you are responsible for.
 
 ## Declaring confidentiality lifetimes
+
+```bash
+sablier declare /path/to/project
+```
+
+The interview that fills the one input no scanner can read, run with the person
+who knows the answer rather than the one who wrote the code. It never asks for
+a confidentiality lifetime: it asks **how long must you keep this** — a legal
+fact somebody already knows — and **if it leaked today, how long would it still
+hurt**, then takes the larger of the two, because data that must be kept is
+data that can still be stolen. It says which answer won, so the reasoning can
+be argued with rather than the number.
+
+The questions are about areas the scan actually found undeclared, in the order
+of how much code they cover, and an area can be skipped: it then stays
+undeclared and the report says so in its blind spots. A lifetime nobody chose
+would be worse than a gap, because the verdict above it would wear the same
+confident typeface as the rest.
+
+[`docs/declaration-session.md`](docs/declaration-session.md) is the protocol —
+what to measure during the session, and what result would falsify this tool's
+whole thesis.
+
 
 Without a declaration the tool applies a default lifetime and says so. With one,
 it becomes useful. See [`examples/showmetherex.json`](examples/showmetherex.json).

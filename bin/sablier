@@ -51,6 +51,7 @@ use Sablier\Detector\ShellDetector;
 use Sablier\Detector\SshConfigDetector;
 use Sablier\Detector\SymfonyVaultDetector;
 use Sablier\Finding;
+use Sablier\Interview;
 use Sablier\Lang;
 use Sablier\Pdf;
 use Sablier\Probe;
@@ -161,6 +162,137 @@ if ($command === 'accept') {
     file_put_contents($file, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES)."\n");
 
     printf("  %s\n", Lang::t('cli.accept_written', $fingerprint, $until, $file));
+    exit(0);
+}
+
+// --- the interview: bin/sablier declare <path> --------------------------
+// The only command in this tool meant to be run with somebody else in the
+// room, and the only one whose output is a question rather than a verdict. It
+// asks about retention and about harm — two things a person answers every
+// week — and derives the lifetime nobody can state directly.
+if ($command === 'declare') {
+    $target = $argv[2] ?? '';
+    $out = null;
+    foreach (\array_slice($argv, 3) as $argument) {
+        if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
+            $out = $m[1];
+        }
+    }
+
+    $root = $target !== '' ? realpath($target) : false;
+    if ($root === false || !is_dir($root)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.missing_path')."\n");
+        exit(1);
+    }
+
+    $out ??= $root.'/sablier.json';
+    $declaration = Declaration::load(is_file($out) ? $out : null);
+    $scan = (new Scanner([
+        new PhpDetector(),
+        new ShellDetector(),
+        new KeyMaterialDetector(),
+        new AssetDetector(),
+        new ServerConfigDetector(),
+        new SshConfigDetector(),
+        new EnvDetector(),
+        new FrameworkConfigDetector(),
+        new SymfonyVaultDetector(),
+        new DependencyDetector(),
+    ], $declaration->exclude))->scan($root);
+
+    $findings = (new Assessor($declaration, (int) date('Y')))->assess($scan['findings']);
+    $areas = Interview::areas($findings, $declaration);
+
+    printf("\n  %s\n\n", Lang::t('declare.intro'));
+    if ($areas === []) {
+        printf("  %s\n\n", Lang::t('declare.nothing'));
+        exit(0);
+    }
+    printf("  %s\n", Lang::t('declare.found', \count($areas), $root));
+
+    $ask = static function (string $question, bool $optional = false): ?string {
+        while (true) {
+            printf("\n  %s\n", $question);
+            if ($optional) {
+                printf("  %s\n", Lang::t('declare.q.skip'));
+            }
+            $line = fgets(\STDIN);
+            if ($line === false) {
+                return null;
+            }
+            $line = trim($line);
+            if ($line !== '' || $optional) {
+                return $line === '' ? null : $line;
+            }
+        }
+    };
+
+    $years = static function (string $question) use ($ask): ?int {
+        while (true) {
+            $answer = $ask($question, true);
+            if ($answer === null) {
+                return null;
+            }
+            if (preg_match('/^\d{1,3}$/', $answer) === 1) {
+                return (int) $answer;
+            }
+            printf("  %s\n", Lang::t('declare.invalid'));
+        }
+    };
+
+    $startedAt = microtime(true);
+    $answers = [];
+    $skipped = 0;
+    foreach ($areas as $index => $area) {
+        printf("\n  ———\n  %s\n", Lang::t('declare.area', $index + 1, \count($areas), $area['path']));
+        printf("  %s\n", $area['algorithms'] === []
+            ? Lang::t('declare.area.detail.none', $area['files'])
+            : Lang::t('declare.area.detail', $area['files'], implode(', ', array_map(Catalogue::label(...), $area['algorithms']))));
+
+        $name = $ask(Lang::t('declare.q.name'), true);
+        if ($name === null) {
+            ++$skipped;
+            printf("  %s\n", Lang::t('declare.skipped'));
+            continue;
+        }
+
+        $retention = $years(Lang::t('declare.q.retention'));
+        $damage = $years(Lang::t('declare.q.damage'));
+        if ($retention === null && $damage === null) {
+            ++$skipped;
+            printf("  %s\n", Lang::t('declare.skipped'));
+            continue;
+        }
+
+        $lifetime = Interview::lifetime($retention ?? 0, $damage ?? 0);
+        $why = match (true) {
+            $lifetime === 0 => Lang::t('declare.derived.why.zero'),
+            $lifetime === ($damage ?? 0) && $lifetime > ($retention ?? 0) => Lang::t('declare.derived.why.damage'),
+            default => Lang::t('declare.derived.why.retention'),
+        };
+        printf("\n  %s\n", Lang::t('declare.derived', $lifetime, $why));
+
+        $answers[] = [
+            'name' => $name,
+            'paths' => [$area['path'].'/*'],
+            'lifetime' => $lifetime,
+            'note' => $ask(Lang::t('declare.q.note'), true) ?? '',
+        ];
+    }
+
+    if ($answers !== []) {
+        $existing = is_file($out) ? Value::map(json_decode((string) file_get_contents($out), true)) : [];
+        $merged = Interview::merge($existing, $answers);
+        file_put_contents($out, json_encode($merged, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+        printf("\n  %s\n", Lang::t('declare.written', \count($answers), $out));
+    }
+
+    $elapsed = microtime(true) - $startedAt;
+    printf("  %s\n\n", Lang::t('declare.elapsed',
+        $elapsed < 60 ? \sprintf('%d s', (int) $elapsed) : \sprintf('%d min %02d s', (int) ($elapsed / 60), (int) $elapsed % 60),
+        \count($answers),
+        $skipped,
+    ));
     exit(0);
 }
 
