@@ -138,6 +138,7 @@ return [
     'label.replacement' => 'Remplacement',
     'label.medium_confidence' => 'confiance moyenne',
     'label.fingerprint' => 'empreinte',
+    'label.references' => 'Références',
 
     // --- blind spots ------------------------------------------------------
     'blind.title' => "Ce que ce rapport n'a pas regardé",
@@ -375,6 +376,7 @@ Première action : %s',
     'audit.s6.none' => "Aucune déclaration n'a été fournie : toutes les durées sont celles par défaut, et les verdicts ci-après doivent être lus comme des approximations.",
     'audit.s7.intro' => "L'avis découle des constatations de la section 5 et des durées de la section 6. Il distingue ce qui se récolte — le chiffrement, qu'un adversaire peut capturer aujourd'hui pour le déchiffrer plus tard — de ce qui ne se récolte pas, les signatures.",
     'audit.s7.concerns' => 'Constatations concernées :',
+    'audit.s7.references' => 'Défauts publiés, vérifiables auprès du NIST :',
     'audit.s9.intro' => 'Les sept termes nécessaires à la lecture du présent rapport.',
     'audit.g.harvest' => 'Récolte différée',
     'audit.g.harvest.def' => "Capturer aujourd'hui des données chiffrées pour les déchiffrer lorsque la machine capable de le faire existera. Pour ces données, la date de compromission est le jour du chiffrement, pas celui de l'attaque.",

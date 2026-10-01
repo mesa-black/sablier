@@ -287,6 +287,28 @@ final class AuditReporter implements ReporterInterface
                     .'<p class="cites">'.htmlspecialchars(Lang::t('audit.s7.concerns')).' '
                     .implode(', ', array_map(static fn (int $n): string => 'n°'.$n, $numbers)).'</p>';
 
+                // A published defect belongs next to the opinion that relies
+                // on it: a reader who does not take our word for it has a
+                // number, a date and a third party to go and read.
+                // Not under a verdict that says "nothing to do": a published
+                // defect printed beside "probably not security" reads as a
+                // contradiction, and the reader is right to stumble on it.
+                $references = \in_array($verdict, [Assessor::CLEAR, Assessor::NOISE], true)
+                    ? []
+                    : Catalogue::references($findings[0]->algorithm);
+                if ($references !== []) {
+                    $links = array_map(
+                        static fn (string $reference): string => \sprintf(
+                            '<a href="%s">%s</a>',
+                            htmlspecialchars(Catalogue::referenceUrl($reference)),
+                            htmlspecialchars($reference),
+                        ),
+                        $references,
+                    );
+                    $body .= '<p class="cites">'.htmlspecialchars(Lang::t('audit.s7.references')).' '
+                        .implode(' · ', $links).'</p>';
+                }
+
                 $replacement = Catalogue::get($findings[0]->algorithm)['replacement'] ?? '';
                 if ($replacement !== '' && \in_array($verdict, [Assessor::COMPROMISED, Assessor::URGENT, Assessor::MIGRATE], true)) {
                     $body .= '<p class="fix"><span>'.htmlspecialchars(Lang::t('label.replacement')).'</span> '

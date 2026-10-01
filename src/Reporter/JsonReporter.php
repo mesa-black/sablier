@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sablier\Reporter;
 
 use Sablier\Analysis;
+use Sablier\Catalogue;
 use Sablier\Finding;
 
 /**
@@ -31,6 +32,7 @@ final class JsonReporter implements ReporterInterface
             'confidence' => $f->confidence,
             'inventory' => $f->inventory,
             'because' => $f->because,
+            'references' => Catalogue::references($f->algorithm),
             'accepted_until' => $f->acceptedUntil,
         ], $analysis->findings);
 

@@ -312,6 +312,23 @@ figures — and an OID, which is never guessed. Support for cryptographic assets
 is recent in the tools that consume CBOMs; if yours rejects something we emit,
 that is a rule to fix and it belongs in this repository.
 
+## Citing a defect, and not citing a deadline
+
+A finding that is broken today carries the published defect it rests on —
+SHA-1 its collision CVE, MD5 its own, RC4 and 3DES theirs, TLS 1.0 and 1.1 the
+two attacks that retired them — printed next to the verdict, linked to the
+NIST entry a reader can go and check without taking our word for anything.
+
+RSA and the elliptic curves carry none, and that is the point. A CVE is a
+dated fact somebody else published; the post-quantum expiry is a regulatory
+horizon, cited as such in the audit report's normative references. Filing the
+second under the first would turn a deadline into an accusation, and it is
+the kind of slippage this tool exists to refuse.
+
+The numbers travel with the inventory: `references` in the JSON output, and
+`externalReferences` of type `advisories` in the CBOM, where every consumer
+already knows how to read them.
+
 ## In a pipeline
 
 A report nobody compares is a verdict nobody acts on, and this tool's whole

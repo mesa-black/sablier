@@ -58,6 +58,39 @@ final class Catalogue
         'ml-dsa' => ['label' => 'ML-DSA', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => false, 'broken' => false],
     ];
 
+    /**
+     * Published defects, for the algorithms that have one.
+     *
+     * A CVE identifies something that was found to be broken, with a date and
+     * a third party anybody can go and read. The post-quantum deadline is not
+     * that: it is a regulatory horizon, and filing it under the same heading
+     * would turn a dated fact into an assertion of ours. So this table covers
+     * exactly the "broken today" family and stops there — RSA and the elliptic
+     * curves are cited through the standards in the audit report's section 4,
+     * because that is what they are.
+     *
+     * @var array<string, list<string>>
+     */
+    private const array REFERENCES = [
+        'md5' => ['CVE-2004-2761'],
+        'sha1' => ['CVE-2005-4900'],
+        'rc4' => ['CVE-2013-2566', 'CVE-2015-2808'],
+        'des' => ['CVE-2016-2183'],
+        'tls-obsolete' => ['CVE-2011-3389', 'CVE-2014-3566'],
+    ];
+
+    /** @return list<string> */
+    public static function references(string $algorithm): array
+    {
+        return self::REFERENCES[$algorithm] ?? [];
+    }
+
+    /** Where a reader checks the claim for themselves. */
+    public static function referenceUrl(string $reference): string
+    {
+        return 'https://nvd.nist.gov/vuln/detail/'.rawurlencode($reference);
+    }
+
     /** @return array{label:string, purpose:string, quantum:bool, broken:bool, note:string, replacement:string}|null */
     public static function get(string $algorithm): ?array
     {

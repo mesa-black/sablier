@@ -256,6 +256,9 @@ final class HtmlReporter implements ReporterInterface
             $fix = ($algo['replacement'] ?? '') !== ''
                 ? '<div class="fix"><span>'.htmlspecialchars(Lang::t('label.replacement')).'</span> '.htmlspecialchars($algo['replacement']).'</div>'
                 : '';
+            // A published defect is checkable by whoever reads this; the
+            // post-quantum deadline is not one, and is cited as a deadline.
+            $references = self::references($finding->algorithm);
             $confidence = $finding->confidence === Finding::CONFIDENCE_MEDIUM
                 ? '<span class="conf">'.htmlspecialchars(Lang::t('label.medium_confidence')).'</span>'
                 : '';
@@ -264,7 +267,7 @@ final class HtmlReporter implements ReporterInterface
                 '<article><h3>%s <span class="dom">%s</span> %s</h3>
                  <div class="loc">%s</div>
                  <pre>%s</pre>
-                 <p>%s %s</p>%s</article>',
+                 <p>%s %s</p>%s%s</article>',
                 htmlspecialchars(Catalogue::label($finding->algorithm)),
                 htmlspecialchars($finding->domain),
                 $confidence,
@@ -272,6 +275,7 @@ final class HtmlReporter implements ReporterInterface
                 htmlspecialchars(mb_strimwidth($finding->evidence, 0, 160, '…')),
                 htmlspecialchars($finding->because),
                 $detail,
+                $references,
                 $fix.$this->falsePositive($finding),
             );
         }
@@ -280,6 +284,26 @@ final class HtmlReporter implements ReporterInterface
             '<section class="verdict %s"><h2>%s <span class="count">%d</span></h2>%s</section>',
             $verdict, htmlspecialchars(Assessor::label($verdict)), \count($group), $items,
         );
+    }
+
+    /** The CVE numbers behind a verdict, linked where a reader can check them. */
+    private static function references(string $algorithm): string
+    {
+        $references = Catalogue::references($algorithm);
+        if ($references === []) {
+            return '';
+        }
+
+        $links = array_map(
+            static fn (string $reference): string => \sprintf(
+                '<a href="%s">%s</a>',
+                htmlspecialchars(Catalogue::referenceUrl($reference)),
+                htmlspecialchars($reference),
+            ),
+            $references,
+        );
+
+        return '<div class="fix"><span>'.htmlspecialchars(Lang::t('label.references')).'</span> '.implode(' · ', $links).'</div>';
     }
 
     /**

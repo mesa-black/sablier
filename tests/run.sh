@@ -147,6 +147,24 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- published defects, cited rather than asserted -------------------------
+# A CVE is a dated fact somebody else published; the post-quantum deadline is
+# not one. The table must cover the first family and leave the second alone,
+# or the report turns a horizon into an accusation.
+refs=$(php -r '
+	$rows = json_decode(file_get_contents($argv[1]), true);
+	$byAlgorithm = [];
+	foreach ($rows as $row) { $byAlgorithm[$row["algorithm"]] = $row["references"]; }
+	$broken = $byAlgorithm["sha1"] ?? [];
+	$quantum = $byAlgorithm["rsa"] ?? ["unexpected"];
+	echo $broken === ["CVE-2005-4900"] && $quantum === [] ? "ok" : "no";
+' /tmp/sablier-test.json)
+if [ "$refs" != "ok" ]; then
+	echo "✗ references: a broken algorithm must carry its CVE, a quantum deadline must not"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "references" "sha1" "CVE-2005-4900"
+
 # --- the audit document ------------------------------------------------------
 # The second report is read by people who did not write the code and may have
 # to weigh it in a dispute. Three things must hold: every finding is numbered

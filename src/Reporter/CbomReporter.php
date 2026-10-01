@@ -187,12 +187,23 @@ final class CbomReporter implements ReporterInterface
             $properties[] = ['name' => 'sablier:accepted_reason', 'value' => $finding->acceptedReason];
         }
 
+        // CycloneDX has a slot for this: a published defect is an advisory,
+        // and it travels with the component rather than in a property of ours.
+        $references = array_map(
+            static fn (string $reference): array => [
+                'url' => Catalogue::referenceUrl($reference),
+                'type' => 'advisories',
+                'comment' => $reference,
+            ],
+            Catalogue::references($finding->algorithm),
+        );
+
         $occurrence = ['location' => $finding->file];
         if ($finding->line > 0) {
             $occurrence['line'] = $finding->line;
         }
 
-        return [
+        $component = [
             'type' => 'cryptographic-asset',
             'bom-ref' => 'sablier:'.$finding->fingerprint(),
             // The label is French for the one entry that is not an algorithm;
@@ -202,5 +213,11 @@ final class CbomReporter implements ReporterInterface
             'cryptoProperties' => $cryptoProperties,
             'properties' => $properties,
         ];
+
+        if ($references !== []) {
+            $component['externalReferences'] = $references;
+        }
+
+        return $component;
     }
 }
