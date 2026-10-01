@@ -197,9 +197,14 @@ final class Interview
             .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.name.hint')).'</span>'
             .'<input type="text" name="name" id="name" value="'.htmlspecialchars($suggested).'" autofocus autocomplete="off"></label>'
             .$used
-            .'<fieldset class="field"><legend class="q">'.htmlspecialchars(Lang::t($signature ? 'web.q.trust' : 'web.q.harm')).'</legend>'
+            // Not a fieldset: a legend is painted on the border, so a question
+            // this long wrapped across the line and the browser's own legend
+            // rule greyed it down to a caption — the one question that decides
+            // the verdict, rendered smaller than the optional ones.
+            .'<div class="field" role="radiogroup" aria-labelledby="harm">'
+            .'<span class="q" id="harm">'.htmlspecialchars(Lang::t($signature ? 'web.q.trust' : 'web.q.harm')).'</span>'
             .'<span class="hint">'.htmlspecialchars(Lang::t($signature ? 'web.q.trust.hint' : 'web.q.harm.hint')).'</span>'
-            .'<div class="years">'.$years.'</div></fieldset>'
+            .'<div class="years">'.$years.'</div></div>'
             .'<input type="hidden" name="kind" value="'.($signature ? 'signature' : 'secret').'">'
             .'<label class="field optional"><span class="q">'.htmlspecialchars(Lang::t('web.q.retention')).'</span>'
             .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.retention.hint')).'</span>'
@@ -358,8 +363,14 @@ final class Interview
                 '<tr><td>%s</td><td>%s</td><td class="n">%s</td><td class="n">%.0f s</td></tr>',
                 htmlspecialchars(Value::string($entry['area'] ?? null)),
                 htmlspecialchars(Value::string($entry['name'] ?? null, '—')),
+                // "I do not know" and "skip this" are two different results and
+                // the log has always kept them apart. The recap said "skipped"
+                // for both, which hides the one that matters: a subject nobody
+                // can answer is what the whole session is testing for.
                 ($entry['skipped'] ?? false) === true
-                    ? htmlspecialchars(Lang::t('declare.times.skipped'))
+                    ? htmlspecialchars(Lang::t(Value::string($entry['reason'] ?? null) === 'does_not_know'
+                        ? 'declare.times.unknown'
+                        : 'declare.times.skipped'))
                     : Value::int($entry['lifetime_years'] ?? null).' '.htmlspecialchars(Lang::t('unit.years')),
                 (float) Value::string($entry['seconds'] ?? null, '0'),
             );

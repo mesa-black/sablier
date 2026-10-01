@@ -446,6 +446,7 @@ Première action : %s',
     'declare.area.time' => '→ %.1f s sur cette zone.',
     'declare.times' => 'Temps par sujet :',
     'declare.times.skipped' => 'passée',
+    'declare.times.unknown' => 'ne sait pas',
     'declare.elapsed' => 'Entretien terminé en %s — %d question(s) répondue(s), %d passée(s).',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Dates de bascule',

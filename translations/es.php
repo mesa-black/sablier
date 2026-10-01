@@ -437,6 +437,7 @@ Primera acción: %s',
     'declare.area.time' => '→ %.1f s en esta zona.',
     'declare.times' => 'Tiempo por asunto:',
     'declare.times.skipped' => 'saltada',
+    'declare.times.unknown' => 'no lo sabe',
     'declare.elapsed' => 'Entrevista terminada en %s — %d pregunta(s) respondida(s), %d saltada(s).',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Fechas de cruce',
