@@ -4,14 +4,31 @@
         "algorithm": "sha256",
         "purpose": "integrity",
         "file": "src/Finding.php",
-        "line": 53,
-        "domain": "non déclaré",
+        "line": 74,
+        "domain": "undeclared",
         "declared": false,
         "lifetime_years": 3,
         "verdict": "clear",
         "confidence": "haute",
         "inventory": false,
-        "because": "Résiste aux algorithmes quantiques connus.",
+        "because": "Holds against known quantum algorithms.",
+        "references": [],
+        "accepted_until": ""
+    },
+    {
+        "fingerprint": "e224aad5",
+        "algorithm": "sha256",
+        "purpose": "integrity",
+        "file": "src/Crossings.php",
+        "line": 120,
+        "domain": "undeclared",
+        "declared": false,
+        "lifetime_years": 3,
+        "verdict": "clear",
+        "confidence": "haute",
+        "inventory": false,
+        "because": "Holds against known quantum algorithms.",
+        "references": [],
         "accepted_until": ""
     },
     {
@@ -26,7 +43,8 @@
         "verdict": "watch",
         "confidence": "haute",
         "inventory": false,
-        "because": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.",
+        "because": "Signature: not harvestable. Migrate before 2030 for compliance, with no confidentiality urgency.",
+        "references": [],
         "accepted_until": ""
     },
     {
@@ -41,7 +59,8 @@
         "verdict": "watch",
         "confidence": "haute",
         "inventory": false,
-        "because": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.",
+        "because": "Signature: not harvestable. Migrate before 2030 for compliance, with no confidentiality urgency.",
+        "references": [],
         "accepted_until": ""
     },
     {
@@ -56,7 +75,8 @@
         "verdict": "watch",
         "confidence": "haute",
         "inventory": false,
-        "because": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.",
+        "because": "Signature: not harvestable. Migrate before 2030 for compliance, with no confidentiality urgency.",
+        "references": [],
         "accepted_until": ""
     },
     {
@@ -64,14 +84,15 @@
         "algorithm": "ed25519",
         "purpose": "authenticity",
         "file": "src/Signature.php",
-        "line": 98,
+        "line": 103,
         "domain": "report signatures",
         "declared": true,
         "lifetime_years": 1,
         "verdict": "watch",
         "confidence": "haute",
         "inventory": false,
-        "because": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.",
+        "because": "Signature: not harvestable. Migrate before 2030 for compliance, with no confidentiality urgency.",
+        "references": [],
         "accepted_until": ""
     },
     {
@@ -79,29 +100,31 @@
         "algorithm": "ed25519",
         "purpose": "authenticity",
         "file": "src/Signature.php",
-        "line": 99,
+        "line": 104,
         "domain": "report signatures",
         "declared": true,
         "lifetime_years": 1,
         "verdict": "watch",
         "confidence": "haute",
         "inventory": false,
-        "because": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.",
+        "because": "Signature: not harvestable. Migrate before 2030 for compliance, with no confidentiality urgency.",
+        "references": [],
         "accepted_until": ""
     },
     {
-        "fingerprint": "cd43b0b9",
+        "fingerprint": "159fcca0",
         "algorithm": "ed25519",
         "purpose": "authenticity",
         "file": "src/Signature.php",
-        "line": 136,
+        "line": 173,
         "domain": "report signatures",
         "declared": true,
         "lifetime_years": 1,
         "verdict": "watch",
         "confidence": "haute",
         "inventory": false,
-        "because": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.",
+        "because": "Signature: not harvestable. Migrate before 2030 for compliance, with no confidentiality urgency.",
+        "references": [],
         "accepted_until": ""
     },
     {
@@ -116,7 +139,8 @@
         "verdict": "clear",
         "confidence": "haute",
         "inventory": false,
-        "because": "Résiste aux algorithmes quantiques connus.",
+        "because": "Holds against known quantum algorithms.",
+        "references": [],
         "accepted_until": ""
     }
 ]
