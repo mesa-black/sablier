@@ -113,8 +113,11 @@ final class Interview
             '<form method="post" action="/subject">'
             .'<input type="hidden" name="step" value="context">'
             .'<p class="lead">'.htmlspecialchars(Lang::t('web.context.lead')).'</p>'
-            .'<label class="field"><span>'.htmlspecialchars(Lang::t('declare.q.service')).'</span>'
-            .'<input type="text" name="service_until" inputmode="numeric" placeholder="2032" autofocus></label>'
+            .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.q.who')).'</span>'
+            .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.who.hint')).'</span>'
+            .'<input type="text" name="who" autofocus autocomplete="off"></label>'
+            .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('declare.q.service')).'</span>'
+            .'<input type="text" name="service_until" inputmode="numeric" placeholder="2032"></label>'
             .'<fieldset><legend>'.htmlspecialchars(Lang::t('web.context.regime')).'</legend>'.$regimes.'</fieldset>'
             .'<button type="submit">'.htmlspecialchars(Lang::t('web.next')).'</button>'
             .'</form>',
@@ -241,6 +244,7 @@ final class Interview
             if (\in_array($regime, ['general', 'anssi', 'nss'], true)) {
                 $project['regime'] = $regime;
             }
+            $this->session->set('who', trim($post['who'] ?? ''));
             $this->session->set('context', $project);
             $this->session->set('context_seconds', $seconds);
 
@@ -277,6 +281,7 @@ final class Interview
                 'lifetime' => $lifetime,
                 'note' => trim($post['note'] ?? ''),
                 'trust_anchor' => $anchor,
+                'declared_by' => $this->session->string('who'),
             ];
             $record[] = [
                 'area' => Value::string($area['path'] ?? null),
@@ -398,6 +403,7 @@ final class Interview
                 'lifetime' => Value::int($answer['lifetime'] ?? null),
                 'note' => Value::string($answer['note'] ?? null),
                 'trust_anchor' => ($answer['trust_anchor'] ?? false) === true,
+                'declared_by' => Value::string($answer['declared_by'] ?? null),
             ];
         }
 

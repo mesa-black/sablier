@@ -80,7 +80,7 @@ final class Declaration
 
     public string $project = '';
 
-    /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, note:string}> */
+    /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, note:string, declared_by:string, declared_on:string}> */
     public array $domains = [];
 
     /** Applied when nothing matches — flagged in the report as undeclared. */
@@ -178,6 +178,12 @@ final class Declaration
                 'lifetime' => Value::int($domain['lifetime_years'] ?? null, $self->defaultLifetime),
                 'trust_anchor' => Value::bool($domain['trust_anchor'] ?? null),
                 'note' => Value::string($domain['note'] ?? null),
+                // Who said so, and when. Acceptances expire and regulatory
+                // dates carry a verification date; a lifetime had neither, so
+                // one declared in 2026 by somebody who left in 2028 still
+                // drove the verdicts in 2032 with nobody the wiser.
+                'declared_by' => Value::string($domain['declared_by'] ?? null),
+                'declared_on' => Value::string($domain['declared_on'] ?? null),
             ];
         }
 

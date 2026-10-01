@@ -12,6 +12,7 @@ use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Signature;
+use Sablier\Version;
 
 /**
  * The second document: the same analysis, written for people who do not write
@@ -77,6 +78,19 @@ final class AuditReporter implements ReporterInterface
 
         $contents = $this->contents();
 
+        // Chrome prints no page numbers — it ignores the CSS margin boxes that
+        // would carry them — so a running line identifies every page instead,
+        // and the document says to cite it by section and finding number.
+        // Those survive a reprint, a translation and a change of renderer,
+        // which a page number does not.
+        $reference = $analysis->declaration->audit['reference'];
+        $runner = htmlspecialchars(implode(' · ', array_filter([
+            Lang::t('audit.doc_title'),
+            $analysis->declaration->project !== '' ? $analysis->declaration->project : basename($analysis->target),
+            $reference,
+            Version::label(),
+        ])));
+
         return <<<HTML
             <!DOCTYPE html>
             <html lang="$lang"><head><meta charset="utf-8">
@@ -89,6 +103,7 @@ final class AuditReporter implements ReporterInterface
               <h1>$project</h1>
               <p class="subtitle">$subtitle · $date</p>
             </header>
+            <div class="runner">$runner</div>
             $contents
             $sections
             </body></html>
@@ -148,7 +163,7 @@ final class AuditReporter implements ReporterInterface
             Lang::t('audit.f.target') => '<code>'.htmlspecialchars($this->analysis->target).'</code>',
             Lang::t('audit.f.date') => htmlspecialchars((new \DateTimeImmutable())->format('d/m/Y')),
             Lang::t('audit.f.volume') => htmlspecialchars($volume),
-            Lang::t('audit.f.tool') => 'Sablier',
+            Lang::t('audit.f.tool') => htmlspecialchars(Version::label()),
         ];
         if ($this->analysis->commandLine !== '') {
             $rows[Lang::t('audit.f.command')] = '<code>'.htmlspecialchars($this->analysis->commandLine).'</code>';
@@ -236,15 +251,24 @@ final class AuditReporter implements ReporterInterface
             $body .= '<p>'.htmlspecialchars(Lang::t('audit.s6.none')).'</p>';
         } else {
             $head = '<tr><th>'.htmlspecialchars(Lang::t('audit.col.domain')).'</th><th>'.htmlspecialchars(Lang::t('audit.col.lifetime'))
-                .'</th><th>'.htmlspecialchars(Lang::t('audit.col.paths')).'</th><th>'.htmlspecialchars(Lang::t('audit.col.note')).'</th></tr>';
+                .'</th><th>'.htmlspecialchars(Lang::t('audit.col.paths')).'</th><th>'.htmlspecialchars(Lang::t('audit.col.note'))
+                .'</th><th>'.htmlspecialchars(Lang::t('audit.col.declared')).'</th></tr>';
             $rows = '';
             foreach ($declaration->domains as $domain) {
+                // Who and when, or an explicit gap: a lifetime whose author
+                // nobody recorded is one nobody will think to question.
+                $by = $domain['declared_by'] !== '' || $domain['declared_on'] !== ''
+                    ? trim($domain['declared_by'].' '.($domain['declared_on'] !== '' ? '· '.$domain['declared_on'] : ''))
+                    : null;
                 $rows .= \sprintf(
-                    '<tr><td>%s</td><td class="n">%d</td><td><code>%s</code></td><td>%s</td></tr>',
+                    '<tr><td>%s</td><td class="n">%d</td><td><code>%s</code></td><td>%s</td><td>%s</td></tr>',
                     htmlspecialchars($domain['name']),
                     $domain['lifetime'],
                     htmlspecialchars(implode(', ', $domain['paths'])),
                     htmlspecialchars($domain['note']),
+                    $by !== null
+                        ? htmlspecialchars($by)
+                        : '<span class="unset">'.htmlspecialchars(Lang::t('audit.declared.unknown')).'</span>',
                 );
             }
             $body .= '<table><thead>'.$head.'</thead><tbody>'.$rows.'</tbody></table>';
@@ -404,7 +428,11 @@ final class AuditReporter implements ReporterInterface
             .fields dd{margin:0}
             @media (max-width:36rem){.fields div{grid-template-columns:1fr}}
             .note,.cites{color:var(--muted);font-size:.88rem}
+            /* Two different gaps: a field somebody must fill before the
+               document is used, and a fact nobody recorded. Flagging the
+               second as urgently as the first would make both invisible. */
             .todo{color:var(--flag);font-style:italic}
+            .unset{color:var(--muted);font-style:italic}
             .formula{border-left:3px solid var(--ink);padding:.4rem 0 .4rem .9rem;margin:.9rem 0;font-style:italic}
             .flag{border-left:3px solid var(--flag);padding:.4rem 0 .4rem .9rem;color:var(--flag);font-size:.92rem}
             table{width:100%;border-collapse:collapse;margin:.9rem 0;font-size:.88rem}
@@ -450,9 +478,15 @@ final class AuditReporter implements ReporterInterface
             @media (max-width:36rem){.row{grid-template-columns:6rem 1fr 3.2rem}}
             h3.verdict-compromised,h3.verdict-urgent{color:#8f241c}
 
+            .runner{display:none}
             @page{margin:20mm 17mm}
             @media print{
                 body{max-width:none;margin:0;padding:0;font-size:10.5pt}
+                /* Repeated on every sheet: a page that leaves the stapler
+                   still says what it belongs to and what produced it. */
+                .runner{display:block;position:fixed;bottom:0;left:0;right:0;
+                        border-top:1px solid var(--line);padding-top:3pt;
+                        font-size:7.5pt;color:var(--muted)}
                 .toc{break-after:page}
                 section{break-inside:auto}
                 h2,h3{break-after:avoid}

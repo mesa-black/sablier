@@ -62,6 +62,7 @@ use Sablier\Reporter\JsonReporter;
 use Sablier\Scanner;
 use Sablier\Signature;
 use Sablier\Value;
+use Sablier\Version;
 use Sablier\Web\Session;
 
 // Arguments are read through the same door as every other outside value: a
@@ -79,6 +80,11 @@ foreach ($argv as $arg) {
     if (preg_match('/^--lang=(\w+)$/', $arg, $m) === 1) {
         Lang::use($m[1]);
     }
+}
+
+if ($command === '--version' || $command === 'version') {
+    printf("%s\n", Version::label());
+    exit(0);
 }
 
 // --- keys and verification ---------------------------------------------

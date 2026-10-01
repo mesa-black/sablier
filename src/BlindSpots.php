@@ -23,6 +23,11 @@ final class BlindSpots
             Lang::t('blind.lifetime', $analysis->declaration->defaultLifetime),
         ];
 
+        $stale = Interview::stale($analysis->declaration->domains);
+        if ($stale > 0) {
+            $lines[] = Lang::t('blind.stale_declaration', $stale, Interview::STALE_AFTER_YEARS);
+        }
+
         $lines[] = $analysis->declaration->serviceUntil > 0
             ? Lang::t('blind.service_until.declared', $analysis->declaration->serviceUntil)
             : Lang::t('blind.service_until');

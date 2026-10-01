@@ -8,6 +8,7 @@ use Sablier\Analysis;
 use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Signature;
+use Sablier\Version;
 
 /**
  * The inventory in the format the rest of the field reads: CycloneDX 1.6.
@@ -89,6 +90,7 @@ final class CbomReporter implements ReporterInterface
                 'tools' => ['components' => [[
                     'type' => 'application',
                     'name' => 'Sablier',
+                    'version' => Version::NUMBER,
                     'description' => 'Cryptographic inventory with the expiry date of each protection.',
                 ]]],
                 'component' => [

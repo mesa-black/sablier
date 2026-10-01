@@ -21,6 +21,8 @@
     "postgres://db.internal:5432"
   ],
 
+  "_domains": "Each domain carries who declared its lifetime and when. The interview writes both; by hand, add declared_by and declared_on (YYYY-MM-DD) next to lifetime_years. A lifetime older than two years is reported as a blind spot, because the person who set it may well have left.",
+
   "exclude": [
     "docs/*",
     "tests/fixtures/*"

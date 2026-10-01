@@ -210,6 +210,44 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "web" "interview" "walked, declared, recorded"
 rm -rf "$web"
 
+# --- a lifetime has an author and a date ------------------------------------
+# Acceptances expire and regulatory dates carry a verification date; a declared
+# lifetime had neither, so one set in 2026 by somebody who left in 2028 still
+# drove the verdicts in 2032 with nobody the wiser.
+prov=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$prov/"
+php -r '
+	$d = json_decode(file_get_contents("tests/fixtures/sample/sablier.json"), true);
+	$d["domains"]["backups"]["declared_by"] = "A. Durand";
+	$d["domains"]["backups"]["declared_on"] = "2019-01-01";      // long stale
+	$d["domains"]["session tokens"]["declared_on"] = date("Y-m-d");
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$prov/declared.json"
+./bin/sablier scan "$prov" --declare="$prov/declared.json" --out="$prov/r.html" \
+	--audit="$prov/audit.html" --quiet >/dev/null || true
+
+if ! grep -q "A. Durand" "$prov/audit.html"; then
+	echo "✗ provenance: the audit must say who declared a lifetime"
+	rm -rf "$prov"
+	exit 1
+fi
+if ! grep -q "2 ans" "$prov/audit.html" && ! grep -q "revues" "$prov/audit.html"; then
+	echo "✗ provenance: a lifetime nobody revisited must be a blind spot"
+	rm -rf "$prov"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "provenance" "author" "named, and stale after 2 years"
+
+# A report that prints the command, the digest and a signature must say which
+# build produced it.
+if ! grep -q "Sablier 0.2.0" "$prov/audit.html"; then
+	echo "✗ provenance: the audit must name the build that produced it"
+	rm -rf "$prov"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "provenance" "version" "$(./bin/sablier --version)"
+rm -rf "$prov"
+
 # --- the system's own horizon, and whose deadline applies --------------------
 # Two facts about the system rather than about its data, and both move every
 # verdict under them: the last secret is written on the last day of service,

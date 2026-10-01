@@ -127,6 +127,12 @@ see, a button that starts it, and at the end the report their answers produced
 correct the tool as much as to fill a declaration. The server is bound to the
 loopback and dies with the command.
 
+Each lifetime carries **who declared it and when**: the audit report prints
+both next to the number, and a lifetime nobody has revisited for two years
+becomes a blind spot — acceptances expire, regulatory dates carry a
+verification date, and until now the one input that decides every verdict had
+neither.
+
 The protocol — what to measure during the session, and what result would
 falsify this tool's whole thesis — is in
 [English](docs/declaration-session.md), [French](docs/declaration-session.fr.md)

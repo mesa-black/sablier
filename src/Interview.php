@@ -122,6 +122,33 @@ final class Interview
     }
 
     /**
+     * How long a declared lifetime goes unquestioned before it is stale.
+     *
+     * Two years: long enough that nobody is asked the same question twice a
+     * year, short enough that the person who answered is probably still there
+     * to be asked again.
+     */
+    public const int STALE_AFTER_YEARS = 2;
+
+    /** @param list<array{declared_on?:string}> $domains */
+    public static function stale(array $domains, ?\DateTimeImmutable $now = null): int
+    {
+        $now ??= new \DateTimeImmutable();
+        $limit = $now->modify('-'.self::STALE_AFTER_YEARS.' years');
+
+        $count = 0;
+        foreach ($domains as $domain) {
+            $on = $domain['declared_on'] ?? '';
+            $date = $on === '' ? false : \DateTimeImmutable::createFromFormat('Y-m-d', $on);
+            if ($date !== false && $date < $limit) {
+                ++$count;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
      * Whether this subject is about proving who sent something.
      *
      * The duration question — "if this got out, how long would it hurt" —
@@ -199,7 +226,7 @@ final class Interview
      * silently rewrites a lifetime somebody argued about last quarter.
      *
      * @param array<string, mixed>                                                    $existing
-     * @param list<array{name:string, paths:list<string>, lifetime:int, note:string, trust_anchor?:bool}> $answers
+     * @param list<array{name:string, paths:list<string>, lifetime:int, note:string, trust_anchor?:bool, declared_by?:string}> $answers
      *
      * @return array<string, mixed>
      */
@@ -218,6 +245,11 @@ final class Interview
                 'lifetime_years' => max($answer['lifetime'], Value::int($existingDomain['lifetime_years'] ?? null)),
                 'note' => trim(Value::string($existingDomain['note'] ?? null).' '.$answer['note']),
             ];
+            // A lifetime nobody signed is a lifetime nobody will revisit.
+            if (($answer['declared_by'] ?? '') !== '') {
+                $domain['declared_by'] = $answer['declared_by'];
+            }
+            $domain['declared_on'] = (new \DateTimeImmutable())->format('Y-m-d');
             // A long-lived trust anchor is a different claim from a long-lived
             // secret, and the declaration has a word for it.
             if (($answer['trust_anchor'] ?? false) === true) {
