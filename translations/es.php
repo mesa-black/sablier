@@ -148,6 +148,7 @@ return [
   bin/sablier scan <ruta> [opciones]
   bin/sablier probe <host>          lo que un servidor negocia realmente
   bin/sablier judge <cbom.json>     juzgar el inventario de otra herramienta (CycloneDX 1.6)
+  bin/sablier init <ruta>           escribir una declaración inicial, para corregir
   bin/sablier declare <ruta>        entrevista: las duraciones de confidencialidad, en términos de negocio
   bin/sablier serve <ruta>          la misma entrevista en un navegador, con cronómetro
   bin/sablier advisories <ruta>     recopilar las vulnerabilidades publicadas de las dependencias
@@ -181,6 +182,10 @@ return [
     'cli.findings' => '%d hallazgos',
     'cli.missing_host' => 'falta el host: bin/sablier probe ejemplo.es',
     'cli.missing_path' => 'ruta por analizar ausente o no encontrada',
+    'cli.init_exists' => '%s ya existe: una declaración contiene decisiones que alguien tomó, y este comando no tiene nada que añadirles.',
+    'cli.init_unreadable' => 'no se encuentra la plantilla de declaración (examples/starter.json).',
+    'cli.init_written' => '%s escrito: una declaración que corregir, no un formulario que rellenar.',
+    'cli.init_next' => 'Luego: sablier serve <ruta> para rellenarla con quien lo sabe, o abra el archivo.',
     'cli.missing_cbom' => 'falta el archivo CBOM o no se encuentra: bin/sablier judge cbom.json',
 
     // --- somebody else's inventory ---
@@ -302,6 +307,9 @@ Primera acción: %s',
     'seal.key' => 'clave pública',
     'seal.legend' => 'La huella cubre los hallazgos, no este archivo: dos renderizados del mismo inventario, en dos idiomas, dan el mismo valor.',
     'seal.caveat' => 'Esta firma es Ed25519, que este mismo informe clasifica como vulnerable a lo cuántico. Una firma no se recolecta: aguanta mientras aguante la curva. Así que la única pregunta que importa es esta: ¿tendrá que demostrar la autenticidad de este informe después de %d? Si es así, Ed25519 no bastará y hará falta una firma basada en funciones hash.',
+    'verify.previous' => 'este informe sucede a la huella %s…: pase la firma anterior con --previous= para comprobar el eslabón.',
+    'verify.previous.match' => 'eslabón verificado: este informe sucede efectivamente a %s…',
+    'verify.previous.mismatch' => 'eslabón roto: este informe dice suceder a %s…, que no es la firma aportada.',
     'verify.valid' => 'firma válida',
     'verify.invalid' => 'firma inválida: el contenido o la firma fueron modificados',
     'verify.changed' => 'los hallazgos han cambiado desde la firma',
@@ -316,6 +324,17 @@ Primera acción: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'uso: sablier verify <informe.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'sin declarar',
+    // --- ssh, which never becomes TLS ---
+    'probe.ssh.banner' => 'banner del servidor',
+    'probe.ssh.kex' => 'intercambios de claves ofrecidos',
+    'probe.ssh.host_keys' => 'claves de host ofrecidas',
+    'probe.ssh.ciphers' => 'cifrados ofrecidos',
+    'probe.ssh.no_kexinit' => 'el servidor no ha respondido en SSH: nada que leer.',
+    'probe.ssh.evidence.kex' => 'intercambio de claves preferido: %s',
+    'probe.ssh.evidence.host_key' => 'clave de host preferida: %s',
+    'probe.ssh.detail.hybrid' => 'Se ofrece un intercambio de claves híbrido poscuántico: el tráfico capturado hoy sigue siendo ilegible para un adversario cuántico.',
+    'probe.ssh.detail.classical' => 'Intercambio de claves clásico: el tráfico capturado hoy se descifra el día en que caiga la curva. OpenSSH ofrece sntrup761x25519 desde la 8.5, en ambos extremos.',
+    'probe.ssh.detail.host_key' => 'La clave de host del servidor: es lo que sus máquinas han fijado. Una firma no se cosecha, pero un ancla de confianza que toda la flota conoce desde hace años se reemplaza despacio: hay que planificarlo.',
     'audit.col.declared' => 'Declarada por',
     'audit.declared.unknown' => 'autor y fecha desconocidos',
     'blind.stale_declaration' => '%d duración(es) declarada(s) hace más de %d años: nadie las ha revisado desde entonces, y el mundo ha cambiado. Una revisión va en el mismo calendario que el análisis.',
@@ -522,6 +541,7 @@ Primera acción: %s',
     'audit.g.hybrid' => 'Hibridación',
     'audit.g.hybrid.def' => 'Combinar un algoritmo clásico con uno poscuántico, de modo que la protección aguante si cae uno de los dos. Es la posición de las autoridades durante la transición.',
     'audit.s10.digest' => 'La huella cubre las constataciones, no este archivo: dos renderizados del mismo inventario, en dos idiomas, dan el mismo valor.',
+    'audit.s10.previous' => 'informe anterior',
     'audit.s10.verify' => 'Verificación por un tercero:',
     'audit.s10.unsigned' => 'Este informe no está firmado. Para que un tercero pueda establecer que no ha sido alterado desde su emisión, repita el análisis con la opción de firma.',
     'audit.statement' => 'Declaración del auditor',

@@ -157,6 +157,7 @@ return [
   bin/sablier scan <chemin> [options]
   bin/sablier probe <hôte>          ce qu\'un serveur négocie réellement
   bin/sablier judge <cbom.json>     juger l\'inventaire d\'un autre outil (CycloneDX 1.6)
+  bin/sablier init <chemin>         écrire une déclaration de départ, à corriger
   bin/sablier declare <chemin>      entretien : les durées de confidentialité, en langage métier
   bin/sablier serve <chemin>        le même entretien dans un navigateur, avec chronomètre
   bin/sablier advisories <chemin>   collecter les vulnérabilités publiées des dépendances
@@ -190,6 +191,10 @@ return [
     'cli.findings' => '%d constats',
     'cli.missing_host' => 'hôte manquant : bin/sablier probe exemple.fr',
     'cli.missing_path' => 'chemin à analyser manquant ou introuvable',
+    'cli.init_exists' => '%s existe déjà : une déclaration porte des décisions, cette commande n\'a rien à y ajouter.',
+    'cli.init_unreadable' => 'modèle de déclaration introuvable (examples/starter.json).',
+    'cli.init_written' => '%s écrit — une déclaration à corriger, pas un formulaire à remplir.',
+    'cli.init_next' => 'Puis : sablier serve <chemin> pour la remplir avec la personne qui sait, ou ouvrez le fichier.',
     'cli.missing_cbom' => 'fichier CBOM manquant ou introuvable : bin/sablier judge cbom.json',
 
     // --- somebody else's inventory ---
@@ -311,6 +316,9 @@ Première action : %s',
     'seal.key' => 'clé publique',
     'seal.legend' => 'L\'empreinte porte sur les constats, pas sur ce fichier : deux rendus du même inventaire, dans deux langues, donnent la même valeur.',
     'seal.caveat' => 'Cette signature est en Ed25519 — que ce rapport classe lui-même comme vulnérable au quantique. Une signature ne se récolte pas : elle tient aussi longtemps que la courbe. La seule question qui compte est donc celle-ci : devez-vous encore prouver l\'authenticité de ce rapport après %d ? Si oui, Ed25519 ne suffira pas, et il faut une signature fondée sur des fonctions de hachage.',
+    'verify.previous' => 'ce rapport succède à l\'empreinte %s… : fournissez la signature précédente avec --previous= pour vérifier le maillon.',
+    'verify.previous.match' => 'maillon vérifié : ce rapport succède bien à %s…',
+    'verify.previous.mismatch' => 'maillon rompu : ce rapport annonce succéder à %s…, ce n\'est pas la signature fournie.',
     'verify.valid' => 'signature valide',
     'verify.invalid' => 'signature invalide : le contenu ou la signature a été modifié',
     'verify.changed' => 'les constats ont changé depuis la signature',
@@ -325,6 +333,17 @@ Première action : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'non déclaré',
+    // --- ssh, which never becomes TLS ---
+    'probe.ssh.banner' => 'bannière du serveur',
+    'probe.ssh.kex' => 'échanges de clés proposés',
+    'probe.ssh.host_keys' => 'clés d\'hôte proposées',
+    'probe.ssh.ciphers' => 'chiffrements proposés',
+    'probe.ssh.no_kexinit' => 'le serveur n\'a pas répondu en SSH : rien à lire.',
+    'probe.ssh.evidence.kex' => 'échange de clés préféré : %s',
+    'probe.ssh.evidence.host_key' => 'clé d\'hôte préférée : %s',
+    'probe.ssh.detail.hybrid' => 'Échange de clés hybride post-quantique proposé : une capture du trafic d\'aujourd\'hui reste illisible pour un adversaire quantique.',
+    'probe.ssh.detail.classical' => 'Échange de clés classique : le trafic capturé aujourd\'hui se déchiffre le jour où la courbe tombe. OpenSSH propose sntrup761x25519 depuis la version 8.5, côté serveur comme client.',
+    'probe.ssh.detail.host_key' => 'Clé d\'hôte du serveur : c\'est ce que vos machines ont épinglé. Une signature ne se récolte pas, mais une ancre de confiance que toute la flotte connaît depuis des années se remplace lentement — à planifier, pas à subir.',
     'audit.col.declared' => 'Déclarée par',
     'audit.declared.unknown' => 'auteur et date inconnus',
     'blind.stale_declaration' => '%d durée(s) déclarée(s) il y a plus de %d ans : personne ne les a revues depuis, et le monde a bougé. Une relecture est à inscrire au même calendrier que l\'analyse.',
@@ -531,6 +550,7 @@ Première action : %s',
     'audit.g.hybrid' => 'Hybridation',
     'audit.g.hybrid.def' => "Combiner un algorithme classique et un algorithme post-quantique, de sorte que la protection tienne si l'un des deux tombe. C'est la position des autorités pendant la transition.",
     'audit.s10.digest' => "L'empreinte porte sur les constatations et non sur ce fichier : deux rendus du même inventaire, dans deux langues, donnent la même valeur.",
+    'audit.s10.previous' => 'rapport précédent',
     'audit.s10.verify' => 'Vérification par un tiers :',
     'audit.s10.unsigned' => "Ce rapport n'est pas signé. Pour qu'un tiers puisse établir qu'il n'a pas été modifié depuis son émission, relancer l'analyse avec l'option de signature.",
     'audit.statement' => "Déclaration de l'auditeur",

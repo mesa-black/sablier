@@ -81,7 +81,12 @@ final class Signature
      *
      * @return array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string}
      */
-    public static function sign(string $digest, string $secretKeyBase64): array
+    /**
+     * @param string $previous the digest of the report this one succeeds, when there is one
+     *
+     * @return array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string, previous?:string}
+     */
+    public static function sign(string $digest, string $secretKeyBase64, string $previous = ''): array
     {
         $secret = base64_decode($secretKeyBase64, true);
         if ($secret === false || \strlen($secret) !== \SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
@@ -89,19 +94,46 @@ final class Signature
         }
 
         $signedAt = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
-        $payload = self::payload($digest, $signedAt);
+        $payload = self::payload($digest, $signedAt, $previous);
 
-        return [
+        $block = [
             'algorithm' => self::ALGORITHM,
             'digest' => $digest,
             'signed_at' => $signedAt,
             'public_key' => base64_encode(sodium_crypto_sign_publickey_from_secretkey($secret)),
             'signature' => base64_encode(sodium_crypto_sign_detached($payload, $secret)),
         ];
+
+        // Each report names the one before it, inside what is signed. A chain
+        // of them is then an audit trail rather than a pile of files: somebody
+        // who holds the last one can walk back, and a missing link shows.
+        if ($previous !== '') {
+            $block['previous'] = $previous;
+        }
+
+        return $block;
     }
 
     /**
-     * @param array{algorithm?:string, digest?:string, signed_at?:string, public_key?:string, signature?:string} $block
+     * The digest of an existing signature block, for the report about to replace it.
+     *
+     * Reading it costs one file and makes the chain automatic: a second run
+     * over the same output path succeeds the first without anybody passing a
+     * flag, which is the only version of this that gets used.
+     */
+    public static function previousDigest(string $signaturePath): string
+    {
+        if (!is_file($signaturePath)) {
+            return '';
+        }
+
+        $block = Value::map(json_decode((string) file_get_contents($signaturePath), true));
+
+        return Value::string($block['digest'] ?? null);
+    }
+
+    /**
+     * @param array{algorithm?:string, digest?:string, signed_at?:string, public_key?:string, signature?:string, previous?:string} $block
      *
      * @return array{valid:bool, reason:string}
      */
@@ -138,13 +170,24 @@ final class Signature
             return ['valid' => false, 'reason' => 'verify.malformed'];
         }
 
-        $ok = sodium_crypto_sign_verify_detached($signature, self::payload($block['digest'], $block['signed_at']), $key);
+        $ok = sodium_crypto_sign_verify_detached(
+            $signature,
+            self::payload($block['digest'], $block['signed_at'], $block['previous'] ?? ''),
+            $key,
+        );
 
         return ['valid' => $ok, 'reason' => $ok ? 'verify.valid' : 'verify.invalid'];
     }
 
-    private static function payload(string $digest, string $signedAt): string
+    /**
+     * What the signature actually covers.
+     *
+     * The previous digest is appended rather than inserted, so a block without
+     * one produces the same bytes as before this existed: signatures made by
+     * older versions still verify.
+     */
+    private static function payload(string $digest, string $signedAt, string $previous = ''): string
     {
-        return "sablier-report/1\n".$digest."\n".$signedAt;
+        return "sablier-report/1\n".$digest."\n".$signedAt.($previous !== '' ? "\n".$previous : '');
     }
 }

@@ -380,6 +380,11 @@ final class AuditReporter implements ReporterInterface
                 Lang::t('seal.signed') => htmlspecialchars($block['algorithm'].' · '.($signedAt === false ? $block['signed_at'] : $signedAt->format('d/m/Y H:i'))),
                 Lang::t('seal.key') => '<code>'.htmlspecialchars($block['public_key']).'</code>',
             ]);
+            if (($block['previous'] ?? '') !== '') {
+                $body .= self::definitions([
+                    Lang::t('audit.s10.previous') => '<code>'.htmlspecialchars((string) $block['previous']).'</code>',
+                ]);
+            }
             $body .= '<p>'.htmlspecialchars(Lang::t('audit.s10.verify')).' <code>sablier verify &lt;'
                 .htmlspecialchars(Lang::t('audit.doc_title')).'&gt;.sig --declare=&lt;declaration&gt;</code></p>'
                 .'<p class="flag">'.htmlspecialchars(Lang::t('seal.caveat', $declaration->expiryYear)).'</p>';

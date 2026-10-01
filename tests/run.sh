@@ -653,6 +653,27 @@ php -r '
 	file_put_contents($argv[2], json_encode($b));
 ' "$keydir/r.html.sig" "$keydir/tampered.sig"
 signcheck "$keydir/tampered.sig" "" rejected "tampered digest"
+
+# --- one report succeeding another -------------------------------------------
+# A chain nobody has to ask for: a second run over the same output path names
+# the digest it replaces, inside what is signed. A pile of reports becomes an
+# audit trail, and a missing link shows.
+cp "$keydir/r.html.sig" "$keydir/first.sig"
+./bin/sablier scan tests/fixtures/sample --declare="$keydir/right.json" --sign="$keydir/a.key" \
+	--out="$keydir/r.html" --quiet >/dev/null || true
+chain=$(php -r '
+	$first = json_decode(file_get_contents($argv[1]), true);
+	$second = json_decode(file_get_contents($argv[2]), true);
+	echo !isset($first["previous"]) && ($second["previous"] ?? "") === $first["digest"] ? "ok" : "no";
+' "$keydir/first.sig" "$keydir/r.html.sig")
+if [ "$chain" != "ok" ]; then
+	echo "✗ chain: the second report must name the first, and the first must name nobody"
+	rm -rf "$keydir"
+	exit 1
+fi
+# And the link is inside the signature: verification still passes.
+signcheck "$keydir/r.html.sig" "$keydir/right.json" valid "chained report"
+printf '  ✓ %-24s %-10s %s\n' "chain" "previous" "named and signed"
 rm -rf "$keydir"
 
 # --- live probe, against a server we control -------------------------------

@@ -27,7 +27,7 @@ final readonly class Analysis
         public float $duration = 0.0,
         public array $probes = [],
         public bool $projected = false,
-        /** @var array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string}|null */
+        /** @var array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string, previous?:string}|null */
         public ?array $signature = null,
         /** The tool that produced the inventory, when it was not this one. */
         public string $importedFrom = '',

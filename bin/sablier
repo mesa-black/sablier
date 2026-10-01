@@ -123,15 +123,37 @@ if ($command === 'verify') {
 
     $block = Value::map(json_decode((string) file_get_contents($signaturePath), true));
     $expectedKey = $declarePath !== null ? Declaration::load($declarePath)->signingPublicKey : null;
+    $previous = Value::string($block['previous'] ?? null);
     $result = Signature::verify([
         'algorithm' => Value::string($block['algorithm'] ?? null),
         'digest' => Value::string($block['digest'] ?? null),
         'signed_at' => Value::string($block['signed_at'] ?? null),
         'public_key' => Value::string($block['public_key'] ?? null),
         'signature' => Value::string($block['signature'] ?? null),
+        'previous' => $previous,
     ], null, $expectedKey);
 
     printf("  %s\n", Lang::t($result['reason']));
+
+    // The link, when the block claims one. Given the earlier signature, it is
+    // checked; given nothing, it is still printed, because a reader holding
+    // one file should know another exists.
+    if ($previous !== '') {
+        $earlier = null;
+        foreach (\array_slice($argv, 3) as $argument) {
+            if (preg_match('/^--previous=(.+)$/', $argument, $m) === 1) {
+                $earlier = Signature::previousDigest($m[1]);
+            }
+        }
+
+        printf("  %s\n", $earlier === null
+            ? Lang::t('verify.previous', substr($previous, 0, 16))
+            : Lang::t($earlier === $previous ? 'verify.previous.match' : 'verify.previous.mismatch', substr($previous, 0, 16)));
+        if ($earlier !== null && $earlier !== $previous) {
+            exit(1);
+        }
+    }
+
     exit($result['valid'] ? 0 : 1);
 }
 
@@ -169,6 +191,47 @@ if ($command === 'accept') {
     file_put_contents($file, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES)."\n");
 
     printf("  %s\n", Lang::t('cli.accept_written', $fingerprint, $until, $file));
+    exit(0);
+}
+
+// --- a declaration to correct: bin/sablier init <path> ------------------
+// The starter file, copied with the two things a machine can honestly fill:
+// the project's name and today's date. Everything else is a proposal to argue
+// with, which is the point — correcting a draft surfaces the disagreements a
+// blank file hides.
+if ($command === 'init') {
+    $target = $argv[2] ?? '.';
+    $root = realpath($target);
+    if ($root === false || !is_dir($root)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.missing_path')."\n");
+        exit(1);
+    }
+
+    $out = $root.'/sablier.json';
+    foreach (\array_slice($argv, 3) as $argument) {
+        if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
+            $out = $m[1];
+        }
+    }
+
+    // Never over a declaration that exists: it holds decisions somebody made,
+    // and this command has nothing to add to them.
+    if (is_file($out)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.init_exists', $out)."\n");
+        exit(1);
+    }
+
+    $starter = Value::map(json_decode((string) @file_get_contents(__DIR__.'/../examples/starter.json'), true));
+    if ($starter === []) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.init_unreadable')."\n");
+        exit(1);
+    }
+
+    $starter['project'] = basename($root);
+    $starter['deadlines_checked_on'] = (new \DateTimeImmutable())->format('Y-m-d');
+    file_put_contents($out, json_encode($starter, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+
+    printf("\n  %s\n  %s\n\n", Lang::t('cli.init_written', $out), Lang::t('cli.init_next'));
     exit(0);
 }
 
@@ -721,7 +784,14 @@ if ($options['sign'] !== null) {
         exit(1);
     }
     $preliminary = new Analysis($findings, $declaration, $label, $filesRead, $blind, $currentYear);
-    $signature = Signature::sign(Signature::digest($preliminary), trim((string) file_get_contents($options['sign'])));
+    $signature = Signature::sign(
+        Signature::digest($preliminary),
+        trim((string) file_get_contents($options['sign'])),
+        // Whatever was signed at this path before. No flag: a second run over
+        // the same output succeeds the first, and a chain nobody has to ask
+        // for is a chain that exists.
+        Signature::previousDigest($options['out'].'.sig'),
+    );
     file_put_contents($options['out'].'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
 }
 

@@ -7,6 +7,7 @@ namespace Sablier;
 use Sablier\Transport\Failure;
 use Sablier\Transport\ImapTransport;
 use Sablier\Transport\ImplicitTlsTransport;
+use Sablier\Transport\LdapTransport;
 use Sablier\Transport\MysqlTransport;
 use Sablier\Transport\Pop3Transport;
 use Sablier\Transport\PostgresTransport;
@@ -48,6 +49,11 @@ final class Probe
         110 => ['scheme' => 'pop3', 'label' => 'POP3', 'transport' => Pop3Transport::class],
         5432 => ['scheme' => 'postgres', 'label' => 'PostgreSQL', 'transport' => PostgresTransport::class],
         3306 => ['scheme' => 'mysql', 'label' => 'MySQL / MariaDB', 'transport' => MysqlTransport::class],
+        389 => ['scheme' => 'ldap', 'label' => 'LDAP', 'transport' => LdapTransport::class],
+        636 => ['scheme' => 'ldaps', 'label' => 'LDAPS', 'transport' => ImplicitTlsTransport::class],
+        5671 => ['scheme' => 'amqps', 'label' => 'AMQP', 'transport' => ImplicitTlsTransport::class],
+        6380 => ['scheme' => 'rediss', 'label' => 'Redis', 'transport' => ImplicitTlsTransport::class],
+        8883 => ['scheme' => 'mqtts', 'label' => 'MQTT', 'transport' => ImplicitTlsTransport::class],
     ];
 
     /** @var array<string, array{port:int, label:string, transport:class-string<TransportInterface>}> */
@@ -64,6 +70,16 @@ final class Probe
         'postgresql' => ['port' => 5432, 'label' => 'PostgreSQL', 'transport' => PostgresTransport::class],
         'mysql' => ['port' => 3306, 'label' => 'MySQL / MariaDB', 'transport' => MysqlTransport::class],
         'mariadb' => ['port' => 3306, 'label' => 'MySQL / MariaDB', 'transport' => MysqlTransport::class],
+        'ldap' => ['port' => 389, 'label' => 'LDAP', 'transport' => LdapTransport::class],
+        'ldaps' => ['port' => 636, 'label' => 'LDAPS', 'transport' => ImplicitTlsTransport::class],
+        // No STARTTLS in these three: the server either listens on a TLS port
+        // or it does not, which is itself the answer worth reporting.
+        'amqps' => ['port' => 5671, 'label' => 'AMQP', 'transport' => ImplicitTlsTransport::class],
+        'amqp' => ['port' => 5671, 'label' => 'AMQP', 'transport' => ImplicitTlsTransport::class],
+        'rediss' => ['port' => 6380, 'label' => 'Redis', 'transport' => ImplicitTlsTransport::class],
+        'redis' => ['port' => 6380, 'label' => 'Redis', 'transport' => ImplicitTlsTransport::class],
+        'mqtts' => ['port' => 8883, 'label' => 'MQTT', 'transport' => ImplicitTlsTransport::class],
+        'mqtt' => ['port' => 8883, 'label' => 'MQTT', 'transport' => ImplicitTlsTransport::class],
     ];
 
     public function __construct(private readonly int $timeout = 8)
@@ -75,6 +91,21 @@ final class Probe
      */
     public function run(string $target): array
     {
+        // SSH never becomes TLS: there is no handshake to upgrade, only a
+        // banner and a list of everything the server is willing to do. It gets
+        // its own prober rather than a transport that would have to lie about
+        // what it returns.
+        if (str_starts_with($target, 'ssh://') || preg_match('/:22$/', $target) === 1) {
+            $host = preg_replace('#^ssh://#', '', $target);
+            $port = 22;
+            if (preg_match('/^(.+):(\d{1,5})$/', (string) $host, $m) === 1) {
+                $host = $m[1];
+                $port = (int) $m[2];
+            }
+
+            return (new SshProbe($this->timeout))->run((string) $host, $port);
+        }
+
         $service = $this->resolve($target);
         $host = $service['host'];
         $port = $service['port'];

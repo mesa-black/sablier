@@ -29,6 +29,7 @@ Status: **prototype**.
 
 ```bash
 make demo                                   # fixture project + report
+sablier init /path/to/project               # a declaration to correct, not a form to fill
 make scan DIR=/path/to/project LANG=en      # a real project
 make scan DIR=/path/to/project PDF=1        # …and a PDF alongside it
 make scan DIR=/path/to/project AUDIT=1      # …and the audit document
@@ -80,6 +81,14 @@ that forces the light palette and keeps charts, findings and the probe block
 off page breaks.
 
 ## Two sources, because a repository can be wrong
+
+The probe covers HTTPS, SMTP, IMAP, POP3, PostgreSQL, MySQL, LDAP, and the
+implicit-TLS ports of AMQP, Redis and MQTT — plus **SSH**, which never becomes
+TLS and so gets its own reader: it takes the banner and the server's KEXINIT,
+which is where `sntrup761x25519` shows up when somebody enabled a post-quantum
+key exchange that no file in the repository mentions. It sends a banner, reads
+one packet and hangs up: never a key, never a password, never far enough to be
+an authentication attempt.
 
 **Static analysis** reads what the code declares. **The probe** performs an
 ordinary TLS handshake and reports what the server actually negotiates — they
@@ -616,6 +625,14 @@ whose authenticity matters for months — a signature cannot be harvested, and
 breaking the curve in 2035 does not forge a 2026 signature anyone still cares
 about. It is not defensible for a report you must still prove genuine after the
 expiry year. Sablier tells you which of the two you are in and lets you decide.
+
+**Each report names the one before it.** A second run over the same output
+path reads the signature it is about to replace and records that digest inside
+what it signs, with no flag to remember — so a folder of reports is an audit
+trail rather than a pile of files, and `sablier verify new.sig
+--previous=old.sig` says whether the link holds. A report that claims a
+predecessor says so even when the earlier file is not at hand: somebody
+holding one document learns that another exists.
 
 There is no blockchain here and there will not be one. A chain of your own is
 one node, which is one person: no more trustworthy than the signature it would

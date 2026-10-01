@@ -148,6 +148,7 @@ return [
   bin/sablier scan <path> [options]
   bin/sablier probe <host>          what a server actually negotiates
   bin/sablier judge <cbom.json>     judge another tool\'s inventory (CycloneDX 1.6)
+  bin/sablier init <path>           write a starter declaration, to be corrected
   bin/sablier declare <path>        interview: the confidentiality lifetimes, in business terms
   bin/sablier serve <path>          the same interview in a browser, with a clock
   bin/sablier advisories <path>     collect published vulnerabilities of the dependencies
@@ -181,6 +182,10 @@ return [
     'cli.findings' => '%d findings',
     'cli.missing_host' => 'missing host: bin/sablier probe example.org',
     'cli.missing_path' => 'missing or unreachable path to scan',
+    'cli.init_exists' => '%s already exists: a declaration holds decisions somebody made, and this command has nothing to add to them.',
+    'cli.init_unreadable' => 'declaration template not found (examples/starter.json).',
+    'cli.init_written' => '%s written — a declaration to correct, not a form to fill.',
+    'cli.init_next' => 'Then: sablier serve <path> to fill it with the person who knows, or open the file.',
     'cli.missing_cbom' => 'missing or unreadable CBOM file: bin/sablier judge cbom.json',
 
     // --- somebody else's inventory ---
@@ -302,6 +307,9 @@ First action: %s',
     'seal.key' => 'public key',
     'seal.legend' => 'The digest covers the findings, not this file: two renderings of the same inventory, in two languages, give the same value.',
     'seal.caveat' => 'This signature is Ed25519 — which this very report classifies as quantum-vulnerable. A signature cannot be harvested: it holds as long as the curve does. So the only question that matters is this one: will you still need to prove this report genuine after %d? If so, Ed25519 will not do, and a hash-based signature is required.',
+    'verify.previous' => 'this report succeeds digest %s… — pass the earlier signature with --previous= to check the link.',
+    'verify.previous.match' => 'link verified: this report does succeed %s…',
+    'verify.previous.mismatch' => 'broken link: this report claims to succeed %s…, which is not the signature supplied.',
     'verify.valid' => 'valid signature',
     'verify.invalid' => 'invalid signature: the content or the signature was modified',
     'verify.changed' => 'the findings changed since signing',
@@ -316,6 +324,17 @@ First action: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage: sablier verify <report.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'undeclared',
+    // --- ssh, which never becomes TLS ---
+    'probe.ssh.banner' => 'server banner',
+    'probe.ssh.kex' => 'key exchanges offered',
+    'probe.ssh.host_keys' => 'host keys offered',
+    'probe.ssh.ciphers' => 'ciphers offered',
+    'probe.ssh.no_kexinit' => 'the server did not answer in SSH: nothing to read.',
+    'probe.ssh.evidence.kex' => 'preferred key exchange: %s',
+    'probe.ssh.evidence.host_key' => 'preferred host key: %s',
+    'probe.ssh.detail.hybrid' => 'A post-quantum hybrid key exchange is offered: traffic captured today stays unreadable to a quantum adversary.',
+    'probe.ssh.detail.classical' => 'Classical key exchange: traffic captured today decrypts the day the curve falls. OpenSSH has offered sntrup761x25519 since 8.5, on both ends.',
+    'probe.ssh.detail.host_key' => 'The server host key: this is what your machines pinned. A signature cannot be harvested, but a trust anchor the whole fleet has known for years is replaced slowly — plan it rather than inherit it.',
     'audit.col.declared' => 'Declared by',
     'audit.declared.unknown' => 'author and date unknown',
     'blind.stale_declaration' => '%d declared lifetime(s) older than %d years: nobody has revisited them since, and the world moved. A review belongs on the same calendar as the analysis.',
@@ -522,6 +541,7 @@ First action: %s',
     'audit.g.hybrid' => 'Hybridisation',
     'audit.g.hybrid.def' => 'Combining a classical algorithm with a post-quantum one, so that the protection holds if either falls. It is the position of the authorities during the transition.',
     'audit.s10.digest' => 'The digest covers the findings, not this file: two renderings of the same inventory, in two languages, give the same value.',
+    'audit.s10.previous' => 'previous report',
     'audit.s10.verify' => 'Verification by a third party:',
     'audit.s10.unsigned' => 'This report is not signed. For a third party to establish that it has not been altered since issue, run the analysis again with the signing option.',
     'audit.statement' => 'Auditor\'s statement',
