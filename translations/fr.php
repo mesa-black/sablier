@@ -346,6 +346,7 @@ Première action : %s',
     'web.purpose' => "Ce qu'on fait et pourquoi : on vérifie combien de temps les protections de %s tiendront. La machine sait lire ce qui est protégé ; elle ne sait pas combien de temps chaque donnée doit rester secrète. C'est la seule chose qu'on vient vous demander, et c'est elle qui décide du résultat.",
     // --- the interview in a browser ---
     'web.serving' => 'Entretien ouvert sur %s',
+    'web.serving.exposed' => '⚠ Ce serveur n\'est plus limité à cette machine. Le lien contient une clé : ne le diffusez qu\'à la personne interrogée, et arrêtez le serveur après la séance.',
     'web.serving.stop' => 'Ctrl-C pour arrêter le serveur quand c\'est fini.',
     'web.intro.title' => 'Avant de commencer',
     'web.intro.lead' => 'Nous allons passer en revue %d sujets de %s. Pour chacun, je vous montre ce qui est protégé à cet endroit, et je vous pose deux ou trois questions courtes.',

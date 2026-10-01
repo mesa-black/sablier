@@ -104,6 +104,45 @@ Abra los dos informes uno al lado del otro. Los veredictos que han cambiado son
 lo que ha producido su hora; y si no ha cambiado nada, dígalo: significa que las
 duraciones por defecto ya eran correctas, y conviene saberlo.
 
+## A distancia
+
+La sesión también funciona cuando la persona no está en la sala, de tres
+maneras, ordenadas por lo que cada una le cuesta a la promesa de la
+herramienta.
+
+**1. Pantalla compartida, y hace clic ella.** Usted comparte, le cede el
+control, ella responde. Nada que exponer, nada que configurar, y los tiempos
+medidos son los suyos. Es la respuesta por defecto y, para una primera sesión,
+la correcta.
+
+**2. Pantalla compartida, y escribe usted.** Más fácil de organizar, y conviene
+saber lo que cuesta: usted reformula al escribir, y el cronómetro mide su
+tecleo tanto como la duda de ella. Resérvelo para cuando el control remoto no
+sea posible, y anótelo en la hoja.
+
+**3. Un túnel hasta su máquina.** El servidor se queda con usted, el tráfico va
+cifrado y la persona abre un enlace:
+
+```bash
+# en su máquina
+sablier serve /ruta/del/proyecto --host=0.0.0.0 --port=8765
+
+# y luego un túnel hacia un host que usted controle
+ssh -R 8765:127.0.0.1:8765 usted@su-servidor
+```
+
+Con Tailscale o un túnel de Cloudflare es la misma idea con menos
+configuración. En cuanto el servidor sale del bucle local, la herramienta
+genera **una clave** y la pone en el enlace: sin ella, 403. No es
+autenticación —quien tenga el enlace puede responder— pero una entrevista que
+escribe una declaración y lanza un análisis no tiene por qué estar abierta a
+quien adivine el puerto.
+
+Tres reglas si toma este camino: entregue el enlace solo a la persona
+entrevistada, pare el servidor al terminar (Ctrl-C) y no exponga nunca la
+máquina de un cliente: la que sirve es la suya, y la que escribe los archivos
+también.
+
 ## La hoja
 
 Cópiela, rellénela durante la sesión, guárdela con la declaración.

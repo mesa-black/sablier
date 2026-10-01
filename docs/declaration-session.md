@@ -102,6 +102,42 @@ Open both reports side by side. The verdicts that moved are what their hour
 produced — and if nothing moved, say so: it means the defaults were already
 right, which is also worth knowing.
 
+## Remotely
+
+The session works when the person is not in the room, in three ways, ordered
+by what each costs the tool's own promise.
+
+**1. Screen share, and they click.** You share, you hand them control, they
+answer. Nothing to expose, nothing to configure, and the timings are theirs.
+This is the default answer, and for a first session it is the right one.
+
+**2. Screen share, and you type.** Easier to arrange, and worth knowing what
+it costs: you reformulate as you type, and the clock measures your typing as
+much as their hesitation. Keep it for when remote control is impossible, and
+write it on the sheet.
+
+**3. A tunnel to your machine.** The server stays with you, the traffic is
+encrypted, and the person opens a link:
+
+```bash
+# on your machine
+sablier serve /path/to/project --host=0.0.0.0 --port=8765
+
+# then a tunnel to a host you control
+ssh -R 8765:127.0.0.1:8765 you@your-server
+```
+
+Tailscale or a Cloudflare tunnel is the same idea with less configuration. The
+moment the server leaves the loopback the tool mints **a key** and puts it in
+the link: without it, 403. That is not authentication — whoever holds the link
+can answer — but an interview that writes a declaration and runs a scan has no
+business being open to whoever guesses the port.
+
+Three rules if you take this road: give the link to the interviewee and nobody
+else, stop the server when the session ends (Ctrl-C), and never expose a
+client's machine — yours is the one serving, and yours is the one writing the
+files.
+
 ## The sheet
 
 Copy this, fill it during the session, keep it with the declaration.

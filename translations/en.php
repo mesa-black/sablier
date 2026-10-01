@@ -337,6 +337,7 @@ First action: %s',
     'web.purpose' => 'What we are doing and why: we are checking how long the protections in %s will hold. The machine can read what is protected; it cannot know how long each kind of data has to stay secret. That is the one thing we came to ask you, and it is what decides the result.',
     // --- the interview in a browser ---
     'web.serving' => 'Interview open at %s',
+    'web.serving.exposed' => '⚠ This server is no longer limited to this machine. The link carries a key: give it only to the person being interviewed, and stop the server after the session.',
     'web.serving.stop' => 'Ctrl-C to stop the server when you are done.',
     'web.intro.title' => 'Before we start',
     'web.intro.lead' => 'We are going through %d subjects in %s. For each one I show you what is protected there, and ask you two or three short questions.',

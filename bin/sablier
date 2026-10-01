@@ -173,12 +173,15 @@ if ($command === 'accept') {
 if ($command === 'serve') {
     $target = $argv[2] ?? '';
     $port = 8765;
+    $host = '127.0.0.1';
     $out = null;
     foreach (\array_slice($argv, 3) as $argument) {
         if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
             $out = $m[1];
         } elseif (preg_match('/^--port=(\d{2,5})$/', $argument, $m) === 1) {
             $port = (int) $m[1];
+        } elseif (preg_match('/^--host=([\d.:a-fA-F]+)$/', $argument, $m) === 1) {
+            $host = $m[1];
         }
     }
 
@@ -228,12 +231,24 @@ if ($command === 'serve') {
         'context' => [],
     ]);
 
-    $url = 'http://127.0.0.1:'.$port.'/';
-    printf("\n  %s\n  %s\n\n", Lang::t('web.serving', $url), Lang::t('web.serving.stop'));
+    // A token the moment the server leaves the loopback. It is not
+    // authentication — anyone the link reaches can answer — but an interview
+    // that writes a declaration and runs a scan has no business being open to
+    // whoever guesses the port.
+    $local = \in_array($host, ['127.0.0.1', '::1', 'localhost'], true);
+    $token = $local ? '' : bin2hex(random_bytes(8));
+    Session::open($sessionFile)?->set('token', $token);
+
+    $url = 'http://'.$host.':'.$port.'/'.($token !== '' ? '?k='.$token : '');
+    printf("\n  %s\n", Lang::t('web.serving', $url));
+    if (!$local) {
+        printf("  %s\n", Lang::t('web.serving.exposed'));
+    }
+    printf("  %s\n\n", Lang::t('web.serving.stop'));
 
     // Opening the browser is a convenience, never a requirement: the address
     // is printed above and the server does not care who connects.
-    foreach (['open', 'xdg-open'] as $opener) {
+    foreach ($local ? ['open', 'xdg-open'] : [] as $opener) {
         if (trim((string) @shell_exec('command -v '.escapeshellarg($opener).' 2>/dev/null')) !== '') {
             @shell_exec(\sprintf('%s %s >/dev/null 2>&1 &', $opener, escapeshellarg($url)));
             break;
@@ -244,10 +259,11 @@ if ($command === 'serve') {
     // stray php -S holding the port after its parent was killed is a bad way
     // to learn that the command leaked a process.
     $command = \sprintf(
-        'exec env SABLIER_SESSION=%s SABLIER_LANG=%s %s -S 127.0.0.1:%d %s 2>/dev/null',
+        'exec env SABLIER_SESSION=%s SABLIER_LANG=%s %s -S %s:%d %s 2>/dev/null',
         escapeshellarg($sessionFile),
         escapeshellarg(Lang::locale()),
         escapeshellarg(\PHP_BINARY),
+        $host,
         $port,
         escapeshellarg(__DIR__.'/../src/Web/router.php'),
     );

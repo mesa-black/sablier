@@ -38,6 +38,24 @@ if ($session === null) {
 $path = parse_url(\Sablier\Value::string($_SERVER['REQUEST_URI'] ?? null, '/'), \PHP_URL_PATH);
 $path = \is_string($path) ? $path : '/';
 
+// A token only exists when the operator deliberately left the loopback. It is
+// handed over once in the link, kept in a cookie, and checked on everything
+// after that — enough to keep a stray visitor out of somebody's declaration,
+// and not pretending to be more than that.
+$token = $session->string('token');
+if ($token !== '') {
+    $given = \Sablier\Value::string($_GET['k'] ?? null);
+    $held = \Sablier\Value::string($_COOKIE['sablier'] ?? null);
+    if ($given !== '' && hash_equals($token, $given)) {
+        setcookie('sablier', $token, ['path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+    } elseif (!hash_equals($token, $held)) {
+        http_response_code(403);
+        echo 'lien incomplet';
+
+        return true;
+    }
+}
+
 // The report is a file this interview just produced: it is served, not routed.
 if ($path === '/report') {
     $report = $session->string('report');

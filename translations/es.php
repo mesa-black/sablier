@@ -337,6 +337,7 @@ Primera acción: %s',
     'web.purpose' => 'Lo que hacemos y por qué: comprobamos cuánto aguantarán las protecciones de %s. La máquina sabe leer lo que está protegido; no sabe cuánto tiempo debe seguir siendo secreto cada dato. Es lo único que venimos a preguntarle, y es lo que decide el resultado.',
     // --- the interview in a browser ---
     'web.serving' => 'Entrevista abierta en %s',
+    'web.serving.exposed' => '⚠ Este servidor ya no está limitado a esta máquina. El enlace lleva una clave: entréguelo solo a la persona entrevistada y pare el servidor al terminar.',
     'web.serving.stop' => 'Ctrl-C para parar el servidor cuando termine.',
     'web.intro.title' => 'Antes de empezar',
     'web.intro.lead' => 'Vamos a repasar %d asuntos de %s. En cada uno le enseño lo que está protegido ahí y le hago dos o tres preguntas cortas.',

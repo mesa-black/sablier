@@ -104,6 +104,45 @@ Ouvrez les deux rapports côte à côte. Les verdicts qui ont bougé sont ce que
 son heure a produit — et si rien n'a bougé, dites-le : ça veut dire que les
 valeurs par défaut étaient déjà justes, et c'est bon à savoir.
 
+## À distance
+
+La séance marche aussi quand la personne n'est pas dans la pièce, et il y a
+trois façons de faire, par ordre de ce qu'elles coûtent à la promesse de
+l'outil.
+
+**1. Partage d'écran, et c'est elle qui clique.** Vous partagez, vous lui
+donnez le contrôle, elle répond. Rien à exposer, rien à configurer, et les
+temps mesurés sont les siens. C'est la réponse par défaut, et pour une
+première séance c'est la bonne.
+
+**2. Partage d'écran, et c'est vous qui tapez.** Plus simple à organiser, et
+il faut savoir ce qu'on perd : vous reformulez en tapant, et le chronomètre
+mesure votre frappe autant que son hésitation. À réserver aux cas où le
+contrôle à distance n'est pas possible, et à noter sur la feuille.
+
+**3. Un tunnel jusqu'à votre machine.** Le serveur reste chez vous, le trafic
+passe chiffré, et la personne ouvre un lien :
+
+```bash
+# sur votre machine
+sablier serve /chemin/du/projet --host=0.0.0.0 --port=8765
+
+# puis un tunnel vers une machine que vous contrôlez
+ssh -R 8765:127.0.0.1:8765 vous@votre-serveur
+```
+
+Avec Tailscale ou un tunnel Cloudflare, c'est la même idée en moins de
+configuration. Dès que le serveur quitte la boucle locale, l'outil génère
+**une clé** et la met dans le lien : sans elle, c'est 403. Ce n'est pas de
+l'authentification — qui a le lien peut répondre — mais un entretien qui écrit
+une déclaration et lance une analyse n'a rien à faire ouvert à qui devine le
+port.
+
+Trois règles si vous prenez cette voie : ne diffusez le lien qu'à la personne
+interrogée, arrêtez le serveur à la fin de la séance (Ctrl-C), et n'exposez
+jamais la machine d'un client — c'est la vôtre qui sert, et c'est elle qui
+écrit les fichiers.
+
 ## La feuille
 
 Recopiez-la, remplissez-la pendant la séance, gardez-la avec la déclaration.
