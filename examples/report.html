@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sablier — Fixture</title>
+<style>:root{--ink:#16181d;--muted:#5d6470;--paper:#fbfaf8;--line:#e5e2dc;--bad:#a3281f;--warn:#9a5b10;--ok:#1d6b4f;--cool:#2a4c7d;--sand:#c8a44a}
+@media (prefers-color-scheme:dark){:root{--ink:#e8e6e1;--muted:#9aa0aa;--paper:#14161a;--line:#2b2f36;
+    --bad:#e0685c;--warn:#d69a4a;--ok:#5fbb92;--cool:#7aa2d8}}
+*{box-sizing:border-box}
+body{margin:0;padding:2.5rem 1.25rem 4rem;background:var(--paper);color:var(--ink);
+     font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+     max-width:52rem;margin-inline:auto}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;
+       border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin-bottom:2rem}
+.brand{font-weight:700;letter-spacing:.22em;font-size:.95rem}
+.meta{color:var(--muted);font-size:.82rem}
+.headline{font-size:1.5rem;line-height:1.32;font-weight:500;margin:0 0 .8rem;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 2.4rem;font-size:.92rem}
+h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+   margin:2.6rem 0 1rem;font-weight:600}
+.count{background:var(--ink);color:var(--paper);border-radius:2px;padding:.05em .45em;font-size:.9em;letter-spacing:0}
+.timeline .chart{position:relative;border-left:1px solid var(--line);padding:1.8rem 0 .4rem}
+.mark{position:absolute;top:0;bottom:0;border-left:1px dashed var(--muted);padding-left:.4rem}
+.mark.expiry{border-left:2px solid var(--bad)}
+.mark span{font-size:.68rem;color:var(--muted);line-height:1.2;display:block}
+.mark.expiry span{color:var(--bad)}
+.row{display:grid;grid-template-columns:9rem 1fr 4rem;gap:.6rem;align-items:center;margin:.35rem 0}
+.lbl{font-size:.8rem;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{background:#00000008;height:14px;border-radius:2px;position:relative}
+.bar{height:100%;background:var(--cool);border-radius:2px}
+.bar.over{background:var(--bad)}
+.yrs{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{font-size:.8rem;color:var(--muted);margin:.8rem 0 0}
+.crossings{margin-top:1.4rem;border-top:1px solid var(--line);padding-top:.9rem}
+.crossings h3{margin:0 0 .5rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.crossings ul{margin:0;padding-left:1.1rem;font-size:.88rem}
+.crossings li{margin:.2rem 0}
+.crossings li.past{color:var(--bad)}
+article{border-top:1px solid var(--line);padding:1rem 0}
+article h3{margin:0 0 .3rem;font-size:1rem;font-weight:600;display:flex;gap:.55rem;align-items:baseline;flex-wrap:wrap}
+.dom{font-weight:400;color:var(--muted);font-size:.82rem}
+.conf{font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);border:1px solid currentColor;border-radius:2px;padding:.05em .35em}
+.loc{font-family:ui-monospace,Menlo,monospace;font-size:.76rem;color:var(--muted)}
+pre{font-family:ui-monospace,Menlo,monospace;font-size:.76rem;background:#00000006;border:1px solid var(--line);
+    border-radius:2px;padding:.5rem .6rem;overflow-x:auto;margin:.5rem 0}
+article p{margin:.4rem 0 0}
+.detail{color:var(--muted)}
+.fix{margin-top:.5rem;font-size:.85rem}
+.fix span{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ok);margin-right:.4rem}
+.verdict.compromised h2 .count,.verdict.urgent h2 .count{background:var(--bad)}
+.verdict.migrate h2 .count{background:var(--warn)}
+.blind{border:1px solid var(--line);border-radius:3px;padding:1.1rem 1.3rem;margin-top:3rem;background:#00000004}
+.blind h2{margin-top:0}
+.blind ul{margin:0;padding-left:1.1rem}
+.blind li{margin-bottom:.4rem}
+.blind p{color:var(--muted);font-size:.85rem;margin:.9rem 0 0}
+.about{border-left:2px solid var(--sand);padding:.1rem 0 .1rem 1rem;margin:0 0 2rem;
+       color:var(--muted);font-size:.88rem;line-height:1.55;
+       text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+@media (max-width:34rem){.about{text-align:left;hyphens:manual}}
+.about strong{color:var(--ink)}
+.stale{color:var(--warn)}
+.projection{border:1px solid var(--warn);color:var(--warn);border-radius:3px;
+            padding:.6rem .85rem;margin:0 0 1.4rem;font-size:.86rem}
+.imported{border:1px solid var(--cool);color:var(--cool);border-radius:3px;
+          padding:.6rem .85rem;margin:0 0 1.4rem;font-size:.86rem}
+.probe{border-top:1px solid var(--line);padding:.9rem 0}
+.probe h3{margin:0 0 .5rem;font-family:ui-monospace,Menlo,monospace;font-size:.85rem;font-weight:600}
+.probe dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.35rem 1.2rem}
+.probe dt{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.probe dd{margin:0 0 .3rem;font-size:.88rem;font-variant-numeric:tabular-nums}
+.probe-notes{margin:.7rem 0 0;padding-left:1.1rem;font-size:.82rem;color:var(--warn)}
+.summary details{border-top:1px solid var(--line);padding:.6rem 0}
+.summary summary{cursor:pointer;font-size:.92rem}
+.summary .dom{margin-left:.4rem}
+.files{margin:.6rem 0 0;padding-left:1.1rem;font-family:ui-monospace,Menlo,monospace;font-size:.74rem;color:var(--muted)}
+.seal{margin-top:2.6rem;border-top:1px solid var(--line);padding-top:1.1rem}
+.seal dl,.probe dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:.35rem 1.2rem}
+.seal dt{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.seal dd{margin:0 0 .3rem;font-size:.84rem;word-break:break-all}
+.seal code{font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:.82em}
+.seal-caveat{border-left:2px solid var(--warn);padding-left:.9rem;color:var(--warn);
+             font-size:.84rem;margin:.9rem 0 0;text-align:justify;hyphens:auto}
+.fp{margin-top:.8rem;font-size:.84rem}
+.fp summary{cursor:pointer;color:var(--muted)}
+.fp summary code{font-size:.92em}
+.fp p{margin:.7rem 0 .2rem}
+.fp-lead{color:var(--muted)}
+.fp-cli{color:var(--muted)}
+.fp-legend{border:1px solid var(--line);border-radius:3px;padding:1.1rem 1.3rem;margin-top:2.6rem;font-size:.86rem}
+.fp-legend h2{margin-top:0}
+.fp-legend p{margin:.8rem 0 .2rem}
+.fp-legend pre{margin:.5rem 0}
+.fp-note{color:var(--muted)}
+.verdict.accepted .count{background:var(--muted)}
+article.accepted h3{opacity:.85}
+.plan{margin-top:3rem;border-top:2px solid var(--ink);padding-top:1.2rem}
+.plan ol{margin:1.4rem 0 0;padding-left:0;list-style:none;counter-reset:step}
+.plan li{counter-increment:step;position:relative;padding:0 0 1.5rem 2.6rem;border-top:1px solid var(--line);padding-top:1.1rem}
+.plan li::before{content:counter(step);position:absolute;left:0;top:1rem;
+                 font-variant-numeric:tabular-nums;font-size:.95rem;font-weight:700;color:var(--sand)}
+.plan h3{margin:0 0 .35rem;font-size:1.02rem;font-weight:600}
+.plan p{margin:0;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.share{margin:1.4rem 0 .3rem!important}
+.share a{display:inline-block;border:1px solid var(--accent-line,var(--ink));border-radius:3px;
+         padding:.45rem .9rem;text-decoration:none;color:var(--ink);font-size:.88rem}
+.share a:hover{background:var(--ink);color:var(--paper)}
+.share-note{color:var(--muted);font-size:.78rem;margin:0!important}
+@media (max-width:34rem){.plan p{text-align:left;hyphens:manual}}
+@media print{.share,.share-note{display:none}}
+footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.8rem}
+
+/* Print, and therefore PDF. The palette is forced back to light: a
+   report printed on a dark ground wastes ink and is unreadable on
+   paper, and the viewer's theme must not follow the file to the
+   printer. */
+@page{margin:18mm 15mm}
+@media print{
+    :root{--ink:#16181d;--muted:#55595f;--paper:#fff;--line:#d9d6d0;
+          --bad:#8f241c;--warn:#8a5210;--ok:#1a5f46;--cool:#2a4c7d;--sand:#bb9a45}
+    body{max-width:none;margin:0;padding:0;font-size:10.5pt;background:#fff}
+    header{border-bottom-width:1.5pt}
+    .headline{font-size:1.25rem}
+    section,article,details,.probe{break-inside:avoid}
+    h2{break-after:avoid}
+    .timeline,.probes,.blind{break-inside:avoid}
+    .blind{background:none}
+    /* At 10.5pt the label column is too narrow and the names run
+       into the bars: give them room, not a smaller size. */
+    .row{grid-template-columns:11.5rem 1fr 3.4rem;gap:.5rem}
+    .lbl{font-size:.74rem}
+    .summary details{display:block}
+    .summary details>summary{list-style:none}
+    .files{display:none}
+    /* Paper has no disclosure triangle, so a closed <details>
+       prints as a dead question. Unfold them — the browser that
+       makes the PDF is also told to open them, because this
+       pseudo-element is recent and the export must not depend on
+       which Chrome the machine happens to have. The acceptance
+       block is dropped per finding: the legend carries one, and
+       the command line below it carries the fingerprint. */
+    details::details-content{content-visibility:visible;block-size:auto}
+    .fp,.fp-legend{break-inside:avoid}
+    .fp summary{list-style:none}
+    .fp pre{display:none}
+    pre{white-space:pre-wrap;word-break:break-word}
+    footer{break-before:avoid}
+}</style></head>
+<body>
+<header>
+  <div class="brand">SABLIER</div>
+  <div class="meta">Fixture · 01/10/2026 · 3 fichiers lus · analyse en 5 ms</div>
+</header>
+
+<div class="about"><strong>Le post-quantique, en trois phrases.</strong> La cryptographie qui protège aujourd'hui le web repose sur des problèmes faciles dans un sens et infaisables dans l'autre — multiplier deux grands nombres premiers est immédiat, retrouver ces facteurs demanderait des milliers d'années. Un calculateur quantique suffisamment grand rend ce retour possible : RSA et les courbes elliptiques, c'est-à-dire l'essentiel de ce qui chiffre et signe aujourd'hui, tombent d'un coup — la taille des clés n'y change rien. La cryptographie <em>post-quantique</em> désigne les algorithmes conçus pour résister à cette machine, normalisés en 2024 (ML-KEM pour le chiffrement, ML-DSA pour la signature) ; le chiffrement symétrique, lui, AES et ChaCha20, n'est pas menacé.</div>
+<div class="about"><strong>Sablier</strong> inventorie la cryptographie d'un projet et la confronte à une information qu'aucun outil ne possède : <em>combien de temps chaque donnée doit rester confidentielle</em>. Une donnée chiffrée aujourd'hui avec RSA ou une courbe elliptique, et qui doit rester secrète au-delà de la péremption de ces algorithmes, est <em>déjà perdue</em> — un adversaire capture maintenant ce qu'il déchiffrera plus tard, et la migration ne protégera que ce qui viendra après elle.<br><br>Ce rapport distingue donc ce qui se récolte (le chiffrement) de ce qui ne se récolte pas (les signatures), laisse tranquille la cryptographie symétrique, et sépare les problèmes d'aujourd'hui — MD5, SHA-1 — de l'échéance quantique.</div>
+
+
+
+<p class="headline">1 usage cryptographique protège des données dont la confidentialité doit durer au-delà de la péremption de l'algorithme qui les protège.</p>
+<p class="sub">6 constats retenus sur l'ensemble analysé. Date de péremption retenue : <strong>2035</strong> — c'est l'échéance réglementaire, pas une prédiction de rupture cryptographique. Échéance vérifiée auprès de ses sources le 30/09/2026.</p>
+
+<section class="timeline">
+  <h2>Durée de confidentialité des données, face à la péremption des algorithmes</h2>
+  <div class="chart">
+    <div class="mark" style="left:20%"><span>2030<br>dépréciation</span></div>
+    <div class="mark expiry" style="left:45%"><span>2035<br>péremption</span></div>
+    <div class="row"><div class="lbl">backups</div><div class="track"><div class="bar over" style="width:50%"></div></div><div class="yrs">10 ans</div></div><div class="row"><div class="lbl">session tokens</div><div class="track"><div class="bar " style="width:5%"></div></div><div class="yrs">1 an</div></div>
+  </div>
+  <p class="legend">Chaque barre est la durée pendant laquelle la donnée doit rester confidentielle. Elle passe en rouge quand un algorithme récoltable la protège au-delà du trait de péremption — dépasser le trait sans être rouge signifie que la donnée dure longtemps, mais qu&#039;elle est protégée par de la cryptographie qui tiendra.</p>
+  <div class="crossings"><h3>Dates de bascule</h3><ul><li class="past">backups — 10 ans — bascule franchie depuis 2026</li></ul><p class="legend">Une donnée chiffrée l&#039;année Y reste sensible jusqu&#039;à Y + sa durée. L&#039;année de bascule est donc celle à partir de laquelle tout ce qui est chiffré survit à la péremption de 2035 : avant, le domaine tient ; à partir d&#039;elle, ce qui est émis est déjà perdu le jour où l&#039;algorithme tombe.</p></div>
+</section>
+
+<section class="verdict compromised"><h2>COMPROMIS <span class="count">1</span></h2><article><h3>RSA <span class="dom">backups</span> </h3>
+                 <div class="loc">deploy/backup.sh:3</div>
+                 <pre>openssl genrsa -out /etc/backup/key.pem 2048</pre>
+                 <p>Chiffré aujourd&#039;hui, à garder confidentiel jusqu&#039;en 2036 — soit 1 an après la péremption de RSA. Une capture faite maintenant sera lisible. <span class="detail">Génération de clé RSA.</span></p><div class="fix"><span>Remplacement</span> ML-KEM (chiffrement) ou ML-DSA (signature), en hybride pendant la transition</div><details class="fp"><summary>Faux positif ? empreinte <code>d45d9d61</code></summary>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept d45d9d61 --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <pre>&quot;accepted&quot;: {
+  &quot;d45d9d61&quot;: {
+    &quot;reason&quot;: &quot;…&quot;,
+    &quot;until&quot;: &quot;2027-04-01&quot;
+  }
+}</pre>
+               <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20rsa%20dans%20backup.sh&amp;body=Empreinte%20%3A%20d45d9d61%0AAlgorithme%20%3A%20rsa%0AVerdict%20%3A%20COMPROMIS%0AFichier%20%3A%20deploy%2Fbackup.sh%3A3%0APreuve%20%3A%20openssl%20genrsa%20-out%20%2Fetc%2Fbackup%2Fkey.pem%202048%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
+             </details></article></section><section class="verdict urgent"><h2>CASSÉ AUJOURD&#039;HUI <span class="count">1</span></h2><article><h3>SHA-1 <span class="dom">session tokens</span> </h3>
+                 <div class="loc">src/Tokens.php:17</div>
+                 <pre>return sha1($payload);</pre>
+                 <p>Cassé classiquement, indépendamment du quantique. L&#039;échéance était hier. </p><div class="fix"><span>Références</span> <a href="https://nvd.nist.gov/vuln/detail/CVE-2005-4900">CVE-2005-4900</a></div><div class="fix"><span>Remplacement</span> SHA-256</div><details class="fp"><summary>Faux positif ? empreinte <code>d87d2d2b</code></summary>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept d87d2d2b --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <pre>&quot;accepted&quot;: {
+  &quot;d87d2d2b&quot;: {
+    &quot;reason&quot;: &quot;…&quot;,
+    &quot;until&quot;: &quot;2027-04-01&quot;
+  }
+}</pre>
+               <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20sha1%20dans%20Tokens.php&amp;body=Empreinte%20%3A%20d87d2d2b%0AAlgorithme%20%3A%20sha1%0AVerdict%20%3A%20CASS%C3%89%20AUJOURD%27HUI%0AFichier%20%3A%20src%2FTokens.php%3A17%0APreuve%20%3A%20return%20sha1%28%24payload%29%3B%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
+             </details></article></section><section class="verdict watch"><h2>SURVEILLER <span class="count">2</span></h2><article><h3>RSA <span class="dom">backups</span> </h3>
+                 <div class="loc">deploy/backup.sh:5</div>
+                 <pre>ssh-keygen -t rsa -b 4096 -f /root/.ssh/offsite</pre>
+                 <p>Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité. <span class="detail">Génération de clé SSH.</span></p><div class="fix"><span>Remplacement</span> ML-DSA, ou SLH-DSA pour une ancre de confiance longue durée</div><details class="fp"><summary>Faux positif ? empreinte <code>e51683bf</code></summary>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept e51683bf --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <pre>&quot;accepted&quot;: {
+  &quot;e51683bf&quot;: {
+    &quot;reason&quot;: &quot;…&quot;,
+    &quot;until&quot;: &quot;2027-04-01&quot;
+  }
+}</pre>
+               <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20rsa-sign%20dans%20backup.sh&amp;body=Empreinte%20%3A%20e51683bf%0AAlgorithme%20%3A%20rsa-sign%0AVerdict%20%3A%20SURVEILLER%0AFichier%20%3A%20deploy%2Fbackup.sh%3A5%0APreuve%20%3A%20ssh-keygen%20-t%20rsa%20-b%204096%20-f%20%2Froot%2F.ssh%2Foffsite%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
+             </details></article><article><h3>RSA <span class="dom">session tokens</span> </h3>
+                 <div class="loc">src/Tokens.php:7</div>
+                 <pre>return jwt_encode($claims, $this-&gt;key, &#039;RS256&#039;);</pre>
+                 <p>Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité. <span class="detail">Algorithme JWT.</span></p><div class="fix"><span>Remplacement</span> ML-DSA, ou SLH-DSA pour une ancre de confiance longue durée</div><details class="fp"><summary>Faux positif ? empreinte <code>a994f9c6</code></summary>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept a994f9c6 --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <pre>&quot;accepted&quot;: {
+  &quot;a994f9c6&quot;: {
+    &quot;reason&quot;: &quot;…&quot;,
+    &quot;until&quot;: &quot;2027-04-01&quot;
+  }
+}</pre>
+               <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20rsa-sign%20dans%20Tokens.php&amp;body=Empreinte%20%3A%20a994f9c6%0AAlgorithme%20%3A%20rsa-sign%0AVerdict%20%3A%20SURVEILLER%0AFichier%20%3A%20src%2FTokens.php%3A7%0APreuve%20%3A%20return%20jwt_encode%28%24claims%2C%20%24this-%3Ekey%2C%20%27RS256%27%29%3B%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
+             </details></article></section><section class="verdict clear summary"><h2>CONFORME <span class="count">2</span></h2><details><summary><strong>AES-256</strong> · 2 usages <span class="dom">Tient face à Grover. Rien à faire.</span></summary><ul class="files"><li>deploy/backup.sh:4</li><li>src/Tokens.php:22</li></ul></details></section><section class="verdict noise summary"><h2>PROBABLEMENT HORS SUJET <span class="count">1</span></h2><details><summary><strong>MD5</strong> · 1 usage <span class="dom">Ressemble à un identifiant (clé de cache, empreinte) plutôt qu&#039;à un contrôle de sécurité. À confirmer, pas à corriger.</span></summary><ul class="files"><li>src/Tokens.php:12</li></ul></details></section>
+<section class="blind"><h2>Ce que ce rapport n&#039;a pas regardé</h2><ul><li>la cryptographie de vos services gérés — base de données, stockage objet, terminaison TLS chez un intermédiaire — n&#039;apparaît dans aucun fichier de ce dépôt</li><li>ce qui est réellement négocié à l&#039;exécution, pour tout hôte non déclaré dans la section « sonde »</li><li>les clés détenues dans un HSM ou chez un fournisseur</li><li>la durée de vie réelle des données : elle vient de votre déclaration, pas du code — un domaine non déclaré est calculé avec une durée par défaut de 3 ans</li><li>Les fichiers binaires (images, polices, archives) ne sont lus que sur leurs premiers méga-octets, et seulement pour trois signes vérifiables : un bloc de clé, des octets après la fin de l&#039;image, une extension qui ment sur le contenu. Un message dissimulé dans les bits d&#039;une image n&#039;est pas détecté ici, et ne prétend pas l&#039;être.</li><li>Les vulnérabilités publiées des dépendances n&#039;ont pas été vérifiées : lancez `sablier advisories &lt;chemin&gt;` puis `--advisories=&lt;fichier&gt;`. Sans cela, une bibliothèque trouée aujourd&#039;hui est présentée comme un simple inventaire.</li></ul>
+            <p>Un inventaire qui ne dit pas ce qu&#039;il n&#039;a pas vu n&#039;est pas un inventaire.</p></section>
+<section class="plan">
+  <h2>Ce qu&#039;il faut faire, dans l&#039;ordre</h2>
+  <p class="legend">Un inventaire qui ne conclut rien se range dans un dossier. Voici l&#039;arbitrage — et l&#039;ordre compte autant que la liste.</p>
+  <ol><li><h3>Décider du sort des données déjà émises</h3><p>C&#039;est la décision que personne ne prend, et elle vient avant la migration. Les domaines concernés (backups) sont protégés par un algorithme qui ne tiendra pas jusqu&#039;au bout de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d&#039;un correctif. Trois issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire tourner les clés et réémettre ce qui peut l&#039;être, ou acter par écrit qu&#039;on accepte le risque sur les données antérieures à 2035. Migrer sans trancher cette question protège les données futures et laisse les anciennes exposées sans que personne ne l&#039;ait décidé.</p></li><li><h3>Remplacer ce qui est déjà cassé</h3><p>Un usage repose sur un algorithme cassé classiquement. Aucun raisonnement quantique n&#039;est nécessaire : l&#039;échéance était il y a dix ans, le remplacement est connu et ne demande pas un projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c&#039;est moins cher et déjà exploitable.</p></li><li><h3>Remettre ce rapport au calendrier</h3><p>La fenêtre se referme d&#039;elle-même : la date de péremption ne bouge pas (2035), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd&#039;hui avec une durée de neuf ans ne le sera plus l&#039;an prochain. Rejouer l&#039;analyse une fois par an suffit — et vérifier à cette occasion que l&#039;échéance réglementaire n&#039;a pas bougé.</p></li></ol>
+  <p class="share"><a href="threema://compose?text=Sablier%20%E2%80%94%20inventaire%20cryptographique%20de%20Fixture%20%2801%2F10%2F2026%29%0A%0A1%20usage%20cryptographique%20prot%C3%A8ge%20des%20donn%C3%A9es%20dont%20la%20confidentialit%C3%A9%20doit%20durer%20au-del%C3%A0%20de%20la%20p%C3%A9remption%20de%20l%27algorithme%20qui%20les%20prot%C3%A8ge.%0A%0A6%20constats%20retenus.%20%C3%89ch%C3%A9ance%20de%20p%C3%A9remption%20retenue%20%3A%202035.%0APremi%C3%A8re%20action%20%3A%20D%C3%A9cider%20du%20sort%20des%20donn%C3%A9es%20d%C3%A9j%C3%A0%20%C3%A9mises">Envoyer le résumé sur Threema</a></p>
+  <p class="share-note">Ouvre Threema s&#039;il est installé. Rien n&#039;est transmis à un serveur tiers : le lien ne contient que le texte ci-dessus.</p>
+</section>
+<section class="fp-legend"><h2>Faux positif ?</h2>
+               <p>Deux choses s&#039;appellent « faux positif », et elles ne vont pas au même endroit.</p>
+               <p><strong>1.</strong> L&#039;outil a raison, mais ce constat est accepté ici. C&#039;est une décision de projet : ajoutez ce bloc à votre déclaration, elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d&#039;expiration sont obligatoires.</p>
+               <pre>&quot;accepted&quot;: {
+  &quot;&lt;empreinte&gt;&quot;: {
+    &quot;reason&quot;: &quot;…&quot;,
+    &quot;until&quot;: &quot;2027-04-01&quot;
+  }
+}</pre>
+               <p class="fp-cli">En ligne de commande : <code>sablier accept &lt;empreinte&gt; --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <p><strong>2.</strong> L&#039;outil a tort. C&#039;est une règle à corriger, et sa place est dans le dépôt de Sablier : <a href="https://github.com/mesa-black/sablier/issues/new">github.com/mesa-black/sablier</a></p>
+               <p class="fp-note">L&#039;empreinte imprimée à côté de chaque constat le désigne, et c&#039;est elle qu&#039;on cite dans les deux cas. Elle est calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code, et change le jour où la ligne change vraiment.</p>
+             </section>
+
+<section class="seal"><h2>Empreinte et signature</h2><dl class="probe-facts"><div><dt>empreinte des constats</dt><dd><code>92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d</code></dd></div></dl><p class="legend">L&#039;empreinte porte sur les constats, pas sur ce fichier : deux rendus du même inventaire, dans deux langues, donnent la même valeur.</p></section>
+<footer>Sablier n'envoie rien, n'enregistre rien et ne dépend de rien. Ce fichier ne charge aucune ressource externe : il peut être lu hors ligne et transmis tel quel.</footer>
+</body></html>

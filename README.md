@@ -51,6 +51,13 @@ cd /path/to/project && /path/to/sablier scan . --out=report.html
 
 Reports are available in French, English and Spanish (`--lang=fr|en|es`).
 
+**Without running anything:** [`examples/report.html`](examples/report.html) is
+the technical report for the fixture project, and
+[`examples/audit.html`](examples/audit.html) the audit document of the same
+run. Both are regenerated at each release, and both are a single self-contained
+file — open them from disk. [`CHANGELOG.md`](CHANGELOG.md) says what each
+release changed.
+
 The report is a self-contained HTML file: no remote font, no script, no request.
 A tool that reads where the keys are must not open a socket to render its own
 output.
@@ -521,7 +528,7 @@ jobs:
           coverage: none
 
       - name: Get Sablier
-        run: git clone --depth 1 --branch v0.1.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
+        run: git clone --depth 1 --branch v0.2.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
 
       - name: Inventory the cryptography
         run: |

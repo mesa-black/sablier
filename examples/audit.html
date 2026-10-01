@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapport d&#039;audit — Fixture</title>
+<style>:root{--ink:#16181d;--muted:#55595f;--paper:#fff;--line:#c9c6c0;--flag:#8a5210;
+      --bad:#8f241c;--cool:#2a4c7d}
+*{box-sizing:border-box}
+body{max-width:47rem;margin:0 auto;padding:2.5rem 1.5rem 4rem;background:var(--paper);color:var(--ink);
+     font-family:Georgia,'Iowan Old Style','Times New Roman',serif;font-size:1rem;line-height:1.55}
+header{border-bottom:2px solid var(--ink);padding-bottom:1.1rem;margin-bottom:1.6rem}
+.kind{margin:0;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{margin:.3rem 0 .2rem;font-size:1.8rem;line-height:1.2}
+.subtitle{margin:0;color:var(--muted);font-size:.92rem}
+h2{font-size:1.1rem;margin:2.4rem 0 .8rem;padding-bottom:.3rem;border-bottom:1px solid var(--line)}
+h2 .num{color:var(--muted)}
+h3{font-size:.95rem;margin:1.5rem 0 .4rem}
+p{margin:.7rem 0}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84em;word-break:break-word}
+.toc{border:1px solid var(--line);padding:.9rem 1.2rem;margin-bottom:1rem}
+.toc h2{margin:0 0 .4rem;border:none;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.toc ol{margin:0;padding-left:1.4rem;font-size:.92rem}
+.toc a{color:inherit}
+.fields{margin:.6rem 0;display:grid;gap:.1rem}
+.fields div{display:grid;grid-template-columns:12rem 1fr;gap:.6rem;padding:.3rem 0;border-bottom:1px dotted var(--line)}
+.fields dt{color:var(--muted);font-size:.86rem}
+.fields dd{margin:0}
+@media (max-width:36rem){.fields div{grid-template-columns:1fr}}
+.note,.cites{color:var(--muted);font-size:.88rem}
+.todo{color:var(--flag);font-style:italic}
+.formula{border-left:3px solid var(--ink);padding:.4rem 0 .4rem .9rem;margin:.9rem 0;font-style:italic}
+.flag{border-left:3px solid var(--flag);padding:.4rem 0 .4rem .9rem;color:var(--flag);font-size:.92rem}
+table{width:100%;border-collapse:collapse;margin:.9rem 0;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:.35rem .5rem;border-bottom:1px solid var(--line)}
+thead th{font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n,th[scope=row]{white-space:nowrap}
+td.n{text-align:right;color:var(--muted)}
+.facts td:nth-child(2){white-space:nowrap}
+ul,ol{padding-left:1.3rem}
+li{margin:.35rem 0}
+.plan li{margin:.8rem 0}
+.plan p{margin:.2rem 0}
+.fix{font-size:.9rem}
+.fix span{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-right:.4rem}
+.glossary{margin:.6rem 0}
+.glossary div{margin:.7rem 0}
+.glossary dt{font-weight:700}
+.glossary dd{margin:.15rem 0 0}
+blockquote{margin:.6rem 0;padding-left:1rem;border-left:3px solid var(--line);font-style:italic}
+
+/* The chart, in this document's ink: one blue for a duration, one
+   red for a duration a harvestable algorithm has to outlive. */
+.timeline{margin:1.4rem 0 .4rem}
+.timeline h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+             border:none;margin:0 0 .6rem;font-family:inherit}
+.timeline .chart{position:relative;border-left:1px solid var(--line);padding:1.9rem 0 .4rem}
+.mark{position:absolute;top:0;bottom:0;border-left:1px dashed var(--muted);padding-left:.4rem}
+.mark.expiry{border-left:2px solid var(--bad)}
+.mark span{font-size:.62rem;color:var(--muted);line-height:1.2;display:block;font-family:ui-monospace,Menlo,monospace}
+.mark.expiry span{color:var(--bad)}
+.row{display:grid;grid-template-columns:9rem 1fr 4rem;gap:.6rem;align-items:center;margin:.3rem 0}
+.lbl{font-size:.78rem;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{background:#00000008;height:13px;border-radius:2px;position:relative}
+.bar{height:100%;background:var(--cool);border-radius:2px}
+.bar.over{background:var(--bad)}
+.yrs{font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{font-size:.84rem;color:var(--muted);margin:.7rem 0 0}
+.crossings{margin-top:1.2rem;border-top:1px solid var(--line);padding-top:.8rem;break-inside:avoid}
+.crossings h3{margin:0 0 .4rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.crossings ul{margin:0;padding-left:1.1rem;font-size:.92rem}
+.crossings li{margin:.2rem 0}
+.crossings li.past{color:var(--bad)}
+@media (max-width:36rem){.row{grid-template-columns:6rem 1fr 3.2rem}}
+h3.verdict-compromised,h3.verdict-urgent{color:#8f241c}
+
+@page{margin:20mm 17mm}
+@media print{
+    body{max-width:none;margin:0;padding:0;font-size:10.5pt}
+    .toc{break-after:page}
+    section{break-inside:auto}
+    h2,h3{break-after:avoid}
+    tr{break-inside:avoid}
+    .glossary div,.plan li,.timeline{break-inside:avoid}
+}</style></head>
+<body>
+<header>
+  <p class="kind">Rapport d&#039;audit</p>
+  <h1>Fixture</h1>
+  <p class="subtitle">Exposition cryptographique et durées de confidentialité · 01/10/2026</p>
+</header>
+<nav class="toc"><h2>Sommaire</h2><ol><li><a href="#s1">Objet et périmètre</a></li><li><a href="#s2">Méthode</a></li><li><a href="#s3">Limites de l&#039;analyse</a></li><li><a href="#s4">Références normatives</a></li><li><a href="#s5">Constatations de fait</a></li><li><a href="#s6">Durées de confidentialité déclarées</a></li><li><a href="#s7">Avis</a></li><li><a href="#s8">Conclusion et recommandations</a></li><li><a href="#s9">Glossaire</a></li><li><a href="#s10">Intégrité du document</a></li></ol></nav>
+<section id="s1"><h2><span class="num">1.</span> Objet et périmètre</h2><dl class="fields"><div><dt>Commanditaire</dt><dd><span class="todo">[à compléter]</span></dd></div><div><dt>Auditeur</dt><dd><span class="todo">[à compléter]</span></dd></div><div><dt>Organisation</dt><dd><span class="todo">[à compléter]</span></dd></div><div><dt>Référence</dt><dd><span class="todo">[à compléter]</span></dd></div><div><dt>Mission</dt><dd><span class="todo">[à compléter]</span></dd></div><div><dt>Périmètre analysé</dt><dd><code>tests/fixtures/sample</code></dd></div><div><dt>Date de l&#039;analyse</dt><dd>01/10/2026</dd></div><div><dt>Volume examiné</dt><dd>3 fichiers lus</dd></div><div><dt>Outil</dt><dd>Sablier</dd></div><div><dt>Commande exécutée</dt><dd><code>./bin/sablier scan tests/fixtures/sample --out=examples/report.html --audit=examples/audit.html --quiet</code></dd></div></dl><p class="note">Ce document est produit par un outil d&#039;analyse. Il rapporte des faits vérifiables et l&#039;avis qui en découle ; il n&#039;emporte aucune qualification juridique, et l&#039;auditeur signataire en demeure l&#039;auteur.</p></section><section id="s2"><h2><span class="num">2.</span> Méthode</h2><p>Lecture statique du dépôt : appels cryptographiques dont l&#039;algorithme est écrit en clair, matériel de clé et certificats présents dans l&#039;arborescence, configuration de serveur et de cadriciel, scripts de déploiement, dépendances déclarées.</p><p>Sonde réseau : une poignée de main TLS ordinaire, identique à celle d&#039;un navigateur, sur les hôtes déclarés. Elle établit ce qui est réellement négocié, que le dépôt peut contredire dans les deux sens.</p><p>L&#039;inventaire est ensuite croisé avec la durée pendant laquelle chaque catégorie de donnée doit rester confidentielle. Le raisonnement est celui de l&#039;inégalité de Mosca (2015), simplifié :</p><p class="formula">année de l&#039;analyse + durée de confidentialité déclarée &gt; péremption de l&#039;algorithme ⟹ la donnée déjà émise est exposée, et migrer ne la répare pas</p><p>L&#039;analyse est reproductible : la même commande sur le même état du dépôt produit la même empreinte de constatations. L&#039;outil ne prédit pas l&#039;arrivée d&#039;un calculateur quantique ; il utilise l&#039;échéance réglementaire comme date de planification.</p></section><section id="s3"><h2><span class="num">3.</span> Limites de l&#039;analyse</h2><p>Ces limites figurent dans le corps du rapport et non en note de bas de page : un inventaire qui ne dit pas ce qu&#039;il n&#039;a pas regardé n&#039;est pas un inventaire.</p><ul><li>la cryptographie de vos services gérés — base de données, stockage objet, terminaison TLS chez un intermédiaire — n&#039;apparaît dans aucun fichier de ce dépôt</li><li>ce qui est réellement négocié à l&#039;exécution, pour tout hôte non déclaré dans la section « sonde »</li><li>les clés détenues dans un HSM ou chez un fournisseur</li><li>la durée de vie réelle des données : elle vient de votre déclaration, pas du code — un domaine non déclaré est calculé avec une durée par défaut de 3 ans</li><li>Les fichiers binaires (images, polices, archives) ne sont lus que sur leurs premiers méga-octets, et seulement pour trois signes vérifiables : un bloc de clé, des octets après la fin de l&#039;image, une extension qui ment sur le contenu. Un message dissimulé dans les bits d&#039;une image n&#039;est pas détecté ici, et ne prétend pas l&#039;être.</li><li>Les vulnérabilités publiées des dépendances n&#039;ont pas été vérifiées : lancez `sablier advisories &lt;chemin&gt;` puis `--advisories=&lt;fichier&gt;`. Sans cela, une bibliothèque trouée aujourd&#039;hui est présentée comme un simple inventaire.</li><li>Les constatations de confiance moyenne sont signalées comme telles : l&#039;algorithme y provient d&#039;une variable ou d&#039;une configuration, et n&#039;a pas pu être établi par la seule lecture.</li></ul></section><section id="s4"><h2><span class="num">4.</span> Références normatives</h2><p>La date de péremption retenue est une échéance réglementaire, pas une prédiction de rupture cryptographique.</p><table><tbody><tr><th scope="row">FIPS 203 / 204 / 205 (2024)</th><td>ML-KEM, ML-DSA et SLH-DSA normalisés (2024).</td></tr><tr><th scope="row">NIST IR 8547</th><td>Trajectoire de retrait : RSA et courbes elliptiques dépréciés vers 2030, interdits vers 2035.</td></tr><tr><th scope="row">CNSA 2.0 (NSA)</th><td>Calendriers par usage, plus exigeants sur la signature de code.</td></tr><tr><th scope="row">Recommandation (UE) 2024/1101</th><td>Feuilles de route nationales ; premiers usages critiques avant 2030.</td></tr><tr><th scope="row">ANSSI</th><td>Hybridation requise pendant la transition (position française).</td></tr></tbody></table><p>Échéance retenue pour ce rapport : 2035. Échéances vérifiées auprès de leurs sources le 30/09/2026.</p></section><section id="s5"><h2><span class="num">5.</span> Constatations de fait</h2><p>Chaque ligne est une observation directe, numérotée pour pouvoir être citée. Elle n&#039;emporte aucun jugement : l&#039;avis figure en section 7.</p><table class="facts"><thead><tr><th>N°</th><th>Élément relevé</th><th>Emplacement</th><th>Élément observé</th><th>Confiance</th></tr></thead><tbody><tr><td class="n">1</td><td>AES-256</td><td><code>deploy/backup.sh:4</code></td><td><code>pg_dump -Fc app | openssl enc -aes-256-cbc -pbkdf2 -pass env:BACKUP_KEY &gt; dump.enc</code></td><td>haute</td></tr><tr><td class="n">2</td><td>RSA</td><td><code>deploy/backup.sh:3</code></td><td><code>openssl genrsa -out /etc/backup/key.pem 2048</code></td><td>haute</td></tr><tr><td class="n">3</td><td>RSA</td><td><code>deploy/backup.sh:5</code></td><td><code>ssh-keygen -t rsa -b 4096 -f /root/.ssh/offsite</code></td><td>haute</td></tr><tr><td class="n">4</td><td>AES-256</td><td><code>src/Tokens.php:22</code></td><td><code>return openssl_encrypt($plain, &#039;aes-256-gcm&#039;, $key, 0, random_bytes(12));</code></td><td>haute</td></tr><tr><td class="n">5</td><td>MD5</td><td><code>src/Tokens.php:12</code></td><td><code>return md5($url); // cache key: not a security control</code></td><td>haute</td></tr><tr><td class="n">6</td><td>SHA-1</td><td><code>src/Tokens.php:17</code></td><td><code>return sha1($payload);</code></td><td>haute</td></tr><tr><td class="n">7</td><td>RSA</td><td><code>src/Tokens.php:7</code></td><td><code>return jwt_encode($claims, $this-&gt;key, &#039;RS256&#039;);</code></td><td>haute</td></tr></tbody></table></section><section id="s6"><h2><span class="num">6.</span> Durées de confidentialité déclarées</h2><p class="flag">Ces durées sont une donnée d&#039;entrée fournie par le commanditaire. L&#039;outil ne peut ni les vérifier ni les déduire du code : tout l&#039;avis de la section 7 en dépend, et une durée corrigée change le verdict.</p><table><thead><tr><th>Domaine</th><th>Durée</th><th>Chemins</th><th>Justification fournie</th></tr></thead><tbody><tr><td>backups</td><td class="n">10</td><td><code>deploy/backup.sh, deploy/*backup*</code></td><td>Holds the whole database, including ten years of accounting records.</td></tr><tr><td>session tokens</td><td class="n">1</td><td><code>src/Tokens.php</code></td><td></td></tr></tbody></table><p>Durée appliquée aux domaines non déclarés : 3 ans.</p><section class="timeline">
+  <h2>Durée de confidentialité des données, face à la péremption des algorithmes</h2>
+  <div class="chart">
+    <div class="mark" style="left:20%"><span>2030<br>dépréciation</span></div>
+    <div class="mark expiry" style="left:45%"><span>2035<br>péremption</span></div>
+    <div class="row"><div class="lbl">backups</div><div class="track"><div class="bar over" style="width:50%"></div></div><div class="yrs">10 ans</div></div><div class="row"><div class="lbl">session tokens</div><div class="track"><div class="bar " style="width:5%"></div></div><div class="yrs">1 an</div></div>
+  </div>
+  <p class="legend">Chaque barre est la durée pendant laquelle la donnée doit rester confidentielle. Elle passe en rouge quand un algorithme récoltable la protège au-delà du trait de péremption — dépasser le trait sans être rouge signifie que la donnée dure longtemps, mais qu&#039;elle est protégée par de la cryptographie qui tiendra.</p>
+  <div class="crossings"><h3>Dates de bascule</h3><ul><li class="past">backups — 10 ans — bascule franchie depuis 2026</li></ul><p class="legend">Une donnée chiffrée l&#039;année Y reste sensible jusqu&#039;à Y + sa durée. L&#039;année de bascule est donc celle à partir de laquelle tout ce qui est chiffré survit à la péremption de 2035 : avant, le domaine tient ; à partir d&#039;elle, ce qui est émis est déjà perdu le jour où l&#039;algorithme tombe.</p></div>
+</section></section><section id="s7"><h2><span class="num">7.</span> Avis</h2><p>L&#039;avis découle des constatations de la section 5 et des durées de la section 6. Il distingue ce qui se récolte — le chiffrement, qu&#039;un adversaire peut capturer aujourd&#039;hui pour le déchiffrer plus tard — de ce qui ne se récolte pas, les signatures.</p><h3 class="verdict-compromised">COMPROMIS</h3><p>Chiffré aujourd&#039;hui, à garder confidentiel jusqu&#039;en 2036 — soit 1 an après la péremption de RSA. Une capture faite maintenant sera lisible.</p><p class="cites">Constatations concernées : n°2</p><p class="fix"><span>Remplacement</span> ML-KEM (chiffrement) ou ML-DSA (signature), en hybride pendant la transition</p><h3 class="verdict-urgent">CASSÉ AUJOURD&#039;HUI</h3><p>Cassé classiquement, indépendamment du quantique. L&#039;échéance était hier.</p><p class="cites">Constatations concernées : n°6</p><p class="cites">Défauts publiés, vérifiables auprès du NIST : <a href="https://nvd.nist.gov/vuln/detail/CVE-2005-4900">CVE-2005-4900</a></p><p class="fix"><span>Remplacement</span> SHA-256</p><h3 class="verdict-watch">SURVEILLER</h3><p>Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.</p><p class="cites">Constatations concernées : n°3, n°7</p><h3 class="verdict-clear">CONFORME</h3><p>Tient face à Grover. Rien à faire.</p><p class="cites">Constatations concernées : n°1, n°4</p><h3 class="verdict-noise">PROBABLEMENT HORS SUJET</h3><p>Ressemble à un identifiant (clé de cache, empreinte) plutôt qu&#039;à un contrôle de sécurité. À confirmer, pas à corriger.</p><p class="cites">Constatations concernées : n°5</p></section><section id="s8"><h2><span class="num">8.</span> Conclusion et recommandations</h2><ol class="plan"><li><strong>Décider du sort des données déjà émises</strong><p>C&#039;est la décision que personne ne prend, et elle vient avant la migration. Les domaines concernés (backups) sont protégés par un algorithme qui ne tiendra pas jusqu&#039;au bout de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d&#039;un correctif. Trois issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire tourner les clés et réémettre ce qui peut l&#039;être, ou acter par écrit qu&#039;on accepte le risque sur les données antérieures à 2035. Migrer sans trancher cette question protège les données futures et laisse les anciennes exposées sans que personne ne l&#039;ait décidé.</p></li><li><strong>Remplacer ce qui est déjà cassé</strong><p>Un usage repose sur un algorithme cassé classiquement. Aucun raisonnement quantique n&#039;est nécessaire : l&#039;échéance était il y a dix ans, le remplacement est connu et ne demande pas un projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c&#039;est moins cher et déjà exploitable.</p></li><li><strong>Remettre ce rapport au calendrier</strong><p>La fenêtre se referme d&#039;elle-même : la date de péremption ne bouge pas (2035), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd&#039;hui avec une durée de neuf ans ne le sera plus l&#039;an prochain. Rejouer l&#039;analyse une fois par an suffit — et vérifier à cette occasion que l&#039;échéance réglementaire n&#039;a pas bougé.</p></li></ol></section><section id="s9"><h2><span class="num">9.</span> Glossaire</h2><p>Les sept termes nécessaires à la lecture du présent rapport.</p><dl class="glossary"><div><dt>Récolte différée</dt><dd>Capturer aujourd&#039;hui des données chiffrées pour les déchiffrer lorsque la machine capable de le faire existera. Pour ces données, la date de compromission est le jour du chiffrement, pas celui de l&#039;attaque.</dd></div><div><dt>Confidentialité</dt><dd>Ce que protège le chiffrement : la donnée reste illisible. C&#039;est la seule propriété exposée à la récolte différée.</dd></div><div><dt>Authenticité</dt><dd>Ce que protège une signature : l&#039;origine est établie. Une signature ne se capture pas pour être forgée plus tard ; l&#039;urgence ne porte que sur les ancres de confiance à longue durée.</dd></div><div><dt>Durée de confidentialité</dt><dd>Nombre d&#039;années pendant lesquelles une catégorie de donnée doit rester secrète. Elle est déclarée par le commanditaire ; aucun outil ne peut la déduire du code.</dd></div><div><dt>Péremption</dt><dd>Année à partir de laquelle un algorithme ne doit plus protéger de donnée confidentielle. Retenue ici d&#039;après les textes cités en section 4.</dd></div><div><dt>Symétrique / asymétrique</dt><dd>La cryptographie symétrique (AES, ChaCha20) n&#039;est pas le sujet : un calculateur quantique en réduit la marge sans la casser. Le problème porte sur l&#039;asymétrique : RSA, courbes elliptiques, échange de clés.</dd></div><div><dt>Hybridation</dt><dd>Combiner un algorithme classique et un algorithme post-quantique, de sorte que la protection tienne si l&#039;un des deux tombe. C&#039;est la position des autorités pendant la transition.</dd></div></dl></section><section id="s10"><h2><span class="num">10.</span> Intégrité du document</h2><p>L&#039;empreinte porte sur les constatations et non sur ce fichier : deux rendus du même inventaire, dans deux langues, donnent la même valeur.</p><dl class="fields"><div><dt>empreinte des constats</dt><dd><code>92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d</code></dd></div></dl><p class="flag">Ce rapport n&#039;est pas signé. Pour qu&#039;un tiers puisse établir qu&#039;il n&#039;a pas été modifié depuis son émission, relancer l&#039;analyse avec l&#039;option de signature.</p><h3>Déclaration de l&#039;auditeur</h3><p class="todo">Aucune déclaration de l&#039;auditeur n&#039;a été fournie. Elle doit être rédigée, datée et signée avant que ce document soit produit devant un tiers.</p></section>
+</body></html>
