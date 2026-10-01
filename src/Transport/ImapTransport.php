@@ -7,11 +7,12 @@ namespace Sablier\Transport;
 /** IMAP on 143. */
 final class ImapTransport extends StartTlsTransport
 {
-    public function startTlsFlag(): ?string
+    public function startTlsFlag(): string
     {
         return 'imap';
     }
 
+    /** @param resource $stream */
     protected function negotiate(mixed $stream): bool
     {
         if (!str_starts_with($this->line($stream), '* OK')) {

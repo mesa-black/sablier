@@ -35,8 +35,8 @@ final class Cbom
             return null;
         }
 
-        $bom = json_decode($raw, true);
-        if (!\is_array($bom) || ($bom['bomFormat'] ?? null) !== 'CycloneDX') {
+        $bom = Value::map(json_decode($raw, true));
+        if (($bom['bomFormat'] ?? null) !== 'CycloneDX') {
             return null;
         }
 
@@ -45,15 +45,16 @@ final class Cbom
         $locations = [];
         $placed = 0;
 
-        foreach ($bom['components'] ?? [] as $component) {
-            if (!\is_array($component) || ($component['type'] ?? '') !== 'cryptographic-asset') {
+        foreach (Value::map($bom['components'] ?? null) as $component) {
+            $component = Value::map($component);
+            if (($component['type'] ?? '') !== 'cryptographic-asset') {
                 continue;
             }
 
-            $name = \is_string($component['name'] ?? null) ? $component['name'] : '';
+            $name = Value::string($component['name'] ?? null);
             $algorithm = self::algorithm($component);
             if ($algorithm === null) {
-                $ignored[] = $name !== '' ? $name : (string) ($component['bom-ref'] ?? '?');
+                $ignored[] = $name !== '' ? $name : Value::string($component['bom-ref'] ?? null, '?');
                 continue;
             }
 
@@ -64,8 +65,8 @@ final class Cbom
             $likelyNonCrypto = ($flags['sablier:likely_non_crypto'] ?? '') === 'true';
             $inventory = ($flags['sablier:declared_dependency'] ?? '') === 'true';
 
-            $occurrences = $component['evidence']['occurrences'] ?? [];
-            if (!\is_array($occurrences) || $occurrences === []) {
+            $occurrences = Value::map(Value::map($component['evidence'] ?? null)['occurrences'] ?? null);
+            if ($occurrences === []) {
                 // No location: the component still exists and is still judged,
                 // but it falls into the default domain and the report says how
                 // many did, because a domain nobody could resolve is not a
@@ -73,7 +74,7 @@ final class Cbom
                 $findings[] = new Finding(
                     algorithm: $algorithm,
                     purpose: $purpose,
-                    file: $name !== '' ? $name : (string) ($component['bom-ref'] ?? 'cbom'),
+                    file: $name !== '' ? $name : Value::string($component['bom-ref'] ?? null, 'cbom'),
                     line: 0,
                     evidence: $evidence !== '' ? $evidence : $algorithm,
                     likelyNonCrypto: $likelyNonCrypto,
@@ -83,22 +84,22 @@ final class Cbom
             }
 
             foreach ($occurrences as $occurrence) {
-                if (!\is_array($occurrence) || !\is_string($occurrence['location'] ?? null)) {
+                $occurrence = Value::map($occurrence);
+                $raw = Value::string($occurrence['location'] ?? null);
+                if ($raw === '') {
                     continue;
                 }
                 // A leading "./" only — ltrim would eat the dot of a
                 // dotfile, and .env is exactly the kind of file this tool
                 // must keep looking at.
-                $location = str_starts_with($occurrence['location'], './')
-                    ? substr($occurrence['location'], 2)
-                    : $occurrence['location'];
+                $location = str_starts_with($raw, './') ? substr($raw, 2) : $raw;
                 $locations[$location] = true;
                 ++$placed;
                 $findings[] = new Finding(
                     algorithm: $algorithm,
                     purpose: $purpose,
                     file: $location,
-                    line: (int) ($occurrence['line'] ?? 0),
+                    line: Value::int($occurrence['line'] ?? null),
                     evidence: $evidence !== '' ? $evidence : $algorithm,
                     likelyNonCrypto: $likelyNonCrypto,
                     inventory: $inventory,
@@ -106,11 +107,12 @@ final class Cbom
             }
         }
 
-        $project = $bom['metadata']['component']['name'] ?? '';
+        $metadata = Value::map($bom['metadata'] ?? null);
+        $project = Value::string(Value::map($metadata['component'] ?? null)['name'] ?? null);
 
         return [
             'findings' => $findings,
-            'project' => \is_string($project) && $project !== '' ? $project : basename($path),
+            'project' => $project !== '' ? $project : basename($path),
             'producer' => self::producer($bom),
             'locations' => \count($locations),
             'ignored' => $ignored,
@@ -127,26 +129,27 @@ final class Cbom
      * risk model rests on: RSA signing is not RSA encrypting, and CycloneDX
      * happens to record exactly that.
      */
+    /** @param array<array-key, mixed> $component */
     private static function algorithm(array $component): ?string
     {
-        foreach ($component['properties'] ?? [] as $property) {
-            if (($property['name'] ?? '') === 'sablier:algorithm' && \is_string($property['value'] ?? null)) {
-                return Catalogue::get($property['value']) !== null ? $property['value'] : null;
-            }
+        $declared = self::properties($component)['sablier:algorithm'] ?? null;
+        if ($declared !== null) {
+            return Catalogue::get($declared) !== null ? $declared : null;
         }
 
-        $name = strtolower(\is_string($component['name'] ?? null) ? $component['name'] : '');
+        $name = strtolower(Value::string($component['name'] ?? null));
         $parameter = strtolower(self::parameter($component));
-        $properties = $component['cryptoProperties']['algorithmProperties'] ?? [];
-        $primitive = \is_string($properties['primitive'] ?? null) ? $properties['primitive'] : '';
-        $functions = \is_array($properties['cryptoFunctions'] ?? null) ? $properties['cryptoFunctions'] : [];
+        $crypto = Value::map($component['cryptoProperties'] ?? null);
+        $properties = Value::map($crypto['algorithmProperties'] ?? null);
+        $primitive = Value::string($properties['primitive'] ?? null);
+        $functions = Value::strings($properties['cryptoFunctions'] ?? null);
         $signing = $primitive === 'signature'
             || \in_array('sign', $functions, true)
             || \in_array('verify', $functions, true);
 
-        $protocol = $component['cryptoProperties']['protocolProperties'] ?? [];
+        $protocol = Value::map($crypto['protocolProperties'] ?? null);
         if (($protocol['type'] ?? '') === 'tls') {
-            $version = (string) ($protocol['version'] ?? '');
+            $version = Value::string($protocol['version'] ?? null);
 
             return \in_array($version, ['1.0', '1.1'], true) ? 'tls-obsolete' : null;
         }
@@ -173,39 +176,58 @@ final class Cbom
      * file — otherwise a CBOM handed to us could claim the fingerprint of an
      * existing acceptance and walk straight through it.
      *
+     * @param array<array-key, mixed> $component
+     *
      * @return array<string, string>
      */
     private static function properties(array $component): array
     {
         $map = [];
-        foreach ($component['properties'] ?? [] as $property) {
-            if (\is_array($property) && \is_string($property['name'] ?? null) && \is_string($property['value'] ?? null)) {
-                $map[$property['name']] = $property['value'];
+        foreach (Value::map($component['properties'] ?? null) as $property) {
+            $property = Value::map($property);
+            $name = Value::string($property['name'] ?? null);
+            if ($name !== '' && \is_string($property['value'] ?? null)) {
+                $map[$name] = $property['value'];
             }
         }
 
         return $map;
     }
 
+    /** @param array<array-key, mixed> $component */
     private static function parameter(array $component): string
     {
-        $properties = $component['cryptoProperties']['algorithmProperties'] ?? [];
+        $properties = Value::map(Value::map($component['cryptoProperties'] ?? null)['algorithmProperties'] ?? null);
         foreach (['parameterSetIdentifier', 'curve'] as $key) {
-            if (isset($properties[$key]) && (\is_string($properties[$key]) || \is_int($properties[$key]))) {
-                return (string) $properties[$key];
+            $value = Value::string($properties[$key] ?? null);
+            if ($value !== '') {
+                return $value;
             }
         }
 
         return '';
     }
 
-    /** Who produced the inventory, named in the report because it is not us. */
+    /**
+     * Who produced the inventory, named in the report because it is not us.
+     *
+     * Two shapes in the wild: CycloneDX 1.5 put a list under `tools`, 1.6 puts
+     * it under `tools.components`. Both are read, because the point of the
+     * import is to accept files we did not write.
+     *
+     * @param array<array-key, mixed> $bom
+     */
     private static function producer(array $bom): string
     {
-        $tools = $bom['metadata']['tools']['components'] ?? $bom['metadata']['tools'] ?? [];
-        foreach (\is_array($tools) ? $tools : [] as $tool) {
-            if (\is_array($tool) && \is_string($tool['name'] ?? null) && $tool['name'] !== '') {
-                return $tool['name'].(\is_string($tool['version'] ?? null) ? ' '.$tool['version'] : '');
+        $tools = Value::map($bom['metadata'] ?? null)['tools'] ?? null;
+        $candidates = Value::map(Value::map($tools)['components'] ?? null) ?: Value::map($tools);
+        foreach ($candidates as $tool) {
+            $tool = Value::map($tool);
+            $name = Value::string($tool['name'] ?? null);
+            if ($name !== '') {
+                $version = Value::string($tool['version'] ?? null);
+
+                return $version !== '' ? $name.' '.$version : $name;
             }
         }
 

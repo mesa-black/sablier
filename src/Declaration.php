@@ -97,18 +97,19 @@ final class Declaration
             throw new \RuntimeException("unreadable declaration: $path");
         }
 
-        $self->project = (string) ($raw['project'] ?? '');
-        $self->deprecationYear = (int) ($raw['deprecation_year'] ?? $self->deprecationYear);
-        $self->expiryYear = (int) ($raw['expiry_year'] ?? $self->expiryYear);
-        $self->defaultLifetime = (int) ($raw['default_lifetime_years'] ?? $self->defaultLifetime);
-        $self->probe = array_map(strval(...), (array) ($raw['probe'] ?? []));
-        $self->exclude = array_map(strval(...), (array) ($raw['exclude'] ?? []));
-        $self->deadlinesCheckedOn = (string) ($raw['deadlines_checked_on'] ?? $self->deadlinesCheckedOn);
-        $self->signingPublicKey = (string) ($raw['signing_public_key'] ?? '');
+        $self->project = Value::string($raw['project'] ?? null);
+        $self->deprecationYear = Value::int($raw['deprecation_year'] ?? null, $self->deprecationYear);
+        $self->expiryYear = Value::int($raw['expiry_year'] ?? null, $self->expiryYear);
+        $self->defaultLifetime = Value::int($raw['default_lifetime_years'] ?? null, $self->defaultLifetime);
+        $self->probe = Value::strings($raw['probe'] ?? null);
+        $self->exclude = Value::strings($raw['exclude'] ?? null);
+        $self->deadlinesCheckedOn = Value::string($raw['deadlines_checked_on'] ?? null, $self->deadlinesCheckedOn);
+        $self->signingPublicKey = Value::string($raw['signing_public_key'] ?? null);
 
-        foreach ((array) ($raw['accepted'] ?? []) as $fingerprint => $entry) {
-            $reason = trim((string) ($entry['reason'] ?? ''));
-            $until = trim((string) ($entry['until'] ?? ''));
+        foreach (Value::map($raw['accepted'] ?? null) as $fingerprint => $entry) {
+            $entry = Value::map($entry);
+            $reason = trim(Value::string($entry['reason'] ?? null));
+            $until = trim(Value::string($entry['until'] ?? null));
             // An entry missing either half is ignored outright and reported as
             // such: silently honouring it would be the failure mode this whole
             // design exists to avoid.
@@ -119,17 +120,19 @@ final class Declaration
             $self->accepted[(string) $fingerprint] = ['reason' => $reason, 'until' => $until];
         }
 
+        $audit = Value::map($raw['audit'] ?? null);
         foreach (array_keys($self->audit) as $field) {
-            $self->audit[$field] = trim((string) (($raw['audit'] ?? [])[$field] ?? ''));
+            $self->audit[$field] = trim(Value::string($audit[$field] ?? null));
         }
 
-        foreach ((array) ($raw['domains'] ?? []) as $name => $domain) {
+        foreach (Value::map($raw['domains'] ?? null) as $name => $domain) {
+            $domain = Value::map($domain);
             $self->domains[] = [
                 'name' => (string) $name,
-                'paths' => array_map(strval(...), (array) ($domain['paths'] ?? [])),
-                'lifetime' => (int) ($domain['lifetime_years'] ?? $self->defaultLifetime),
-                'trust_anchor' => (bool) ($domain['trust_anchor'] ?? false),
-                'note' => (string) ($domain['note'] ?? ''),
+                'paths' => Value::strings($domain['paths'] ?? null),
+                'lifetime' => Value::int($domain['lifetime_years'] ?? null, $self->defaultLifetime),
+                'trust_anchor' => Value::bool($domain['trust_anchor'] ?? null),
+                'note' => Value::string($domain['note'] ?? null),
             ];
         }
 

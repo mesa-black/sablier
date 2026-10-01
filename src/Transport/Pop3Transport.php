@@ -7,11 +7,12 @@ namespace Sablier\Transport;
 /** POP3 on 110. */
 final class Pop3Transport extends StartTlsTransport
 {
-    public function startTlsFlag(): ?string
+    public function startTlsFlag(): string
     {
         return 'pop3';
     }
 
+    /** @param resource $stream */
     protected function negotiate(mixed $stream): bool
     {
         if (!str_starts_with($this->line($stream), '+OK')) {

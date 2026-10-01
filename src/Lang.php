@@ -50,7 +50,9 @@ final class Lang
     {
         if (!isset(self::$loaded[$locale])) {
             $file = __DIR__.'/../translations/'.$locale.'.php';
-            self::$loaded[$locale] = is_file($file) ? require $file : [];
+            /** @var array<string, string> $messages */
+            $messages = is_file($file) ? require $file : [];
+            self::$loaded[$locale] = $messages;
         }
 
         return self::$loaded[$locale];

@@ -98,6 +98,8 @@ final class ActionPlan
     /**
      * @param list<int|string> $args
      * @param string|null      $titleKey when the body has a plural variant but the title does not
+     *
+     * @return array{key: string, title: string, body: string}
      */
     private static function action(string $key, array $args = [], ?string $titleKey = null): array
     {

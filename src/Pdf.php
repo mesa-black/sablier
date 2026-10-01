@@ -141,6 +141,7 @@ final class Pdf
         if (!is_dir($path)) {
             return;
         }
+        /** @var iterable<\SplFileInfo> $items */
         $items = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::CHILD_FIRST,

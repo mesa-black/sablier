@@ -7,11 +7,12 @@ namespace Sablier\Transport;
 /** SMTP on 25 or 587: greeting, EHLO, STARTTLS. */
 final class SmtpTransport extends StartTlsTransport
 {
-    public function startTlsFlag(): ?string
+    public function startTlsFlag(): string
     {
         return 'smtp';
     }
 
+    /** @param resource $stream */
     protected function negotiate(mixed $stream): bool
     {
         if (!str_starts_with($this->line($stream), '220')) {

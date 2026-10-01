@@ -142,7 +142,7 @@ final class Probe
 
         // --- Certificate: authenticity, and its own clock -------------------
         if ($session['cert'] !== null) {
-            $sig = (string) ($session['cert']['signatureTypeSN'] ?? '?');
+            $sig = Value::string($session['cert']['signatureTypeSN'] ?? null, '?');
             $facts[Lang::t('probe.fact.cert_signature')] = $sig;
             $facts[Lang::t('probe.fact.cert_key')] = $session['keyLabel'];
             $facts[Lang::t('probe.fact.chain')] = $session['chain'].' '.Lang::t('probe.certificates');
@@ -216,7 +216,7 @@ final class Probe
         ];
     }
 
-    /** @return array{protocol:string, cipher:string, bits:int, cert:array|null, keyLabel:string, chain:int, validTo:string}|null */
+    /** @return array{protocol:string, cipher:string, bits:int, cert:array<array-key, mixed>|null, keyLabel:string, chain:int, validTo:string}|null */
     private function connect(string $host, int $port, Transport $transport): ?array
     {
         $context = stream_context_create(['ssl' => [
@@ -233,32 +233,39 @@ final class Probe
             return null;
         }
 
-        $crypto = stream_get_meta_data($stream)['crypto'] ?? [];
-        $options = stream_context_get_options($context)['ssl'] ?? [];
+        $crypto = Value::map(Value::map(stream_get_meta_data($stream))['crypto'] ?? null);
+        $options = Value::map(Value::map(stream_context_get_options($context))['ssl'] ?? null);
         fclose($stream);
 
-        $cert = isset($options['peer_certificate']) ? openssl_x509_parse($options['peer_certificate']) : null;
+        // The captured certificate is an OpenSSL object, not a value we can
+        // coerce: anything else in that slot means the capture did not happen.
+        $peer = $options['peer_certificate'] ?? null;
+        $parsed = $peer instanceof \OpenSSLCertificate ? openssl_x509_parse($peer) : false;
+        $cert = \is_array($parsed) ? $parsed : null;
+
         $keyLabel = Lang::t('probe.unknown');
         $validTo = '?';
-        if (isset($options['peer_certificate'])) {
-            $details = @openssl_pkey_get_details(openssl_pkey_get_public($options['peer_certificate']));
+        if ($peer instanceof \OpenSSLCertificate) {
+            $publicKey = @openssl_pkey_get_public($peer);
+            $details = $publicKey instanceof \OpenSSLAsymmetricKey ? @openssl_pkey_get_details($publicKey) : false;
             if (\is_array($details)) {
-                $keyLabel = match ($details['type']) {
-                    \OPENSSL_KEYTYPE_RSA => 'RSA '.$details['bits'].' '.Lang::t('unit.bits'),
-                    \OPENSSL_KEYTYPE_EC => Lang::t('probe.elliptic_curve').' '.$details['bits'].' '.Lang::t('unit.bits'),
-                    default => $details['bits'].' '.Lang::t('unit.bits'),
+                $bits = Value::int($details['bits'] ?? null);
+                $keyLabel = match (Value::int($details['type'] ?? null, -1)) {
+                    \OPENSSL_KEYTYPE_RSA => 'RSA '.$bits.' '.Lang::t('unit.bits'),
+                    \OPENSSL_KEYTYPE_EC => Lang::t('probe.elliptic_curve').' '.$bits.' '.Lang::t('unit.bits'),
+                    default => $bits.' '.Lang::t('unit.bits'),
                 };
             }
-            $validTo = isset($cert['validTo_time_t']) ? date('d/m/Y', (int) $cert['validTo_time_t']) : '?';
+            $validTo = isset($cert['validTo_time_t']) ? date('d/m/Y', Value::int($cert['validTo_time_t'])) : '?';
         }
 
         return [
-            'protocol' => (string) ($crypto['protocol'] ?? '?'),
-            'cipher' => (string) ($crypto['cipher_name'] ?? '?'),
-            'bits' => (int) ($crypto['cipher_bits'] ?? 0),
-            'cert' => \is_array($cert) ? $cert : null,
+            'protocol' => Value::string($crypto['protocol'] ?? null, '?'),
+            'cipher' => Value::string($crypto['cipher_name'] ?? null, '?'),
+            'bits' => Value::int($crypto['cipher_bits'] ?? null),
+            'cert' => $cert,
             'keyLabel' => $keyLabel,
-            'chain' => \count($options['peer_certificate_chain'] ?? []),
+            'chain' => \count(Value::map($options['peer_certificate_chain'] ?? null)),
             'validTo' => $validTo,
         ];
     }
@@ -332,6 +339,7 @@ final class Probe
     /** Whether the local OpenSSL will still propose a given version at all. */
     private static function locallyOffered(int $method): bool
     {
+        /** @var array<int, bool> $cache */
         static $cache = [];
 
         return $cache[$method] ??= (static function () use ($method): bool {

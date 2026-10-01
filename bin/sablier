@@ -41,7 +41,13 @@ use Sablier\Reporter\CbomReporter;
 use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
 
-$argv = $_SERVER['argv'];
+// Arguments are read through the same door as every other outside value: a
+// list of strings, whatever the runtime put in $_SERVER.
+/** @var list<string> $argv */
+$argv = array_values(array_map(
+    static fn (mixed $argument): string => Value::string($argument),
+    Value::map($_SERVER['argv'] ?? null),
+));
 $command = $argv[1] ?? 'help';
 
 // Language is read before anything else: the help text is translated too.
@@ -86,9 +92,15 @@ if ($command === 'verify') {
         exit(1);
     }
 
-    $block = json_decode((string) file_get_contents($signaturePath), true);
+    $block = Value::map(json_decode((string) file_get_contents($signaturePath), true));
     $expectedKey = $declarePath !== null ? Declaration::load($declarePath)->signingPublicKey : null;
-    $result = Signature::verify(\is_array($block) ? $block : [], null, $expectedKey);
+    $result = Signature::verify([
+        'algorithm' => Value::string($block['algorithm'] ?? null),
+        'digest' => Value::string($block['digest'] ?? null),
+        'signed_at' => Value::string($block['signed_at'] ?? null),
+        'public_key' => Value::string($block['public_key'] ?? null),
+        'signature' => Value::string($block['signature'] ?? null),
+    ], null, $expectedKey);
 
     printf("  %s\n", Lang::t($result['reason']));
     exit($result['valid'] ? 0 : 1);
@@ -122,7 +134,9 @@ if ($command === 'accept') {
         fwrite(\STDERR, '✗ '.Lang::t('cli.accept_unreadable', $file)."\n");
         exit(1);
     }
-    $data['accepted'][$fingerprint] = ['reason' => trim($reason), 'until' => $until];
+    $accepted = Value::map($data['accepted'] ?? null);
+    $accepted[$fingerprint] = ['reason' => trim($reason), 'until' => $until];
+    $data['accepted'] = $accepted;
     file_put_contents($file, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES)."\n");
 
     printf("  %s\n", Lang::t('cli.accept_written', $fingerprint, $until, $file));
@@ -375,7 +389,7 @@ $verdictLine = static function (?array $diff): void {
         return;
     }
     echo $diff['decisions'] > 0
-        ? \sprintf("  ✗ %s\n     %s\n\n", Lang::t('diff.stop', $diff['decisions']), Lang::t('diff.how'))
+        ? \sprintf("  ✗ %s\n     %s\n\n", Lang::t('diff.stop', Value::int($diff['decisions'])), Lang::t('diff.how'))
         : \sprintf("  ✓ %s\n\n", Lang::t('diff.go'));
 };
 

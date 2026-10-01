@@ -8,6 +8,7 @@ use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\SourceFile;
+use Sablier\Value;
 
 /** Keys and certificates sitting in the tree. */
 final class KeyMaterialDetector implements Detector
@@ -50,7 +51,7 @@ final class KeyMaterialDetector implements Detector
         if (str_contains($content, 'BEGIN CERTIFICATE') && \function_exists('openssl_x509_parse')) {
             $parsed = @openssl_x509_parse($content);
             if (\is_array($parsed)) {
-                $signature = (string) ($parsed['signatureTypeSN'] ?? '');
+                $signature = Value::string($parsed['signatureTypeSN'] ?? null);
                 yield new Finding(
                     str_contains($signature, 'ECDSA') ? 'ecdsa' : 'rsa-sign',
                     Catalogue::PURPOSE_AUTHENTICITY, $file->relativePath, 1, $signature,

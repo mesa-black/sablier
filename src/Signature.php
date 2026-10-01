@@ -129,7 +129,12 @@ final class Signature
 
         $key = base64_decode($block['public_key'], true);
         $signature = base64_decode($block['signature'], true);
-        if ($key === false || $signature === false || \strlen($key) !== \SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
+        // Both lengths are checked, not just the key's: sodium throws on a
+        // signature of the wrong size, and a malformed file must come back as
+        // a verdict rather than as a stack trace.
+        if ($key === false || $signature === false
+            || \strlen($key) !== \SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
+            || \strlen($signature) !== \SODIUM_CRYPTO_SIGN_BYTES) {
             return ['valid' => false, 'reason' => 'verify.malformed'];
         }
 

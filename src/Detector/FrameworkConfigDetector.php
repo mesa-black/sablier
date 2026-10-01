@@ -65,12 +65,16 @@ final class FrameworkConfigDetector implements Detector
             }
 
             foreach ($matches[0] as $index => [$hit, $offset]) {
+                // The first group, or an empty string: a rule whose pattern has
+                // no group, or a group that did not take part, must not reach
+                // strtolower() as a missing offset.
+                $captured = $matches[1][$index][0] ?? '';
                 $algorithm = match ($kind) {
-                    'capture' => Catalogue::normalise($matches[1][$index][0]),
-                    'crypt' => match (strtolower($matches[1][$index][0])) {
+                    'capture' => Catalogue::normalise($captured),
+                    'crypt' => match (strtolower($captured)) {
                         'aes' => 'aes-256', 'des' => 'des', default => null,
                     },
-                    'hash' => str_starts_with(strtolower($matches[1][$index][0]), 'argon') ? 'argon2' : 'bcrypt',
+                    'hash' => str_starts_with(strtolower($captured), 'argon') ? 'argon2' : 'bcrypt',
                     default => $kind,
                 };
 

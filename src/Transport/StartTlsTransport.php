@@ -19,7 +19,14 @@ abstract class StartTlsTransport implements Transport
         return $this->failure;
     }
 
-    /** Runs the protocol's own dialogue up to the point TLS can start. */
+    /**
+     * Runs the protocol's own dialogue up to the point TLS can start.
+     *
+     * PHP has no type declaration for a stream, so the contract is written
+     * here: subclasses receive an open socket and nothing else.
+     *
+     * @param resource $stream
+     */
     abstract protected function negotiate(mixed $stream): bool;
 
     public function open(string $host, int $port, $context, int $timeout)
@@ -36,8 +43,8 @@ abstract class StartTlsTransport implements Transport
 
         // The version probe forces one TLS version through the context; read it
         // back here so a STARTTLS service is tested exactly like an implicit one.
-        $options = stream_context_get_options($context)['ssl'] ?? [];
-        $method = (int) ($options['crypto_method'] ?? \STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        $options = \Sablier\Value::map(\Sablier\Value::map(stream_context_get_options($context))['ssl'] ?? null);
+        $method = \Sablier\Value::int($options['crypto_method'] ?? null, \STREAM_CRYPTO_METHOD_TLS_CLIENT);
 
         // Answering and then declining the upgrade is the interesting failure:
         // the service is reachable and the session is in plaintext.

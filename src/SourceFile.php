@@ -43,16 +43,24 @@ final class SourceFile
         return \in_array($this->extension, $extensions, true);
     }
 
-    /** 1-based line number of a byte offset in the content. */
+    /**
+     * 1-based line number of a byte offset in the content.
+     *
+     * A negative offset is clamped rather than trusted: PREG_OFFSET_CAPTURE
+     * reports -1 for a group that did not take part in the match, and
+     * substr_count would read that as "stop one byte from the end" — a wrong
+     * line number, silently, which is worse than no line at all.
+     */
     public function lineAt(int $offset): int
     {
-        return substr_count($this->content(), "\n", 0, $offset) + 1;
+        return substr_count($this->content(), "\n", 0, max(0, $offset)) + 1;
     }
 
     /** The whole source line containing a byte offset, untrimmed. */
     public function lineTextAt(int $offset): string
     {
         $content = $this->content();
+        $offset = max(0, $offset);
         $start = strrpos(substr($content, 0, $offset), "\n");
         $start = $start === false ? 0 : $start + 1;
         $end = strpos($content, "\n", $offset);

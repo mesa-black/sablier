@@ -1,0 +1,14 @@
+# Static analysis at the strictest level the tool offers.
+#
+# Run from a container rather than from a vendor directory: this project ships
+# no dependencies, and a QA tool is not a reason to start.
+#
+#   make phpstan
+parameters:
+	level: max
+	phpVersion: 80400
+	paths:
+		- bin/sablier
+		- src
+	excludePaths:
+		- tests/fixtures/*

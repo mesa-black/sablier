@@ -17,11 +17,12 @@ final class PostgresTransport extends StartTlsTransport
     /** The magic number every PostgreSQL client sends to ask for TLS. */
     private const int SSL_REQUEST_CODE = 80877103;
 
-    public function startTlsFlag(): ?string
+    public function startTlsFlag(): string
     {
         return 'postgres';
     }
 
+    /** @param resource $stream */
     protected function negotiate(mixed $stream): bool
     {
         // Length-prefixed message: eight bytes in total, and the request code.

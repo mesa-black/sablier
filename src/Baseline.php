@@ -23,16 +23,19 @@ namespace Sablier;
  */
 final class Baseline
 {
-    /** @var array<string, array<string, mixed>> indexed by fingerprint */
+    /** @var array<string, array<array-key, mixed>> indexed by fingerprint */
     private array $rows = [];
 
+    /** @param array<array-key, mixed> $rows */
     private function __construct(
         public readonly string $path,
         array $rows,
     ) {
         foreach ($rows as $row) {
-            if (\is_array($row) && \is_string($row['fingerprint'] ?? null)) {
-                $this->rows[$row['fingerprint']] = $row;
+            $row = Value::map($row);
+            $fingerprint = Value::string($row['fingerprint'] ?? null);
+            if ($fingerprint !== '') {
+                $this->rows[$fingerprint] = $row;
             }
         }
     }
@@ -60,6 +63,7 @@ final class Baseline
      */
     private static function rank(string $verdict): int
     {
+        /** @var array<string, int>|null $rank */
         static $rank = null;
         $rank ??= array_flip(array_reverse(Assessor::order()));
 
@@ -76,7 +80,7 @@ final class Baseline
      *
      * @param list<Finding> $findings
      *
-     * @return array{new: list<Finding>, worsened: list<array{finding: Finding, from: string}>, red: list<Finding>, resolved: list<array<string, mixed>>, decisions: int}
+     * @return array{new: list<Finding>, worsened: list<array{finding: Finding, from: string}>, red: list<Finding>, resolved: list<array<array-key, mixed>>, decisions: int}
      */
     public function compare(array $findings): array
     {
@@ -95,7 +99,7 @@ final class Baseline
                 continue;
             }
 
-            $before = \is_string($previous['verdict'] ?? null) ? $previous['verdict'] : $finding->verdict;
+            $before = Value::string($previous['verdict'] ?? null, $finding->verdict);
             if (self::rank($finding->verdict) > self::rank($before)) {
                 $worsened[] = ['finding' => $finding, 'from' => $before];
                 continue;
@@ -110,7 +114,7 @@ final class Baseline
 
         $resolved = [];
         foreach ($this->rows as $fingerprint => $row) {
-            $verdict = \is_string($row['verdict'] ?? null) ? $row['verdict'] : '';
+            $verdict = Value::string($row['verdict'] ?? null);
             if (!isset($seen[$fingerprint]) && !\in_array($verdict, [Assessor::CLEAR, Assessor::NOISE], true)) {
                 $resolved[] = $row;
             }

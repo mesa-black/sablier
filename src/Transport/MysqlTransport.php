@@ -18,11 +18,12 @@ final class MysqlTransport extends StartTlsTransport
     private const int CLIENT_PROTOCOL_41 = 0x0200;
     private const int CLIENT_SECURE_CONNECTION = 0x8000;
 
-    public function startTlsFlag(): ?string
+    public function startTlsFlag(): string
     {
         return 'mysql';
     }
 
+    /** @param resource $stream */
     protected function negotiate(mixed $stream): bool
     {
         $header = (string) fread($stream, 4);
@@ -32,6 +33,9 @@ final class MysqlTransport extends StartTlsTransport
 
         // 3-byte little-endian length, then a sequence number we answer with +1.
         $length = \ord($header[0]) | (\ord($header[1]) << 8) | (\ord($header[2]) << 16);
+        if ($length < 1) {
+            return false;
+        }
         $greeting = (string) fread($stream, $length);
         if (!$this->offersTls($greeting)) {
             return false;

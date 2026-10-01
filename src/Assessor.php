@@ -57,7 +57,11 @@ final class Assessor
         return Lang::t("verdict.$verdict");
     }
 
-    /** Order in which a human should read the verdicts. */
+    /**
+     * Order in which a human should read the verdicts.
+     *
+     * @return list<string>
+     */
     public static function order(): array
     {
         return [self::COMPROMISED, self::URGENT, self::MIGRATE, self::DECLARE, self::WATCH, self::ACCEPTED, self::CLEAR, self::NOISE];
