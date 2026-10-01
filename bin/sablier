@@ -1,18 +1,19 @@
 #!/usr/bin/env php
 <?php
 
-declare(strict_types=1);
-
 /*
  * Sablier — cryptographic inventory, and the expiry date of each protection.
  *
  *   bin/sablier scan <path> [--declare=sablier.json] [--out=report.html] [--pdf=report.pdf]
+ *   bin/sablier judge <cbom.json>
  *   bin/sablier probe <host>
  *
  * No dependency, no network call of its own, no telemetry. On a tool that reads
  * where the keys are, that is not a posture: every dependency would be one more
  * supply chain to defend.
  */
+
+declare(strict_types=1);
 
 namespace Sablier;
 
