@@ -173,9 +173,12 @@ if ($command === 'accept') {
 if ($command === 'declare') {
     $target = $argv[2] ?? '';
     $out = null;
+    $log = null;
     foreach (\array_slice($argv, 3) as $argument) {
         if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
             $out = $m[1];
+        } elseif (preg_match('/^--log=(.+)$/', $argument, $m) === 1) {
+            $log = $m[1];
         }
     }
 
@@ -208,7 +211,8 @@ if ($command === 'declare') {
         printf("  %s\n\n", Lang::t('declare.nothing'));
         exit(0);
     }
-    printf("  %s\n", Lang::t('declare.found', \count($areas), $root));
+    printf("  %s\n", Lang::t('declare.found', \count($areas)));
+    printf("  %s\n", Lang::t('declare.target', $root));
 
     $ask = static function (string $question, bool $optional = false): ?string {
         while (true) {
@@ -242,16 +246,22 @@ if ($command === 'declare') {
 
     $startedAt = microtime(true);
     $answers = [];
+    $record = [];
     $skipped = 0;
     foreach ($areas as $index => $area) {
-        printf("\n  ———\n  %s\n", Lang::t('declare.area', $index + 1, \count($areas), $area['path']));
-        printf("  %s\n", $area['algorithms'] === []
-            ? Lang::t('declare.area.detail.none', $area['files'])
-            : Lang::t('declare.area.detail', $area['files'], implode(', ', array_map(Catalogue::label(...), $area['algorithms']))));
+        // Per area, because the total says how long it took and this says
+        // where it got hard. Hesitation is the measurement the session is
+        // actually after, and asking somebody to time themselves with a
+        // stopwatch while they think is how you stop them thinking.
+        $areaStartedAt = microtime(true);
+        printf("\n  ———\n  %s\n\n", Lang::t('declare.area', $index + 1, \count($areas), $area['files']));
+        printf("  %s\n", wordwrap(Lang::t(Interview::subject($area['algorithms'])), 76, "\n  "));
+        printf("  %s\n", Lang::t('declare.area.where', implode(', ', $area['names']).($area['files'] > \count($area['names']) ? ' …' : '')));
 
         $name = $ask(Lang::t('declare.q.name'), true);
         if ($name === null) {
             ++$skipped;
+            $record[] = ['area' => $area['path'], 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
             printf("  %s\n", Lang::t('declare.skipped'));
             continue;
         }
@@ -260,6 +270,7 @@ if ($command === 'declare') {
         $damage = $years(Lang::t('declare.q.damage'));
         if ($retention === null && $damage === null) {
             ++$skipped;
+            $record[] = ['area' => $area['path'], 'name' => $name, 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
             printf("  %s\n", Lang::t('declare.skipped'));
             continue;
         }
@@ -274,10 +285,22 @@ if ($command === 'declare') {
 
         $answers[] = [
             'name' => $name,
-            'paths' => [$area['path'].'/*'],
+            'paths' => [$area['pattern']],
             'lifetime' => $lifetime,
             'note' => $ask(Lang::t('declare.q.note'), true) ?? '',
         ];
+
+        $seconds = round(microtime(true) - $areaStartedAt, 1);
+        $record[] = [
+            'area' => $area['path'],
+            'name' => $name,
+            'retention_years' => $retention,
+            'harm_years' => $damage,
+            'lifetime_years' => $lifetime,
+            'skipped' => false,
+            'seconds' => $seconds,
+        ];
+        printf("  %s\n", Lang::t('declare.area.time', $seconds));
     }
 
     if ($answers !== []) {
@@ -289,11 +312,39 @@ if ($command === 'declare') {
     }
 
     $elapsed = microtime(true) - $startedAt;
-    printf("  %s\n\n", Lang::t('declare.elapsed',
+
+    // The sheet in docs/declaration-session.md asks for two of these by hand.
+    // Filling them here is not a convenience: a number transcribed after the
+    // fact is a number somebody rounded towards the result they hoped for.
+    printf("\n  %s\n", Lang::t('declare.times'));
+    foreach ($record as $entry) {
+        printf(
+            "    %s %s%s\n",
+            mb_str_pad(\sprintf('%5.1f s', $entry['seconds']), 10),
+            mb_str_pad((string) $entry['area'], 34),
+            $entry['skipped'] ? ' — '.Lang::t('declare.times.skipped') : '',
+        );
+    }
+
+    printf("\n  %s\n", Lang::t('declare.elapsed',
         $elapsed < 60 ? \sprintf('%d s', (int) $elapsed) : \sprintf('%d min %02d s', (int) ($elapsed / 60), (int) $elapsed % 60),
         \count($answers),
         $skipped,
     ));
+
+    if ($log !== null) {
+        file_put_contents($log, json_encode([
+            'project' => basename($root),
+            'started_at' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+            'seconds' => round($elapsed, 1),
+            'answered' => \count($answers),
+            'skipped' => $skipped,
+            'areas' => $record,
+        ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+        printf("  → %s\n", $log);
+    }
+
+    echo "\n";
     exit(0);
 }
 

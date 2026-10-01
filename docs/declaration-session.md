@@ -16,11 +16,20 @@ the first one, so the result cannot be rationalised afterwards.
 
 Three numbers, written down during the session rather than reconstructed later.
 
-| | What to record |
-|---|---|
-| **Time** | Wall clock from the first question to the written file. The tool prints it at the end. |
-| **Confidence** | For each area: answered without hesitating, answered after discussion, or stalled. Three columns, one tick each. |
-| **Disagreements** | Every time the person's answer contradicts what we would have assumed. These are the most instructive minutes of the session — they say our defaults are wrong, and they are the only part that cannot be guessed from a desk. |
+| | What to record | Who records it |
+|---|---|---|
+| **Time** | Wall clock overall, and per subject. Hesitation is the measurement, and asking somebody to time themselves while they think is how you stop them thinking. | the tool, with `--log` |
+| **Confidence** | Answered without hesitating, answered after discussion, or stalled. The per-subject seconds are a decent proxy, the tick is the judgement. | you |
+| **Disagreements** | Every time the answer contradicts what we would have assumed. The most instructive minutes of the session: they say our defaults are wrong, and they cannot be guessed from a desk. | you |
+
+```bash
+sablier declare /path/to/project --log=session.json
+```
+
+The log holds, per subject, the name the person gave, the two numbers, the
+lifetime derived from them, whether it was skipped, and the seconds spent. A
+number transcribed after the fact is a number somebody rounded towards the
+result they hoped for.
 
 ## What would falsify the thesis
 
@@ -50,14 +59,23 @@ undeclared are the questions the interview will ask.
 sablier declare /path/to/project
 ```
 
-The interview asks about each undeclared area, in the order of how much code it
-covers. It never asks for a confidentiality lifetime. It asks two things people
-answer every week:
+The interview goes subject by subject. Each one opens with a plain-language
+description of **what the tool found there** — a vault of secrets, settings
+read at startup, a fingerprint over content — with the file names underneath
+for whoever in the room knows them. No algorithm name, no path as a heading: a
+first dry run showed a subject as "`.env` — cryptography found: no encryption",
+which loses a non-technical person in two lines and takes the session with
+them.
+
+Then it asks three things, none of which is a confidentiality lifetime:
+
+- **if somebody got a copy of this, what would we be talking about, in your
+  words?** The answer names the domain, and it is theirs rather than ours;
 
 - **how long must you keep this?** Retention is a legal fact somebody already
   knows — an accountant's obligation, a regulation, a contract. Nobody
   hesitates on it;
-- **if it leaked today, how long would it still hurt?** Usually shorter than
+- **if this got out today, how long would it still hurt?** Usually shorter than
   retention. Occasionally much longer, and that gap is worth the whole session.
 
 The lifetime is the larger of the two, because data that must be kept is data
@@ -109,15 +127,21 @@ Verdicts that moved between before.html and after.html:
 The areas the scan reports as undeclared today, in the order the interview will
 raise them:
 
-| Area | What is there |
-|---|---|
-| `config/secrets/prod` | the Symfony vault — X25519, and the one that turns red if the answer is long |
-| `.env`, `.env.dev`, `.env.test` | connection strings with no TLS mode declared |
-| `src/Identity/Application/OAuth` | SHA-256 in the OAuth exchange |
-| `src/Feedback/Application` | SHA-256 over feedback content |
-| `assets/images/partners`, `public/assets/images/partners` | two files whose extension does not match their content |
+Four subjects, in the order the interview raises them. Count twenty minutes.
 
-The first line is the one to watch. With a short answer the project stays
-green; declared at ten years, the vault finding becomes COMPROMISED and the
-crossing date moves to "already past". The arithmetic is not the interesting
-part — what the person says before giving the number is.
+| Subject | What the person will be shown |
+|---|---|
+| `.env`, `.env.dev`, `.env.test` | settings read at startup: what it connects to, with which account and password |
+| `config/secrets` | a vault of secrets — passwords, keys, tokens, encrypted, protecting everything else |
+| `src/Feedback` | a fingerprint computed over content |
+| `src/Identity` | a fingerprint in the OAuth exchange |
+
+The two mislabelled images are deliberately **not** in the list: a `.png` that
+is a JPEG is a developer's confirmation, not a business decision, and spending
+one of twenty minutes on it would be a waste of the only hour that matters.
+
+The vault is the line to watch. A dry run answering "fifteen years" to the harm
+question turns that finding **COMPROMISED** and moves its crossing date to
+*already past* — a report that went from no red at all to one red, on the
+strength of a sentence somebody said out loud. The arithmetic is not the
+interesting part. What they say before giving the number is.
