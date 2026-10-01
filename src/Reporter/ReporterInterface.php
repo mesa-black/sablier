@@ -13,7 +13,7 @@ use Sablier\Analysis;
  * format the reader needs is an inventory nobody acts on. HTML for the person
  * who decides, JSON for the pipeline that gates.
  */
-interface Reporter
+interface ReporterInterface
 {
     public function render(Analysis $analysis): string;
 }

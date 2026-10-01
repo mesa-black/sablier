@@ -19,7 +19,7 @@ use Sablier\Value;
  * reaches hosts you declare, and a configuration says what was *intended* —
  * a gap between intention and handshake is itself the finding.
  */
-final class ServerConfigDetector implements Detector
+final class ServerConfigDetector implements DetectorInterface
 {
     private const array FILENAMES = [
         'Caddyfile', 'nginx.conf', 'httpd.conf', 'apache2.conf', 'ssl.conf',

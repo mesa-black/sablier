@@ -19,7 +19,7 @@ use Sablier\SourceFile;
  * repository, decrypts it the day the curve falls. Rotating the secrets later
  * does not help: what was sealed has already been copied.
  */
-final class SymfonyVaultDetector implements Detector
+final class SymfonyVaultDetector implements DetectorInterface
 {
     public function supports(SourceFile $file): bool
     {

@@ -14,7 +14,7 @@ use Sablier\Finding;
  * labels: a pipeline that breaks when someone switches the report to Spanish is
  * not a pipeline.
  */
-final class JsonReporter implements Reporter
+final class JsonReporter implements ReporterInterface
 {
     public function render(Analysis $analysis): string
     {

@@ -19,7 +19,7 @@ use Sablier\Value;
  * `sntrup761x25519-sha512` is a hybrid, and finding it is good news the rest of
  * this report rarely gets to deliver.
  */
-final class SshConfigDetector implements Detector
+final class SshConfigDetector implements DetectorInterface
 {
     private const array FILENAMES = ['sshd_config', 'ssh_config', 'config'];
 

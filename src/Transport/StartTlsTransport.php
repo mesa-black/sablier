@@ -10,7 +10,7 @@ namespace Sablier\Transport;
  * The upgrade is the interesting moment: it is where a session silently stays
  * in plaintext when a server declines or an intermediary interferes.
  */
-abstract class StartTlsTransport implements Transport
+abstract class StartTlsTransport implements TransportInterface
 {
     private ?string $failure = null;
 

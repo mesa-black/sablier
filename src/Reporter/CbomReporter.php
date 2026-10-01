@@ -31,7 +31,7 @@ use Sablier\Signature;
  * properties will under-read that component, and there is no way around it
  * short of not reporting the finding at all, which would be worse.
  */
-final class CbomReporter implements Reporter
+final class CbomReporter implements ReporterInterface
 {
     /** CycloneDX primitives, per catalogue key. Omitted where we would be guessing. */
     private const array PRIMITIVE = [

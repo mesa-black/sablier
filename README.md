@@ -116,12 +116,12 @@ Two extension points, because the scoping study names two axes that will
 actually grow — and nothing else gets an interface.
 
 ```
-Detector            one way of finding cryptography in one kind of file
+DetectorInterface   one way of finding cryptography in one kind of file
   PhpDetector · ShellDetector · KeyMaterialDetector
-  TlsConfigDetector · DependencyDetector
+  ServerConfigDetector · DependencyDetector
 
-Reporter            one way of rendering an analysis
-  HtmlReporter · JsonReporter
+ReporterInterface   one way of rendering an analysis
+  HtmlReporter · AuditReporter · CbomReporter · JsonReporter
 ```
 
 `Scanner` walks a tree and knows nothing about cryptography; the detector list is

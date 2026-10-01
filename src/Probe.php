@@ -11,7 +11,7 @@ use Sablier\Transport\MysqlTransport;
 use Sablier\Transport\Pop3Transport;
 use Sablier\Transport\PostgresTransport;
 use Sablier\Transport\SmtpTransport;
-use Sablier\Transport\Transport;
+use Sablier\Transport\TransportInterface;
 
 /**
  * What a real server actually negotiates — the biggest blind spot of static
@@ -35,7 +35,7 @@ final class Probe
      * Services the probe knows, by default port. The scheme wins when given, so
      * a service on an unusual port is still reachable: `smtp://mx.example:2525`.
      *
-     * @var array<int, array{scheme:string, label:string, transport:class-string<Transport>}>
+     * @var array<int, array{scheme:string, label:string, transport:class-string<TransportInterface>}>
      */
     private const array BY_PORT = [
         443 => ['scheme' => 'tls', 'label' => 'HTTPS', 'transport' => ImplicitTlsTransport::class],
@@ -50,7 +50,7 @@ final class Probe
         3306 => ['scheme' => 'mysql', 'label' => 'MySQL / MariaDB', 'transport' => MysqlTransport::class],
     ];
 
-    /** @var array<string, array{port:int, label:string, transport:class-string<Transport>}> */
+    /** @var array<string, array{port:int, label:string, transport:class-string<TransportInterface>}> */
     private const array BY_SCHEME = [
         'https' => ['port' => 443, 'label' => 'HTTPS', 'transport' => ImplicitTlsTransport::class],
         'tls' => ['port' => 443, 'label' => 'HTTPS', 'transport' => ImplicitTlsTransport::class],
@@ -177,7 +177,7 @@ final class Probe
     }
 
     /**
-     * @return array{host:string, port:int, label:string, scheme:string, transport:Transport}
+     * @return array{host:string, port:int, label:string, scheme:string, transport:TransportInterface}
      */
     private function resolve(string $target): array
     {
@@ -217,7 +217,7 @@ final class Probe
     }
 
     /** @return array{protocol:string, cipher:string, bits:int, cert:array<array-key, mixed>|null, keyLabel:string, chain:int, validTo:string}|null */
-    private function connect(string $host, int $port, Transport $transport): ?array
+    private function connect(string $host, int $port, TransportInterface $transport): ?array
     {
         $context = stream_context_create(['ssl' => [
             'capture_peer_cert' => true,
@@ -275,7 +275,7 @@ final class Probe
      * the openssl binary when it is available — and says so when it is not,
      * rather than silently dropping the most important field of the report.
      */
-    private function negotiatedGroup(string $host, int $port, Transport $transport): ?string
+    private function negotiatedGroup(string $host, int $port, TransportInterface $transport): ?string
     {
         $binary = trim((string) @shell_exec('command -v openssl 2>/dev/null'));
         if ($binary === '') {
@@ -362,7 +362,7 @@ final class Probe
     }
 
     /** @return array{accepted: list<string>, untestable: list<string>} */
-    private function supportedVersions(string $host, int $port, Transport $transport): array
+    private function supportedVersions(string $host, int $port, TransportInterface $transport): array
     {
         $methods = [
             'TLSv1.0' => \STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT,

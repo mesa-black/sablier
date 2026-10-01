@@ -16,7 +16,7 @@ namespace Sablier\Transport;
  * The project's third extension axis, and the reason this is an interface:
  * every protocol added from here is a new implementation, not an edit.
  */
-interface Transport
+interface TransportInterface
 {
     /**
      * Opens a connection and brings it to a TLS state, or returns null.

@@ -20,7 +20,7 @@ use Sablier\Signature;
  * to anything. A tool that reads where the keys are must not open a socket to
  * render its own output — and it makes the file safe to send as an attachment.
  */
-final class HtmlReporter implements Reporter
+final class HtmlReporter implements ReporterInterface
 {
     /** Where a rule defect goes. The tool's own repository, not the reader's. */
     private const string ISSUES_URL = 'https://github.com/mesa-black/sablier/issues/new';

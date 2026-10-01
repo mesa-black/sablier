@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sablier\Transport;
 
 /** TLS from the first byte: HTTPS, SMTPS, IMAPS, POP3S. */
-final class ImplicitTlsTransport implements Transport
+final class ImplicitTlsTransport implements TransportInterface
 {
     private ?string $failure = null;
 

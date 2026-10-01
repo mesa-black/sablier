@@ -17,7 +17,7 @@ use Sablier\SourceFile;
  * — TOTP is specified on SHA-1. Treating the two alike produced the first false
  * alarms this tool ever printed.
  */
-final class DependencyDetector implements Detector
+final class DependencyDetector implements DetectorInterface
 {
     private const array PACKAGES = [
         'firebase/php-jwt' => ['rsa-sign', 'detail.pkg.jwt'],

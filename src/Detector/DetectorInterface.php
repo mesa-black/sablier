@@ -16,7 +16,7 @@ use Sablier\SourceFile;
  * and no second one in sight, so it stays concrete — an interface with a single
  * implementation and no prospect of another is a cost with no buyer.
  */
-interface Detector
+interface DetectorInterface
 {
     /** Cheap decision, made on the file's name alone where possible. */
     public function supports(SourceFile $file): bool;

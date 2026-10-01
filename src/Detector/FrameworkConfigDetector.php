@@ -21,7 +21,7 @@ use Sablier\Value;
  * routinely the only place a cipher is named in a whole codebase: application
  * code calls `encrypt()` and never sees an algorithm.
  */
-final class FrameworkConfigDetector implements Detector
+final class FrameworkConfigDetector implements DetectorInterface
 {
     private const array FILENAMES = [
         'app.php', 'app_local.php', 'database.php', 'session.php',

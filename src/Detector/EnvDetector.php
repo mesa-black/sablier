@@ -26,7 +26,7 @@ use Sablier\SourceFile;
  * encrypted at all — and `sslmode=prefer`, the historical default of several
  * PostgreSQL clients, silently falls back to cleartext when the server says no.
  */
-final class EnvDetector implements Detector
+final class EnvDetector implements DetectorInterface
 {
     public function supports(SourceFile $file): bool
     {

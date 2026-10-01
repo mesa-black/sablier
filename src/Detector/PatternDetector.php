@@ -17,7 +17,7 @@ use Sablier\Value;
  * null means "cryptography is here but we cannot name it" — reported as
  * undetermined, never inferred.
  */
-abstract class PatternDetector implements Detector
+abstract class PatternDetector implements DetectorInterface
 {
     protected const string CAPTURE = 'capture';
 

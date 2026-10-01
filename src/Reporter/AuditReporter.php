@@ -39,7 +39,7 @@ use Sablier\Signature;
  * It deliberately does not look like the technical report. Two documents from
  * the same run that look alike is how a reader ends up quoting the wrong one.
  */
-final class AuditReporter implements Reporter
+final class AuditReporter implements ReporterInterface
 {
     private Analysis $analysis;
 

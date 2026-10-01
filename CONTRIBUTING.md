@@ -26,7 +26,7 @@ are optional, and both say plainly when they cannot run.
 
 ## Adding a detector
 
-One detector reads one kind of file. Implement `Sablier\Detector\Detector` and
+One detector reads one kind of file. Implement `Sablier\Detector\DetectorInterface` and
 register it in `bin/sablier`; the scanner walks the tree and knows nothing about
 cryptography.
 
@@ -38,7 +38,7 @@ is a visible gap rather than a silent empty string.
 ## Adding a transport
 
 A transport brings a connection to a TLS state. Implement
-`Sablier\Transport\Transport`; the interesting part is the upgrade, because that
+`Sablier\Transport\TransportInterface`; the interesting part is the upgrade, because that
 is where a session silently stays in cleartext.
 
 Test it against a server you control. `tests/starttls-server.php` is twenty

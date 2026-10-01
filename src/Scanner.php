@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sablier;
 
-use Sablier\Detector\Detector;
+use Sablier\Detector\DetectorInterface;
 
 /**
  * Walks a tree and offers each file to the detectors.
@@ -26,7 +26,7 @@ final class Scanner
     private const int MAX_BYTES = 2_000_000;
 
     /**
-     * @param list<Detector> $detectors
+     * @param list<DetectorInterface> $detectors
      * @param list<string>   $exclude globs from the declaration, matched on the relative path
      */
     public function __construct(

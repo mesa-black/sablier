@@ -11,7 +11,7 @@ use Sablier\SourceFile;
 use Sablier\Value;
 
 /** Keys and certificates sitting in the tree. */
-final class KeyMaterialDetector implements Detector
+final class KeyMaterialDetector implements DetectorInterface
 {
     private const array PRIVATE_KEYS = [
         'BEGIN RSA PRIVATE KEY' => ['rsa', 'detail.rsa_private_key'],
