@@ -1,0 +1,59 @@
+#!/bin/sh
+# Sablier, with the PHP that is on this machine — or with one borrowed.
+#
+# The tool has no dependencies, which is the point; but PHP 8.4 is itself a
+# dependency, and a consultant running an audit on a client's laptop may not
+# have it. So: use the local interpreter when it is recent enough, and when it
+# is not, run the same code inside the official PHP image. Nothing is
+# installed, nothing is written outside the current directory, and the analysis
+# is identical either way — the tool reads files and opens TLS sockets, both of
+# which a container does as well as a host.
+#
+# Paths are resolved against the current directory, which is what the container
+# sees. Scanning a project elsewhere means standing in it:
+#   cd /path/to/project && /path/to/sablier scan .
+set -eu
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# Alpine rather than the Debian image, for one measurable reason: at the time
+# of writing Trivy reports 162 high or critical vulnerabilities in php:8.4-cli
+# and none in this one. `make cve` re-checks that claim rather than trusting it.
+image=${SABLIER_PHP_IMAGE:-php:8.4-cli-alpine}
+
+if command -v php >/dev/null 2>&1 && php -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' 2>/dev/null; then
+    exec php "$root/bin/sablier" "$@"
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+    echo "sablier: needs PHP 8.4 or Docker, and found neither." >&2
+    echo "         PHP: https://www.php.net/downloads — Docker: https://docs.docker.com/get-docker/" >&2
+    exit 1
+fi
+
+# A path outside the mounted directory would be written inside the container
+# and lost with it. Saying so beats a report that silently goes nowhere.
+for argument in "$@"; do
+    case "$argument" in
+        --*=/*) candidate=${argument#*=} ;;
+        /*) candidate=$argument ;;
+        *) continue ;;
+    esac
+    case "$candidate" in
+        "$PWD"|"$PWD"/*) ;;
+        *)
+            echo "sablier: without a local PHP, every path must sit inside $PWD." >&2
+            echo "         $candidate does not. Run the command from the directory that holds it." >&2
+            exit 1
+            ;;
+    esac
+done
+
+# --user keeps the report owned by whoever ran the command rather than by root;
+# the repository is mounted read-only because the tool never writes into itself.
+exec docker run --rm \
+    --user "$(id -u):$(id -g)" \
+    --volume "$root":/sablier:ro \
+    --volume "$PWD":/work \
+    --workdir /work \
+    --env SABLIER_LANG \
+    "$image" php /sablier/bin/sablier "$@"

@@ -33,8 +33,20 @@ Status: **prototype**.
 make demo                                   # fixture project + report
 make scan DIR=/path/to/project LANG=en      # a real project
 make scan DIR=/path/to/project PDF=1        # …and a PDF alongside it
+make scan DIR=/path/to/project AUDIT=1      # …and the audit document
 make probe HOST=example.org                 # what a server actually negotiates
 make test                                   # does the risk model still discriminate?
+```
+
+**No PHP on this machine?** `./sablier` is the same tool through a container:
+it uses the local interpreter when it is 8.4 or newer, and otherwise runs the
+unchanged code inside `php:8.4-cli-alpine`. Nothing is installed, the report is
+written by your own user, and paths are resolved against the directory you
+stand in — which is the one mounted, so the launcher refuses a path outside it
+rather than writing a report that disappears with the container.
+
+```bash
+cd /path/to/project && /path/to/sablier scan . --out=report.html
 ```
 
 Reports are available in French, English and Spanish (`--lang=fr|en|es`).
@@ -417,6 +429,36 @@ one node, which is one person: no more trustworthy than the signature it would
 replace. A public chain means the digest leaves the machine, which breaks the
 promise in the report's own footer. When a date has to be opposable to someone
 who does not trust you, a timestamping authority answers it in one request.
+
+## The three containers, and what is claimed about them
+
+A tool that reads where your keys are has no business telling you to run
+images it has not looked at. Three are named in this repository — `php:8.4-cli-alpine`
+for machines without PHP, `ghcr.io/phpstan/phpstan` for the static analysis,
+and the scanner itself — and one command re-checks all three:
+
+```bash
+make cve
+```
+
+It fails on any high or critical vulnerability, and it runs in CI on every
+push **and every Monday**, because an image with no known vulnerability today
+is not an image with no known vulnerability in March.
+
+The claim is exactly that, and no larger: *no known high or critical
+vulnerability, per Trivy's database at the time of the scan*. There is no
+claim about unknown ones, and none about the low and medium findings, which
+are visible in the same output.
+
+The Alpine image is not a taste: at the time of writing Trivy reports **162
+high or critical vulnerabilities in `php:8.4-cli`** — 46 of them with a fix
+available — and **none** in `php:8.4-cli-alpine`. The pinned versions in the
+`Makefile` are what `make cve`, the launcher and the CI all use, so the figure
+above is one command away from being contradicted.
+
+Static analysis runs at **level max** (`make phpstan`), in a container for the
+same reason: this project ships no `vendor/` directory, and a QA tool is not a
+reason to start one.
 
 ## What the tool refuses to do
 

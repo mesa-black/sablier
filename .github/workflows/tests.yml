@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A container with no known vulnerability today is not a container with no
+  # known vulnerability in March. The claim is re-made every week.
+  schedule:
+    - cron: '17 6 * * 1'
 
 jobs:
   tests:
@@ -35,3 +39,24 @@ jobs:
       # Refreshing .sablier/baseline.json is then a deliberate commit.
       - name: Scan its own repository
         run: ./bin/sablier scan . --no-probe --baseline=.sablier/baseline.json --out=self.html --lang=en
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Level max, in a container: this project has no vendor directory and a
+      # QA tool is not a reason to start one.
+      - name: PHPStan
+        run: make phpstan
+
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The tool tells people to run three images — PHP for the machines
+      # without it, PHPStan, and the scanner itself. Telling them that while
+      # shipping known holes would be the exact failure this project is about.
+      - name: No known high or critical CVE in the images we ask you to run
+        run: make cve
