@@ -33,7 +33,7 @@ result they hoped for.
 
 ## What would falsify the thesis
 
-If most areas end in **stalled**, the problem is not the tool and no additional
+If most subjects end in **stalled**, the problem is not the tool and no additional
 detector fixes it. The question would have to be asked differently — starting
 from something else entirely, or by a different person — and the product has to
 change rather than the documentation.
@@ -71,7 +71,6 @@ Then it asks three things, none of which is a confidentiality lifetime:
 
 - **if somebody got a copy of this, what would we be talking about, in your
   words?** The answer names the domain, and it is theirs rather than ours;
-
 - **how long must you keep this?** Retention is a legal fact somebody already
   knows — an accountant's obligation, a regulation, a contract. Nobody
   hesitates on it;
@@ -84,9 +83,9 @@ so the person can disagree with the reasoning rather than with a number.
 
 Two rules for whoever runs it:
 
-- **do not answer for them.** The temptation is enormous, especially on an area
+- **do not answer for them.** The temptation is enormous, especially on code
   you wrote yourself. A lifetime you supplied measures nothing;
-- **let them skip.** An area with no answer stays undeclared and is computed
+- **let them skip.** A subject with no answer stays undeclared and is computed
   with the default, which the report says in its blind spots. That is a
   result, not a failure — and it is the result that falsifies the thesis.
 
@@ -109,7 +108,7 @@ Project:                        Date:
 Person:                         Their job:
 Time, first question to file:              minutes
 
-Area                     Name given          Retention  Harm  Lifetime  Confident / Discussed / Stalled
+Subject                  Name given          Retention  Harm  Lifetime  Confident / Discussed / Stalled
 ───────────────────────  ──────────────────  ─────────  ────  ────────  ───────────────────────────────
 
 Disagreements with what we would have assumed:
@@ -123,9 +122,6 @@ Verdicts that moved between before.html and after.html:
 ```
 
 ## Show me the REX, first session
-
-The areas the scan reports as undeclared today, in the order the interview will
-raise them:
 
 Four subjects, in the order the interview raises them. Count twenty minutes.
 
