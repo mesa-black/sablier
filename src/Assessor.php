@@ -188,7 +188,12 @@ final class Assessor
             return [self::WATCH, Lang::t('reason.signature', $this->declaration->deprecationYear)];
         }
 
-        $exposureEnd = $this->currentYear + $finding->lifetime;
+        // The last secret this system writes is written on its last day, and it
+        // is harvestable for its full lifetime from there. Assuming the system
+        // stops today is the optimistic reading, which is why an undeclared
+        // horizon is printed as a blind spot rather than passed over.
+        $lastEmission = max($this->currentYear, $this->declaration->serviceUntil);
+        $exposureEnd = $lastEmission + $finding->lifetime;
         if ($exposureEnd > $this->declaration->expiryYear) {
             $gap = $exposureEnd - $this->declaration->expiryYear;
 

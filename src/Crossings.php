@@ -29,7 +29,7 @@ namespace Sablier;
 final class Crossings
 {
     /**
-     * @return list<array{domain:string, lifetime:int, year:int, past:bool, declared:bool}>
+     * @return list<array{domain:string, lifetime:int, year:int, past:bool, outlives:bool, declared:bool}>
      *                                                                                      sorted by date, soonest first
      */
     public static function for(Analysis $analysis): array
@@ -50,11 +50,17 @@ final class Crossings
             }
 
             $year = $analysis->declaration->expiryYear - $domain['lifetime'] + 1;
+            $serviceUntil = $analysis->declaration->serviceUntil;
             $crossings[] = [
                 'domain' => (string) $name,
                 'lifetime' => $domain['lifetime'],
                 'year' => $year,
                 'past' => $year <= $analysis->currentYear,
+                // A system retired before its own crossing date never crosses:
+                // nothing it will ever write outlives the algorithm protecting
+                // it. That is the one answer in this whole report that lets
+                // somebody do nothing for a good reason.
+                'outlives' => $serviceUntil > 0 && $year > $serviceUntil,
                 'declared' => $domain['declared'],
             ];
         }
@@ -67,12 +73,12 @@ final class Crossings
     /**
      * The next one still ahead, which is the only one anybody can act on.
      *
-     * @return array{domain:string, lifetime:int, year:int, past:bool, declared:bool}|null
+     * @return array{domain:string, lifetime:int, year:int, past:bool, outlives:bool, declared:bool}|null
      */
     public static function next(Analysis $analysis): ?array
     {
         foreach (self::for($analysis) as $crossing) {
-            if (!$crossing['past']) {
+            if (!$crossing['past'] && !$crossing['outlives']) {
                 return $crossing;
             }
         }
@@ -104,7 +110,7 @@ final class Crossings
         ];
 
         foreach (self::for($analysis) as $crossing) {
-            if ($crossing['past']) {
+            if ($crossing['past'] || $crossing['outlives']) {
                 continue;
             }
 

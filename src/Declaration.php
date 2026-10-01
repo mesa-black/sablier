@@ -32,6 +32,40 @@ final class Declaration
     public int $deprecationYear = 2030;
     public int $expiryYear = 2035;
 
+    /**
+     * The year this system stops producing data, when somebody knows it.
+     *
+     * The exposure of a domain does not end today: it ends when the last
+     * record is written. A service retired in 2027 emits its final secret in
+     * 2027, and that one is harvestable until 2027 plus its lifetime. Zero
+     * means undeclared, and the calculation then assumes the system stops
+     * today — which understates the exposure, so the report says so.
+     */
+    public int $serviceUntil = 0;
+
+    /**
+     * Whose deadline applies, and the text it comes from.
+     *
+     * The expiry year is not a universal constant: a commercial service plans
+     * against NIST IR 8547, a system handling classified French material
+     * against ANSSI's position that anything needing protection past 2030 has
+     * to be post-quantum today. Naming the regime picks the date **and the
+     * citation**, which is the only reason this is a setting rather than a
+     * number somebody typed.
+     *
+     * An explicit expiry_year always wins: the regime is a shortcut, not an
+     * authority.
+     *
+     * @var array<string, array{expiry:int, deprecation:int, source:string}>
+     */
+    public const array REGIMES = [
+        'general' => ['expiry' => 2035, 'deprecation' => 2030, 'source' => 'NIST IR 8547'],
+        'anssi' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => 'ANSSI'],
+        'nss' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => 'CNSA 2.0 (NSA)'],
+    ];
+
+    public string $regime = 'general';
+
     /** Overridable per project: a team that checked more recently should say so. */
     public string $deadlinesCheckedOn = self::DEADLINES_CHECKED_ON;
 
@@ -98,6 +132,16 @@ final class Declaration
         }
 
         $self->project = Value::string($raw['project'] ?? null);
+        $self->serviceUntil = Value::int($raw['service_until'] ?? null);
+
+        // The regime sets the dates; an explicit year overrides it. A regime
+        // nobody declared is the general one, which is also what every report
+        // printed before this setting existed.
+        $regime = strtolower(Value::string($raw['regime'] ?? null, 'general'));
+        $self->regime = isset(self::REGIMES[$regime]) ? $regime : 'general';
+        $self->deprecationYear = self::REGIMES[$self->regime]['deprecation'];
+        $self->expiryYear = self::REGIMES[$self->regime]['expiry'];
+
         $self->deprecationYear = Value::int($raw['deprecation_year'] ?? null, $self->deprecationYear);
         $self->expiryYear = Value::int($raw['expiry_year'] ?? null, $self->expiryYear);
         $self->defaultLifetime = Value::int($raw['default_lifetime_years'] ?? null, $self->defaultLifetime);

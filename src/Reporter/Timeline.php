@@ -37,8 +37,13 @@ final class Timeline
 
         $items = '';
         foreach ($crossings as $crossing) {
+            $key = match (true) {
+                $crossing['outlives'] => 'crossing.row.outlives',
+                $crossing['past'] => 'crossing.row.past',
+                default => 'crossing.row',
+            };
             $items .= '<li'.($crossing['past'] ? ' class="past"' : '').'>'.htmlspecialchars(Lang::t(
-                $crossing['past'] ? 'crossing.row.past' : 'crossing.row',
+                $key,
                 $crossing['domain'],
                 $crossing['lifetime'],
                 $crossing['year'],

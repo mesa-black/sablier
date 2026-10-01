@@ -23,6 +23,15 @@ final class BlindSpots
             Lang::t('blind.lifetime', $analysis->declaration->defaultLifetime),
         ];
 
+        $lines[] = $analysis->declaration->serviceUntil > 0
+            ? Lang::t('blind.service_until.declared', $analysis->declaration->serviceUntil)
+            : Lang::t('blind.service_until');
+        $lines[] = Lang::t(
+            'blind.regime',
+            $analysis->declaration->expiryYear,
+            Declaration::REGIMES[$analysis->declaration->regime]['source'] ?? '?',
+        );
+
         if ($analysis->declaration->rejectedAcceptances !== []) {
             $lines[] = Lang::t('accepted.rejected', \count($analysis->declaration->rejectedAcceptances));
         }

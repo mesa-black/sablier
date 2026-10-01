@@ -249,6 +249,49 @@ if ($command === 'declare') {
     };
 
     $startedAt = microtime(true);
+
+    // A duration and a date are not the same question, and a validator that
+    // confuses them rejects "2032" as too long to be a number of years.
+    $calendarYear = static function (string $question) use ($ask): ?int {
+        while (true) {
+            $answer = $ask($question, true, true);
+            if ($answer === null) {
+                return null;
+            }
+            if (preg_match('/^(20|21)\d{2}$/', $answer) === 1) {
+                return (int) $answer;
+            }
+            printf("  %s\n", Lang::t('declare.invalid.year'));
+        }
+    };
+
+    // Two questions about the system rather than about its data, asked once.
+    // They move every verdict below them: how long the thing will keep writing
+    // secrets, and whose deadline it answers to.
+    $project = [];
+    $serviceUntil = $calendarYear(Lang::t('declare.q.service'));
+    if ($serviceUntil !== null) {
+        $project['service_until'] = $serviceUntil;
+        printf("  %s\n", Lang::t('declare.service.set', $serviceUntil));
+    } else {
+        printf("  %s\n", Lang::t('declare.service.unknown'));
+    }
+
+    $chosen = $ask(Lang::t('declare.q.regime'), true, true);
+    $regime = match ($chosen) {
+        '2' => 'anssi',
+        '3' => 'nss',
+        '1' => 'general',
+        default => null,
+    };
+    if ($regime !== null) {
+        $project['regime'] = $regime;
+        printf("  %s\n", Lang::t('declare.regime.set',
+            Declaration::REGIMES[$regime]['expiry'],
+            Declaration::REGIMES[$regime]['source'],
+        ));
+    }
+
     $answers = [];
     $record = [];
     $skipped = 0;
@@ -309,10 +352,10 @@ if ($command === 'declare') {
         ];
     }
 
-    if ($answers !== []) {
+    if ($answers !== [] || $project !== []) {
         /** @var array<string, mixed> $existing */
         $existing = is_file($out) ? Value::map(json_decode((string) file_get_contents($out), true)) : [];
-        $merged = Interview::merge($existing, $answers);
+        $merged = Interview::merge([...$existing, ...$project], $answers);
         file_put_contents($out, json_encode($merged, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
         printf("\n  %s\n", Lang::t('declare.written', \count($answers), basename($out)));
     }

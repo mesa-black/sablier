@@ -147,6 +147,68 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- the system's own horizon, and whose deadline applies --------------------
+# Two facts about the system rather than about its data, and both move every
+# verdict under them: the last secret is written on the last day of service,
+# and the expiry year depends on who the system answers to.
+ctx=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$ctx/"
+php -r '
+	$d = json_decode(file_get_contents("tests/fixtures/sample/sablier.json"), true);
+	unset($d["expiry_year"]);                 // the regime must set it
+	$d["regime"] = "anssi";                   // 2030 rather than 2035
+	$d["service_until"] = 2032;               // still writing in 2032
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$ctx/strict.json"
+
+./bin/sablier scan "$ctx" --declare="$ctx/strict.json" --json="$ctx/strict.out.json" --out="$ctx/r.html" --quiet >/dev/null || true
+
+# Backups keep data ten years. Writing until 2032 means the last record is
+# exposed until 2042, not until 2036 — and the deadline it is measured against
+# is ANSSI's 2030 rather than 2035, because the declaration says who we are.
+exposure=$(php -r '
+	foreach (json_decode(file_get_contents($argv[1]), true) as $row) {
+		if ($row["verdict"] === "compromised") { echo str_contains($row["because"], "2042") ? "ok" : $row["because"]; return; }
+	}
+	echo "no compromised finding";
+' "$ctx/strict.out.json")
+if [ "$exposure" != "ok" ]; then
+	echo "✗ context: the last record is written on the last day of service ($exposure)"
+	rm -rf "$ctx"
+	exit 1
+fi
+if ! grep -q '2030' "$ctx/r.html"; then
+	echo "✗ context: the regime must set the expiry the report is measured against"
+	rm -rf "$ctx"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "context" "regime" "ANSSI 2030, exposed to 2042"
+
+# A system retired before its own crossing date never crosses: the one answer
+# in this report that lets somebody do nothing, for a good reason.
+php -r '
+	$d = json_decode(file_get_contents("tests/fixtures/sample/sablier.json"), true);
+	// Backups keep data ten years against a 2045 expiry, so they cross in
+	// 2036 — and the service stops in 2030, six years before that.
+	$d["expiry_year"] = 2045;
+	$d["service_until"] = 2030;
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$ctx/short.json"
+./bin/sablier scan "$ctx" --declare="$ctx/short.json" --out="$ctx/short.html" --calendar="$ctx/short.ics" --quiet >/dev/null || true
+# The apostrophe is escaped in the HTML, so match on a piece without one.
+if ! grep -q "avant la bascule de 2036" "$ctx/short.html"; then
+	echo "✗ context: a system that stops before its crossing must say so"
+	rm -rf "$ctx"
+	exit 1
+fi
+if grep -q 'BEGIN:VEVENT' "$ctx/short.ics"; then
+	echo "✗ context: a crossing the system never reaches is not an appointment"
+	rm -rf "$ctx"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "context" "horizon" "retired before its crossing"
+rm -rf "$ctx"
+
 # --- the interview ------------------------------------------------------------
 # The number nobody can state directly is derived from two they answer every
 # week, and the larger one wins: data you must keep is data that can still be
@@ -154,7 +216,9 @@ rm -rf "$cbom"
 iv=$(mktemp -d)
 cp -R tests/fixtures/sample/. "$iv/"
 rm -f "$iv/sablier.json"
-printf 'backups\n10\n2\nTen years of accounting in there.\nsession tokens\n0\n1\n\n' \
+# Two blank lines first: the interview opens with the system's horizon and the
+# regime, and skipping both is a legitimate answer.
+printf '\n\nbackups\n10\n2\nTen years of accounting in there.\nsession tokens\n0\n1\n\n' \
 	| ./bin/sablier declare "$iv" --out="$iv/sablier.json" >/dev/null 2>&1 || true
 
 derived=$(php -r '
