@@ -34,4 +34,4 @@ jobs:
       # nobody decided on stops this build exactly as it would stop yours.
       # Refreshing .sablier/baseline.json is then a deliberate commit.
       - name: Scan its own repository
-        run: ./bin/sablier scan . --no-probe --baseline=.sablier/baseline.json --out=self.html
+        run: ./bin/sablier scan . --no-probe --baseline=.sablier/baseline.json --out=self.html --lang=en

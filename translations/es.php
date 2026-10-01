@@ -155,7 +155,7 @@ return [
     --lang=fr|en|es     idioma del informe
     --no-probe          no sondear los hosts declarados
     --quiet             sin resumen en el terminal',
-    'cli.declaration' => 'declaración',
+    'cli.declaration' => 'declaración:',
 
     // --- comparison with a reference run ---
     'diff.header' => 'referencia: %s (%d hallazgos)',

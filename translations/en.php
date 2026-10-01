@@ -155,7 +155,7 @@ return [
     --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
     --quiet             no terminal summary',
-    'cli.declaration' => 'declaration',
+    'cli.declaration' => 'declaration:',
 
     // --- comparison with a reference run ---
     'diff.header' => 'reference: %s (%d findings)',

@@ -318,7 +318,8 @@ if ($options['quiet']) {
 }
 
 printf("\n  %s — %s, %s, %.1f s\n", $target, Lang::t('report.files_read', $scan['files']), Lang::t('cli.findings', \count($findings)), $duration);
-printf("  %s : %s\n\n", Lang::t('cli.declaration'), $declarationPath ?? Lang::t('cli.no_declaration'));
+// The colon belongs to the label: French puts a space before it, English does not.
+printf("  %s %s\n\n", Lang::t('cli.declaration'), $declarationPath ?? Lang::t('cli.no_declaration'));
 foreach (Assessor::order() as $verdict) {
     if (isset($counts[$verdict])) {
         printf("    %s %d\n", mb_str_pad(Assessor::label($verdict), 24), $counts[$verdict]);

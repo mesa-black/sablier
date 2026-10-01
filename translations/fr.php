@@ -164,7 +164,7 @@ return [
     --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
     --quiet             pas de résumé au terminal',
-    'cli.declaration' => 'déclaration',
+    'cli.declaration' => 'déclaration :',
 
     // --- comparison with a reference run ---
     'diff.header' => 'référence : %s (%d constats)',
