@@ -170,21 +170,49 @@ Verdicts that moved between before.html and after.html:
 
 ## Show me the REX, first session
 
-Four subjects, in the order the interview raises them. Count twenty minutes.
+Eight subjects, in the order the interview raises them. Count forty minutes, an
+hour with the report read in front of the person.
 
-| Subject | What the person will be shown |
-|---|---|
-| `.env`, `.env.dev`, `.env.test` | settings read at startup: what it connects to, with which account and password |
-| `config/secrets` | a vault of secrets — passwords, keys, tokens, encrypted, protecting everything else |
-| `src/Feedback` | a fingerprint computed over content |
-| `src/Identity` | a fingerprint in the OAuth exchange |
+| # | Subject | What the person will be shown |
+|---|---|---|
+| 1 | `.env`, `.env.dev`, `.env.test` | settings read at startup: what it connects to, with which account and password |
+| 2 | `composer` | public-key encryption — so only the recipient can read it back, or to protect a backup |
+| 3 | `config/secrets` | a vault of secrets — passwords, keys, tokens, encrypted, protecting everything else |
+| 4 | `src/Billing` | a fingerprint computed over content |
+| 5 | `src/Entity` | a fingerprint computed over content |
+| 6 | `src/Feedback` | a fingerprint computed over content |
+| 7 | `src/Identity` | a fingerprint computed over content |
+| 8 | `src/Security` | a fingerprint computed over content |
 
 The two mislabelled images are deliberately **not** in the list: a `.png` that
 is a JPEG is a developer's confirmation, not a business decision, and spending
-one of twenty minutes on it would be a waste of the only hour that matters.
+one of forty minutes on it would be a waste of the only hour that matters.
 
-The vault is the line to watch. A dry run answering "fifteen years" to the harm
-question turns that finding **COMPROMISED** and moves its crossing date to
-*already past* — a report that went from no red at all to one red, on the
-strength of a sentence somebody said out loud. The arithmetic is not the
-interesting part. What they say before giving the number is.
+### The five twin subjects
+
+Subjects 4 to 8 carry **the same sentence**, and the person sees it on the
+agenda before they have even started: five rows reading "fingerprints over
+content". It is a known defect, left in place on purpose for this session —
+fixing it beforehand would mean guessing the correction to a problem nobody has
+measured, which is what this protocol exists to avoid.
+
+What to do: **do not apologise and do not speed up.** Ask all five, and note the
+seconds. The name field offers the answers already given as chips — "Already
+named: technical access, invoices…" — and one click reuses a domain, merging the
+paths without retyping. Watch which of the two happens:
+
+- they give **the same name five times** → the five subjects are one domain, and
+  the tool should group them;
+- they give **five different names** (billing, accounts, feedback…) → the
+  repetition is on the surface, the lifetimes genuinely differ, and the five
+  questions should stay but be titled better.
+
+Both answers are useful. Neither can be guessed from a desk.
+
+### The line to watch
+
+The vault, subject 3. A dry run answering "twenty years" to the harm question
+turns that finding **COMPROMISED** and moves its crossing date to *already
+past* — a report that went from no red at all to one red, on the strength of a
+sentence somebody said out loud. The arithmetic is not the interesting part.
+What they say before giving the number is.

@@ -175,21 +175,50 @@ Verdicts qui ont bougé entre avant.html et apres.html :
 
 ## Show me the REX, première séance
 
-Quatre sujets, dans l'ordre où l'entretien les soulève. Comptez vingt minutes.
+Huit sujets, dans l'ordre où l'entretien les soulève. Comptez quarante minutes,
+une heure avec le rapport lu devant la personne.
 
-| Sujet | Ce que la personne verra |
-|---|---|
-| `.env`, `.env.dev`, `.env.test` | des réglages lus au démarrage : à qui l'application se connecte, avec quel compte et quel mot de passe |
-| `config/secrets` | un coffre à secrets — mots de passe, clés, jetons, chiffrés, qui protège tout le reste |
-| `src/Feedback` | une empreinte calculée sur du contenu |
-| `src/Identity` | une empreinte dans l'échange OAuth |
+| # | Sujet | Ce que la personne verra |
+|---|---|---|
+| 1 | `.env`, `.env.dev`, `.env.test` | des réglages lus au démarrage : à qui l'application se connecte, avec quel compte et quel mot de passe |
+| 2 | `composer` | du chiffrement à clé publique — pour que seul le destinataire puisse relire, ou pour protéger une sauvegarde |
+| 3 | `config/secrets` | un coffre à secrets — mots de passe, clés, jetons, chiffrés, qui protège tout le reste |
+| 4 | `src/Billing` | une empreinte calculée sur un contenu |
+| 5 | `src/Entity` | une empreinte calculée sur un contenu |
+| 6 | `src/Feedback` | une empreinte calculée sur un contenu |
+| 7 | `src/Identity` | une empreinte calculée sur un contenu |
+| 8 | `src/Security` | une empreinte calculée sur un contenu |
 
 Les deux images mal nommées n'y sont **délibérément pas** : un `.png` qui est
 un JPEG est une confirmation de développeur, pas une décision métier, et y
-passer une des vingt minutes serait gâcher la seule heure qui compte.
+passer une des quarante minutes serait gâcher la seule heure qui compte.
 
-Le coffre est la ligne à surveiller. Un passage à blanc répondant « quinze ans »
-à la question du tort fait basculer ce constat en **COMPROMIS** et place sa date
-de bascule à *déjà franchie* — un rapport qui passe d'aucun rouge à un rouge,
-sur la foi d'une phrase dite à voix haute. L'arithmétique n'est pas la partie
+### Les cinq sujets jumeaux
+
+Les sujets 4 à 8 portent **la même phrase**, et la personne le verra sur
+l'ordre du jour avant même d'avoir commencé : cinq lignes « Empreintes de
+contenu ». C'est un défaut connu, laissé en place exprès pour cette séance —
+le corriger d'avance reviendrait à deviner la correction d'un problème qu'on
+n'a pas mesuré, ce que ce protocole existe précisément pour éviter.
+
+Ce qu'il faut faire : **ne pas s'excuser et ne pas accélérer**. Posez les cinq,
+et notez les secondes. Le champ du nom propose les réponses déjà données sous
+forme de pastilles — « Déjà nommé : accès techniques, factures… » — et un clic
+suffit à réutiliser un domaine, ce qui fusionne les chemins sans retaper.
+Observez lequel des deux se produit :
+
+- elle redonne **cinq fois le même nom** → les cinq sujets sont un seul domaine,
+  et il faudra les regrouper dans l'outil ;
+- elle donne **cinq noms différents** (facturation, comptes, retours…) → la
+  répétition est de surface, les durées diffèrent vraiment, et il faut garder
+  cinq questions mais mieux les titrer.
+
+Les deux réponses sont utiles. Aucune ne se devine depuis un bureau.
+
+### La ligne à surveiller
+
+Le coffre, sujet 3. Un passage à blanc répondant « vingt ans » à la question du
+tort fait basculer ce constat en **COMPROMIS** et place sa date de bascule à
+*déjà franchie* — un rapport qui passe d'aucun rouge à un rouge, sur la foi
+d'une phrase dite à voix haute. L'arithmétique n'est pas la partie
 intéressante. Ce qu'elle dit avant de donner le chiffre, si.

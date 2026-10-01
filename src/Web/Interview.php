@@ -57,14 +57,34 @@ final class Interview
     {
         $areas = $this->session->map('areas');
 
-        $subjects = '';
+        // One row per description, not per place. Five directories computing a
+        // fingerprint produced five rows reading the same sentence, and that is
+        // the first thing the person saw — before the clock had even started.
+        // The interview still asks about each place separately, because their
+        // lifetimes can differ; it is the agenda that stops repeating itself.
+        $grouped = [];
         foreach ($areas as $area) {
             $area = Value::map($area);
+            $label = Lang::t(Questions::label(Value::strings($area['algorithms'] ?? null)));
+            $grouped[$label]['paths'][] = Value::string($area['path'] ?? null);
+            $grouped[$label]['files'] = ($grouped[$label]['files'] ?? 0) + Value::int($area['files'] ?? null);
+        }
+
+        $subjects = '';
+        foreach ($grouped as $label => $group) {
+            $paths = array_map(
+                static fn (string $path): string => '<code>'.htmlspecialchars($path).'</code>',
+                $group['paths'],
+            );
+            $many = \count($group['paths']) > 1;
             $subjects .= \sprintf(
-                '<li><strong>%s</strong><span><code>%s</code> · %s</span></li>',
-                htmlspecialchars(Lang::t(Questions::label(Value::strings($area['algorithms'] ?? null)))),
-                htmlspecialchars(Value::string($area['path'] ?? null)),
-                htmlspecialchars(Lang::t('web.intro.files', Value::int($area['files'] ?? null))),
+                '<li%s><strong>%s</strong><span>%s · %s</span></li>',
+                $many ? ' class="many"' : '',
+                htmlspecialchars($label),
+                htmlspecialchars($many
+                    ? Lang::t('web.intro.places', \count($group['paths']))
+                    : Lang::t('web.intro.files', $group['files'])),
+                implode(' ', $paths),
             );
         }
 
@@ -581,7 +601,12 @@ final class Interview
             .questions li{margin:.5rem 0}
             .subjects{list-style:none;padding:0;margin:1.6rem 0}
             .subjects li{border-top:1px solid var(--line);padding:.7rem 0;display:flex;justify-content:space-between;gap:1rem}
-            .subjects span{color:var(--muted);font-size:.85rem;white-space:nowrap}
+            .subjects span{color:var(--muted);font-size:.85rem;text-align:right}
+            .subjects span code{white-space:nowrap}
+            /* Several places under one description: the list of paths needs a
+               line of its own, or it squeezes the label into two. */
+            .subjects li.many{flex-direction:column;align-items:flex-start;gap:.25rem}
+            .subjects li.many span{text-align:left}
             table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
             td{border-bottom:1px solid var(--line);padding:.45rem .4rem;vertical-align:top}
             td.n{text-align:right;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
