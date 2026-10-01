@@ -115,7 +115,7 @@ final class Interview
      * The existing file is kept whole: an interview adds domains, it never
      * silently rewrites a lifetime somebody argued about last quarter.
      *
-     * @param array<array-key, mixed>                                              $existing
+     * @param array<string, mixed>                                                    $existing
      * @param list<array{name:string, paths:list<string>, lifetime:int, note:string}> $answers
      *
      * @return array<string, mixed>

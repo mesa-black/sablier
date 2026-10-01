@@ -281,6 +281,7 @@ if ($command === 'declare') {
     }
 
     if ($answers !== []) {
+        /** @var array<string, mixed> $existing */
         $existing = is_file($out) ? Value::map(json_decode((string) file_get_contents($out), true)) : [];
         $merged = Interview::merge($existing, $answers);
         file_put_contents($out, json_encode($merged, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
