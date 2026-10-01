@@ -31,6 +31,8 @@ final readonly class Analysis
         public ?array $signature = null,
         /** The tool that produced the inventory, when it was not this one. */
         public string $importedFrom = '',
+        /** The command that produced this analysis, so a third party can repeat it. */
+        public string $commandLine = '',
     ) {
     }
 }

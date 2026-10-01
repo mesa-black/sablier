@@ -119,6 +119,10 @@ final class Declaration
             $self->accepted[(string) $fingerprint] = ['reason' => $reason, 'until' => $until];
         }
 
+        foreach (array_keys($self->audit) as $field) {
+            $self->audit[$field] = trim((string) (($raw['audit'] ?? [])[$field] ?? ''));
+        }
+
         foreach ((array) ($raw['domains'] ?? []) as $name => $domain) {
             $self->domains[] = [
                 'name' => (string) $name,
@@ -131,6 +135,17 @@ final class Declaration
 
         return $self;
     }
+
+    /**
+     * Who is auditing, for whom, under what mandate.
+     *
+     * Only ever read back, never invented: an empty field prints as a field to
+     * complete. A report that fills in a plausible auditor's name is a forgery
+     * with good intentions.
+     *
+     * @var array{auditor:string, organisation:string, client:string, reference:string, mandate:string, statement:string}
+     */
+    public array $audit = ['auditor' => '', 'organisation' => '', 'client' => '', 'reference' => '', 'mandate' => '', 'statement' => ''];
 
     /** @var list<string> Fingerprints declared without a reason or without an expiry. */
     public array $rejectedAcceptances = [];

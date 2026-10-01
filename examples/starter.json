@@ -2,6 +2,17 @@
   "_": "A declaration to correct rather than a file to fill. Delete what does not apply, change every lifetime that is wrong, and keep the note field as your own record of why. Correcting a proposal surfaces disagreements that a blank file hides.",
 
   "project": "",
+
+  "_audit": "Only read by the audit report (--audit). Never invented: a field left empty prints as a field to complete, and the statement is yours to write, date and sign.",
+  "audit": {
+    "client": "",
+    "auditor": "",
+    "organisation": "",
+    "reference": "",
+    "mandate": "",
+    "statement": ""
+  },
+
   "expiry_year": 2035,
   "deprecation_year": 2030,
   "deadlines_checked_on": "2026-09-30",

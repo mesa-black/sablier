@@ -36,6 +36,7 @@ use Sablier\Detector\ServerConfigDetector;
 use Sablier\Detector\ShellDetector;
 use Sablier\Detector\SshConfigDetector;
 use Sablier\Detector\SymfonyVaultDetector;
+use Sablier\Reporter\AuditReporter;
 use Sablier\Reporter\CbomReporter;
 use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
@@ -161,11 +162,11 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'audit' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|cbom|pdf|year|sign|baseline)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|audit|pdf|year|sign|baseline)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -280,6 +281,12 @@ $analysis = new Analysis(
     projected: $currentYear !== $actualYear,
     signature: $signature,
     importedFrom: $importedFrom,
+    // Printed in the audit report: a document that cannot be reproduced is an
+    // assertion, not a finding.
+    commandLine: implode(' ', array_map(
+        static fn (string $argument): string => str_contains($argument, ' ') ? '"'.$argument.'"' : $argument,
+        $argv,
+    )),
 );
 
 file_put_contents($options['out'], (new HtmlReporter())->render($analysis));
@@ -294,9 +301,24 @@ if ($options['cbom'] !== null) {
     file_put_contents($options['cbom'], (new CbomReporter())->render($analysis)."\n");
 }
 
+// The same analysis, written for whoever has to weigh it rather than act on
+// it. A second document rather than a mode of the first: they are read by
+// different people, in different rooms.
+if ($options['audit'] !== null) {
+    file_put_contents($options['audit'], (new AuditReporter())->render($analysis));
+}
+
 $pdfMessage = null;
+$auditPdfMessage = null;
 if ($options['pdf'] !== null) {
     [, $pdfMessage] = Pdf::render($options['out'], $options['pdf']);
+    // The audit document is the one that gets printed, signed and filed, so
+    // asking for a PDF asks for both. Its name is the audit file's, which is
+    // predictable enough not to need an option of its own.
+    if ($options['audit'] !== null) {
+        $auditPdf = preg_replace('/\.html?$/i', '', $options['audit']).'.pdf';
+        [, $auditPdfMessage] = Pdf::render($options['audit'], $auditPdf);
+    }
 }
 
 $counts = [];
@@ -379,6 +401,12 @@ foreach (Assessor::order() as $verdict) {
 printf("\n  → %s\n", $options['out']);
 if ($options['cbom'] !== null) {
     printf("  → %s\n", $options['cbom']);
+}
+if ($options['audit'] !== null) {
+    printf("  → %s\n", $options['audit']);
+}
+if ($auditPdfMessage !== null) {
+    printf("  → %s\n", $auditPdfMessage);
 }
 if ($pdfMessage !== null) {
     printf("  → %s\n", $pdfMessage);

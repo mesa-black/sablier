@@ -7,6 +7,7 @@ namespace Sablier\Reporter;
 use Sablier\ActionPlan;
 use Sablier\Analysis;
 use Sablier\Assessor;
+use Sablier\BlindSpots;
 use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
@@ -82,7 +83,7 @@ final class HtmlReporter implements Reporter
         $fpLegend = $this->analysis->findings === [] ? '' : $this->falsePositiveLegend();
         $probeBlock = $this->probeBlock();
         $timeline = $this->timeline();
-        $blind = $this->blind($byVerdict[Assessor::DECLARE] ?? []);
+        $blind = $this->blind();
         $css = $this->css();
         $target = htmlspecialchars($this->analysis->target);
         $date = (new \DateTimeImmutable())->format('d/m/Y');
@@ -520,25 +521,12 @@ final class HtmlReporter implements Reporter
     }
 
     /** @param list<Finding> $undetermined */
-    private function blind(array $undetermined): string
+    private function blind(): string
     {
-        $lines = [
-            Lang::t('blind.managed_services'),
-            Lang::t('blind.runtime'),
-            Lang::t('blind.hsm'),
-            Lang::t('blind.lifetime', $this->analysis->declaration->defaultLifetime),
-        ];
-        if ($this->analysis->declaration->rejectedAcceptances !== []) {
-            $lines[] = Lang::t('accepted.rejected', \count($this->analysis->declaration->rejectedAcceptances));
-        }
-        if ($undetermined !== []) {
-            $lines[] = Lang::t(\count($undetermined) > 1 ? 'blind.undetermined.plural' : 'blind.undetermined', \count($undetermined));
-        }
-        foreach ($this->analysis->blindSpots as $spot) {
-            $lines[] = $spot;
-        }
-
-        $items = implode('', array_map(static fn (string $l): string => '<li>'.htmlspecialchars($l).'</li>', $lines));
+        $items = implode('', array_map(
+            static fn (string $l): string => '<li>'.htmlspecialchars($l).'</li>',
+            BlindSpots::for($this->analysis),
+        ));
 
         return '<section class="blind"><h2>'.htmlspecialchars(Lang::t('blind.title')).'</h2><ul>'.$items.'</ul>
             <p>'.htmlspecialchars(Lang::t('blind.motto')).'</p></section>';

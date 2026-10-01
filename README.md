@@ -171,6 +171,63 @@ the decision deserves a second look.
 carries a link that opens a pre-filled report — the link opens your browser on a
 form you fill in yourself; the file still sends nothing.
 
+## Two reports, for two rooms
+
+`--audit=FILE` writes a second document from the same analysis. Not a mode of
+the first one: a different document, for a different reader.
+
+The technical report is read next to an editor by someone who can act on it.
+The audit report is read by a client, a committee, an insurer, a lawyer —
+people who did not write the code and may have to weigh it in a dispute. It
+borrows its shape from expert reports rather than from dashboards:
+
+- **facts and opinion are separated, and numbered.** Section 5 observes, in a
+  numbered table; section 7 concludes, citing the numbers it relies on. A
+  reader can accept a fact and contest the opinion built on it, which is
+  precisely what a cross-examination does;
+- **the input that decides the outcome is printed in full.** Every verdict
+  depends on lifetimes a human declared, so section 6 reproduces them and says
+  plainly that the tool can neither verify them nor derive them from the code;
+- **the limits are a numbered section**, at the same size as the rest;
+- **the references are cited with the date they were last checked** — a
+  deadline quoted from memory is worth nothing in front of someone paid to
+  check it;
+- **a glossary** of the seven terms the document needs, so the reader is not
+  asked to already know what harvesting is;
+- **nothing about the auditor is invented.** An absent name prints as a field
+  to complete, and an absent statement prints as a statement still to write,
+  date and sign. A report that fills in a plausible auditor is a forgery with
+  good intentions.
+
+The identity comes from the declaration, where it is versioned with everything
+else:
+
+```json
+"audit": {
+  "client": "Example SAS",
+  "auditor": "A. Lambert",
+  "organisation": "Lambert & Co",
+  "reference": "AUD-2026-014",
+  "mandate": "Establish the exposure of confidential data to harvesting.",
+  "statement": "The findings in section 5 were produced by the tool named in section 1…"
+}
+```
+
+```bash
+sablier scan . --out=report.html --audit=audit.html --pdf=report.pdf --sign=sablier.key
+```
+
+With `--pdf`, the audit document gets its own PDF next to the technical one —
+it is the one that gets printed, signed and filed. Both exist in French,
+English and Spanish, and both carry the same digest: section 10 prints it, with
+the command a third party runs to verify the signature, and the standing caveat
+that the signature itself is Ed25519.
+
+What the tool does not claim: none of this makes a document admissible
+anywhere. The auditor signs it and defends it; Sablier produces the facts, the
+method, the limits and the arithmetic, in a shape that survives being read by
+someone looking for a hole in it.
+
 ## Judging somebody else's inventory
 
 Detectors are not where this tool can win. CycloneDX 1.6 is a published format,

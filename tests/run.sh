@@ -147,6 +147,58 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- the audit document ------------------------------------------------------
+# The second report is read by people who did not write the code and may have
+# to weigh it in a dispute. Three things must hold: every finding is numbered
+# so the opinion can cite it, nothing about the auditor is invented, and the
+# document exists in the three languages like everything else.
+aud=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --out="$aud/t.html" --audit="$aud/a.html" \
+	--json="$aud/a.json" --quiet >/dev/null || true
+
+# One long line of HTML: count occurrences, not lines.
+facts=$(grep -o '<tr><td class="n">' "$aud/a.html" | wc -l | tr -d ' ')
+findings=$(php -r 'echo count(json_decode(file_get_contents($argv[1]), true));' "$aud/a.json")
+if [ "$facts" != "$findings" ]; then
+	echo "✗ audit: $findings findings but $facts numbered facts"
+	rm -rf "$aud"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "audit" "facts" "$facts numbered"
+
+# An absent auditor prints as a field to complete, never as a plausible name.
+if ! grep -q 'class="todo"' "$aud/a.html"; then
+	echo "✗ audit: an unsupplied identity was not flagged as missing"
+	rm -rf "$aud"
+	exit 1
+fi
+php -r '
+	$d = json_decode(file_get_contents("tests/fixtures/sample/sablier.json"), true);
+	$d["audit"] = ["client" => "Acme", "auditor" => "A. Lambert", "organisation" => "Acme Audit",
+		"reference" => "T-1", "mandate" => "regression test", "statement" => "regression test"];
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$aud/declared.json"
+./bin/sablier scan tests/fixtures/sample --declare="$aud/declared.json" --out="$aud/t.html" \
+	--audit="$aud/signed.html" --quiet >/dev/null || true
+if grep -q 'class="todo"' "$aud/signed.html" || ! grep -q 'A. Lambert' "$aud/signed.html"; then
+	echo "✗ audit: a supplied identity did not reach the document"
+	rm -rf "$aud"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "audit" "identity" "declared or flagged"
+
+for lang in fr en es; do
+	./bin/sablier scan tests/fixtures/sample --lang="$lang" --out="$aud/t.html" \
+		--audit="$aud/$lang.html" --quiet >/dev/null || true
+	if ! grep -q 'id="s10"' "$aud/$lang.html"; then
+		echo "✗ audit: the $lang document is missing its tenth section"
+		rm -rf "$aud"
+		exit 1
+	fi
+done
+printf '  ✓ %-24s %-10s %s\n' "audit" "languages" "fr en es"
+rm -rf "$aud"
+
 # --- signing ------------------------------------------------------------------
 # A signature that verifies against whatever key came with it proves only that
 # someone had a key; the expected key comes from the versioned declaration.
