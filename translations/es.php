@@ -151,10 +151,22 @@ return [
     --declare=ARCHIVO   declaración de dominios de datos (por defecto: sablier.json en la raíz analizada)
     --out=ARCHIVO       informe HTML (por defecto: report.html)
     --json=ARCHIVO      inventario en bruto en JSON
+    --baseline=ARCHIVO  comparar con un inventario JSON de referencia (salida 2 si hay que decidir)
     --lang=fr|en|es     idioma del informe
     --no-probe          no sondear los hosts declarados
     --quiet             sin resumen en el terminal',
     'cli.declaration' => 'declaración',
+
+    // --- comparison with a reference run ---
+    'diff.header' => 'referencia: %s (%d hallazgos)',
+    'diff.new' => '%d hallazgo(s) nuevo(s)',
+    'diff.worse' => '%d veredicto(s) agravado(s)',
+    'diff.red' => '%d hallazgo(s) rojo(s) ya conocido(s), sin decisión',
+    'diff.gone' => '%d hallazgo(s) desaparecido(s): conviene regenerar la referencia',
+    'diff.go' => 'nada nuevo desde la referencia, y nada rojo pendiente: adelante.',
+    'diff.stop' => 'hay que revisarlo: %d decisión(es) pendiente(s).',
+    'diff.how' => 'Corregir, o decidir: sablier accept <huella> --reason="…" --until=AAAA-MM-DD',
+    'diff.missing' => 'referencia ilegible: %s. Créela en un análisis de referencia con --json=%s',
     'cli.no_declaration' => 'ninguna (duraciones por defecto)',
     'cli.findings' => '%d hallazgos',
     'cli.missing_host' => 'falta el host: bin/sablier probe ejemplo.es',

@@ -28,17 +28,10 @@ jobs:
       - name: Test suite
         run: ./tests/run.sh
 
-      # The tool has to be able to read its own repository without crying wolf.
-      # It used to report its own pattern tables; this keeps it honest.
+      # The tool has to be able to read its own repository without crying wolf,
+      # and it is the first user of its own pipeline mode: the reference is
+      # committed, so a new finding, a verdict that got worse or a red finding
+      # nobody decided on stops this build exactly as it would stop yours.
+      # Refreshing .sablier/baseline.json is then a deliberate commit.
       - name: Scan its own repository
-        run: |
-          ./bin/sablier scan . --no-probe --json=self.json --out=self.html --quiet
-          php -r '
-            $f = json_decode(file_get_contents("self.json"), true);
-            $bad = array_filter($f, static fn (array $x): bool => in_array($x["verdict"], ["compromised", "urgent"], true));
-            if ($bad !== []) {
-              fwrite(STDERR, "Sablier reports ".count($bad)." alert(s) on its own code\n");
-              exit(1);
-            }
-            echo count($f), " findings on its own repository, none red\n";
-          '
+        run: ./bin/sablier scan . --no-probe --baseline=.sablier/baseline.json --out=self.html

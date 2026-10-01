@@ -171,6 +171,105 @@ the decision deserves a second look.
 carries a link that opens a pre-filled report — the link opens your browser on a
 form you fill in yourself; the file still sends nothing.
 
+## In a pipeline
+
+A report nobody compares is a verdict nobody acts on, and this tool's whole
+argument is that the window closes on its own: the same codebase, scanned next
+year, can turn red without a line of code moving, and an acceptance lapses on a
+date somebody chose months earlier. So the second run is the one that matters.
+
+The reference is the JSON report of a previous run — no second format, and a
+file meant to be versioned next to the declaration:
+
+```bash
+sablier scan . --json=.sablier/baseline.json --out=report.html   # once
+git add .sablier/baseline.json                                   # reviewed like any other file
+```
+
+Then every run compares against it:
+
+```bash
+sablier scan . --baseline=.sablier/baseline.json --out=report.html
+```
+
+```
+  reference: .sablier/baseline.json (12 findings)
+
+    + 1 new finding(s)
+        36d82f61  BROKEN TODAY         sha1  src/NewToken.php:3
+    ↑ 1 verdict(s) got worse
+        d45d9d61  WATCH → COMPROMISED  rsa   deploy/backup.sh:3
+    ● 1 red finding(s) already known, with no decision
+        d87d2d2b  BROKEN TODAY         sha1  src/Tokens.php:17
+    − 2 finding(s) gone: time to refresh the reference
+
+  ✗ this needs another look: 3 decision(s) due.
+     Fix it, or decide: sablier accept <fingerprint> --reason="…" --until=YYYY-MM-DD
+```
+
+Three things stop the build, and they are the three that require a human: a
+**new** finding, a verdict that **got worse** — an acceptance that lapsed shows
+up here — and a **red finding nobody has decided on**. Findings that disappeared
+are printed and stop nothing; they are the reason to refresh the reference.
+
+| Exit | Meaning |
+|---|---|
+| `0` | nothing new, nothing red pending — go |
+| `2` | a decision is due |
+| `1` | usage error: missing path, unreadable reference |
+
+**The reference is not a suppression file.** A red finding it already recorded
+still stops the build, every run, until somebody fixes it or accepts it — with a
+reason, an expiry date, and a reviewer, as described above. A baseline that
+silences what it records is how these tools empty themselves out within six
+months, and the dates in this one come back on their own.
+
+Refreshing the reference is therefore a deliberate commit, read in review like
+any other. A pipeline that regenerates it after each failure records nothing.
+
+```yaml
+name: cryptography
+
+on: [push, pull_request]
+
+jobs:
+  sablier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sodium, openssl, json
+          coverage: none
+
+      - name: Get Sablier
+        run: git clone --depth 1 --branch v0.1.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
+
+      - name: Inventory the cryptography
+        run: |
+          php "$RUNNER_TEMP/sablier/bin/sablier" scan . \
+            --baseline=.sablier/baseline.json \
+            --out=sablier-report.html \
+            --no-probe
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sablier-report
+          path: sablier-report.html
+```
+
+Pin a tag rather than a branch: this tool decides whether your build passes.
+`--no-probe` is deliberate — a runner probes your servers from somebody else's
+network, which measures their path rather than yours; run the probe from a host
+that reaches your own services, on a schedule. And upload the report `if:
+always()`, because the run you most want to read is the one that failed.
+
+Without `--baseline`, the exit code is `2` only when a `COMPROMISED` finding is
+present. That is enough to try the tool out, not enough to live in a pipeline.
+
 ## Signing a report
 
 ```bash

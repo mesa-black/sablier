@@ -151,10 +151,22 @@ return [
     --declare=FILE      data domain declaration (default: sablier.json at the scanned root)
     --out=FILE          HTML report (default: report.html)
     --json=FILE         raw inventory as JSON
+    --baseline=FILE     compare against a reference JSON inventory (exit 2 when a decision is due)
     --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
     --quiet             no terminal summary',
     'cli.declaration' => 'declaration',
+
+    // --- comparison with a reference run ---
+    'diff.header' => 'reference: %s (%d findings)',
+    'diff.new' => '%d new finding(s)',
+    'diff.worse' => '%d verdict(s) got worse',
+    'diff.red' => '%d red finding(s) already known, with no decision',
+    'diff.gone' => '%d finding(s) gone: time to refresh the reference',
+    'diff.go' => 'nothing new since the reference, and nothing red pending: go.',
+    'diff.stop' => 'this needs another look: %d decision(s) due.',
+    'diff.how' => 'Fix it, or decide: sablier accept <fingerprint> --reason="…" --until=YYYY-MM-DD',
+    'diff.missing' => 'unreadable reference: %s. Create it from a reference run with --json=%s',
     'cli.no_declaration' => 'none (default lifetimes)',
     'cli.findings' => '%d findings',
     'cli.missing_host' => 'missing host: bin/sablier probe example.org',

@@ -52,6 +52,41 @@ rm -rf "$(dirname "$acc")"
 
 unset SABLIER_TEST_JSON
 
+# --- the pipeline verdict ----------------------------------------------------
+# The baseline is what lets the tool live in a pipeline, and one rule separates
+# it from a suppression file: a red finding it already recorded still stops the
+# build. Only an acceptance clears it, because only an acceptance carries a
+# reason, a date and a reviewer.
+work=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$work/"
+./bin/sablier scan "$work" --json="$work/baseline.json" --out="$work/r.html" --quiet >/dev/null || true
+
+status() {
+	code=0
+	./bin/sablier scan "$work" --baseline="$work/baseline.json" --out="$work/r.html" --quiet >"$work/out.txt" 2>&1 || code=$?
+	if [ "$code" != "$2" ]; then
+		echo "✗ baseline $1: expected exit $2, got $code"
+		cat "$work/out.txt"
+		rm -rf "$work"
+		exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "baseline" "$1" "exit $2"
+}
+
+status "red" 2
+for fp in $(php -r '
+	$f = json_decode(file_get_contents($argv[1]), true);
+	foreach ($f as $x) { if (in_array($x["verdict"], ["compromised", "urgent"], true)) { echo $x["fingerprint"], " "; } }
+' "$work/baseline.json"); do
+	./bin/sablier accept "$fp" --reason="regression test" --until=2099-01-01 --declare="$work/sablier.json" >/dev/null
+done
+status "decided" 0
+
+# Nothing in the declaration moved; a single new file must still stop it.
+printf '<?php\n\nreturn hash("sha1", $payload);\n' >"$work/src/NewToken.php"
+status "new file" 2
+rm -rf "$work"
+
 # --- signing ------------------------------------------------------------------
 # A signature that verifies against whatever key came with it proves only that
 # someone had a key; the expected key comes from the versioned declaration.

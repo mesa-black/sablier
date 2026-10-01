@@ -160,10 +160,22 @@ return [
     --declare=FICHIER   déclaration des domaines de données (défaut : sablier.json à la racine analysée)
     --out=FICHIER       rapport HTML (défaut : report.html)
     --json=FICHIER      inventaire brut en JSON
+    --baseline=FICHIER  comparer à un inventaire JSON de référence (sortie 2 s\'il faut décider)
     --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
     --quiet             pas de résumé au terminal',
     'cli.declaration' => 'déclaration',
+
+    // --- comparison with a reference run ---
+    'diff.header' => 'référence : %s (%d constats)',
+    'diff.new' => '%d constat(s) nouveau(x)',
+    'diff.worse' => '%d verdict(s) aggravé(s)',
+    'diff.red' => '%d constat(s) rouge(s) déjà connu(s), sans décision',
+    'diff.gone' => '%d constat(s) disparu(s) : pensez à régénérer la référence',
+    'diff.go' => 'rien de nouveau depuis la référence, et rien de rouge en attente : on passe.',
+    'diff.stop' => 'il faut revoir la copie : %d décision(s) à prendre.',
+    'diff.how' => 'Corriger, ou décider : sablier accept <empreinte> --reason="…" --until=AAAA-MM-JJ',
+    'diff.missing' => 'référence illisible : %s. Créez-la sur une analyse de référence avec --json=%s',
     'cli.no_declaration' => 'aucune (durées par défaut)',
     'cli.findings' => '%d constats',
     'cli.missing_host' => 'hôte manquant : bin/sablier probe exemple.fr',

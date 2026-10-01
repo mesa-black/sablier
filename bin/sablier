@@ -156,11 +156,11 @@ if ($command !== 'scan') {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|pdf|year|sign)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|pdf|year|sign|baseline)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -251,16 +251,70 @@ if ($options['pdf'] !== null) {
     [, $pdfMessage] = Pdf::render($options['out'], $options['pdf']);
 }
 
+$counts = [];
+foreach ($findings as $finding) {
+    $counts[$finding->verdict] = ($counts[$finding->verdict] ?? 0) + 1;
+}
+
+// --- what changed since the reference run --------------------------------
+// The exit code is decided here, before anything is printed, because --quiet
+// exists for pipelines: a step that stays silent must still be able to stop
+// the build.
+$diff = null;
+if ($options['baseline'] !== null) {
+    $baseline = Baseline::load($options['baseline']);
+    if ($baseline === null) {
+        fwrite(\STDERR, '✗ '.Lang::t('diff.missing', $options['baseline'], $options['baseline'])."\n");
+        exit(1);
+    }
+    $diff = $baseline->compare($findings);
+}
+
+$status = $diff !== null
+    ? ($diff['decisions'] > 0 ? 2 : 0)
+    : (($counts[Assessor::COMPROMISED] ?? 0) > 0 ? 2 : 0);
+
+// Columns are padded to the widest entry of this run rather than to a fixed
+// guess: verdict labels differ by language, and a ragged list of findings is
+// read as a dump instead of a table.
+$verdictText = static fn (Finding $finding, string $from): string => ($from === '' ? '' : Assessor::label($from).' → ').Assessor::label($finding->verdict);
+$width = ['verdict' => 0, 'algorithm' => 0];
+if ($diff !== null) {
+    $entries = [...array_map(static fn (Finding $f): array => [$f, ''], $diff['new']),
+        ...array_map(static fn (array $c): array => [$c['finding'], $c['from']], $diff['worsened']),
+        ...array_map(static fn (Finding $f): array => [$f, ''], $diff['red'])];
+    foreach ($entries as [$finding, $from]) {
+        $width['verdict'] = max($width['verdict'], mb_strlen($verdictText($finding, $from)));
+        $width['algorithm'] = max($width['algorithm'], mb_strlen($finding->algorithm));
+    }
+}
+
+/** One line per finding: its fingerprint first, because that is what you type next. */
+$line = static function (Finding $finding, string $from = '') use ($verdictText, $width): string {
+    return \sprintf(
+        "        %s  %s  %s  %s\n",
+        $finding->fingerprint(),
+        mb_str_pad($verdictText($finding, $from), $width['verdict']),
+        mb_str_pad($finding->algorithm, $width['algorithm']),
+        $finding->file.($finding->line > 0 ? ':'.$finding->line : ''),
+    );
+};
+
+$verdictLine = static function (?array $diff): void {
+    if ($diff === null) {
+        return;
+    }
+    echo $diff['decisions'] > 0
+        ? \sprintf("  ✗ %s\n     %s\n\n", Lang::t('diff.stop', $diff['decisions']), Lang::t('diff.how'))
+        : \sprintf("  ✓ %s\n\n", Lang::t('diff.go'));
+};
+
 if ($options['quiet']) {
     if ($pdfMessage !== null) {
         printf("  %s\n", $pdfMessage);
     }
-    exit(0);
-}
-
-$counts = [];
-foreach ($findings as $finding) {
-    $counts[$finding->verdict] = ($counts[$finding->verdict] ?? 0) + 1;
+    $verdictLine($diff);
+    exit($status);
 }
 
 printf("\n  %s — %s, %s, %.1f s\n", $target, Lang::t('report.files_read', $scan['files']), Lang::t('cli.findings', \count($findings)), $duration);
@@ -279,6 +333,39 @@ if ($signature !== null) {
 }
 echo "\n";
 
-// Non-zero exit when long-lived data is already exposed: that is what makes
-// this usable as a pipeline step.
-exit(($counts[Assessor::COMPROMISED] ?? 0) > 0 ? 2 : 0);
+if ($diff !== null) {
+    printf("  %s\n", Lang::t('diff.header', $options['baseline'], $baseline->count()));
+    if ($diff['new'] !== [] || $diff['worsened'] !== [] || $diff['red'] !== [] || $diff['resolved'] !== []) {
+        echo "\n";
+    }
+    if ($diff['new'] !== []) {
+        printf("    + %s\n", Lang::t('diff.new', \count($diff['new'])));
+        foreach ($diff['new'] as $finding) {
+            echo $line($finding);
+        }
+    }
+    if ($diff['worsened'] !== []) {
+        printf("    ↑ %s\n", Lang::t('diff.worse', \count($diff['worsened'])));
+        foreach ($diff['worsened'] as $change) {
+            echo $line($change['finding'], $change['from']);
+        }
+    }
+    if ($diff['red'] !== []) {
+        printf("    ● %s\n", Lang::t('diff.red', \count($diff['red'])));
+        foreach ($diff['red'] as $finding) {
+            echo $line($finding);
+        }
+    }
+    if ($diff['resolved'] !== []) {
+        printf("    − %s\n", Lang::t('diff.gone', \count($diff['resolved'])));
+    }
+    echo "\n";
+}
+
+$verdictLine($diff);
+
+// Non-zero exit when a decision is due: a new finding, a verdict that got
+// worse, a red finding nobody has decided on — or, with no reference to
+// compare against, long-lived data already exposed. That is what makes this
+// usable as a pipeline step.
+exit($status);
