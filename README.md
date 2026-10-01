@@ -613,6 +613,26 @@ it answers in the exit code and writes only the files you asked for by path. A
 tool that leaves an unrequested page at the root of somebody's repository on
 every build is leaving state behind.
 
+## On a network that has none
+
+Nothing in this tool reaches the network unless you name a host. Sockets exist
+in exactly four files — `Probe.php`, `SshProbe.php` and the two transports —
+all of them behind `sablier probe` and the probe step of a scan, which
+`--no-probe` removes. `sablier advisories` is the one command that goes out,
+and it goes out for a vulnerability database rather than with your inventory.
+
+That claim is pinned by a test rather than asserted: the list of files allowed
+to open a socket is checked on every run, and the build fails the day a
+detector grows one. Where the kernel allows it, the suite also runs a full scan
+with the network stack removed (`unshare -rn`) and compares the result.
+
+It matters because the output is the sensitive part. An inventory of where the
+cryptography lives in a system is as sensitive as the system, so on a closed
+network the question is not whether a tool promises to send nothing, but
+whether it *can*. There is no telemetry, no update check, no dependency to
+fetch: four lines of autoloader, PHP 8.4, and a repository somebody can read in
+an afternoon before carrying it in.
+
 ## Signing a report
 
 ```bash

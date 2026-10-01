@@ -774,6 +774,39 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
 rm -rf "$exp"
 
+# --- the network surface, pinned --------------------------------------------
+# An inventory of where the cryptography lives is as sensitive as the system it
+# describes, so the claim that matters on a classified network is not "we do not
+# send your data anywhere" but "nothing here can". Sockets are allowed in four
+# files, all of them behind the probe; this fails the build the day a detector
+# grows one.
+allowed="src/Probe.php src/SshProbe.php src/Transport/ImplicitTlsTransport.php src/Transport/StartTlsTransport.php"
+found=$(grep -rlE "stream_socket_client|fsockopen|socket_create|curl_init|file_get_contents\(['\"]https?|fopen\(['\"]https?" src/ bin/sablier | sort | tr '\n' ' ')
+expected=$(echo $allowed | tr ' ' '\n' | sort | tr '\n' ' ')
+if [ "$found" != "$expected" ]; then
+	echo "✗ network surface moved"
+	echo "  expected: $expected"
+	echo "  found   : $found"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "airgap" "sockets" "four files, all behind the probe"
+
+# And the proof by execution, where the kernel can give us one: the same scan,
+# run with no network at all, must produce the same report.
+if command -v unshare >/dev/null 2>&1 && unshare -rn true 2>/dev/null; then
+	air=$(mktemp -d)
+	if unshare -rn ./bin/sablier scan tests/fixtures/sample --out="$air/r.html" \
+		--json="$air/r.json" --no-probe --quiet >/dev/null 2>&1 || [ -s "$air/r.html" ]; then
+		printf '  ✓ %-24s %-10s %s\n' "airgap" "no network" "scan completes with the stack removed"
+	else
+		echo "✗ airgap: the scan needs a network it should not need"
+		rm -rf "$air"; exit 1
+	fi
+	rm -rf "$air"
+else
+	printf '  · %-24s %-10s %s\n' "airgap" "no network" "skipped: no user namespaces here"
+fi
+
 # --- what --quiet writes, and what it does not -------------------------------
 # A pipeline asking for the verdict in the exit code must not find an
 # unrequested 27 kB page at the root of the repository afterwards. It is still
