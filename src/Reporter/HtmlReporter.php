@@ -82,7 +82,7 @@ final class HtmlReporter implements Reporter
         $plan = $this->actionPlan($headline, $actionable);
         $fpLegend = $this->analysis->findings === [] ? '' : $this->falsePositiveLegend();
         $probeBlock = $this->probeBlock();
-        $timeline = $this->timeline();
+        $timeline = Timeline::render($this->analysis);
         $blind = $this->blind();
         $css = $this->css();
         $target = htmlspecialchars($this->analysis->target);
@@ -219,65 +219,6 @@ final class HtmlReporter implements Reporter
             HTML;
     }
 
-    private function timeline(): string
-    {
-        // One bar per declared domain: how long its data must stay secret,
-        // against the date its protection expires.
-        $start = $this->analysis->currentYear;
-        $end = max($this->analysis->declaration->expiryYear + 5, $start + 20);
-        $span = $end - $start;
-
-        // A long lifetime is not by itself an exposure: it only becomes one when
-        // a harvestable algorithm protects that domain. Colouring the bar on the
-        // duration alone made the chart contradict the verdict above it.
-        $domains = [];
-        $exposed = [];
-        foreach ($this->analysis->findings as $finding) {
-            if ($finding->verdict === Assessor::NOISE) {
-                continue;
-            }
-            $key = $finding->domain;
-            $domains[$key] = max($domains[$key] ?? 0, $finding->lifetime);
-            $exposed[$key] = ($exposed[$key] ?? false) || $finding->verdict === Assessor::COMPROMISED;
-        }
-        if ($domains === []) {
-            return '';
-        }
-        arsort($domains);
-
-        $expiryLeft = round((($this->analysis->declaration->expiryYear - $start) / $span) * 100, 2);
-        $deprLeft = round((($this->analysis->declaration->deprecationYear - $start) / $span) * 100, 2);
-
-        $bars = '';
-        foreach (\array_slice($domains, 0, 8, true) as $name => $lifetime) {
-            $width = min(100, round(($lifetime / $span) * 100, 2));
-            $bars .= \sprintf(
-                '<div class="row"><div class="lbl">%s</div><div class="track"><div class="bar %s" style="width:%s%%"></div></div><div class="yrs">%d %s</div></div>',
-                htmlspecialchars((string) $name),
-                ($exposed[$name] ?? false) ? 'over' : '',
-                $width,
-                $lifetime,
-                Lang::t($lifetime > 1 ? 'unit.years' : 'unit.year'),
-            );
-        }
-
-        $title = htmlspecialchars(Lang::t('timeline.title'));
-        $legend = htmlspecialchars(Lang::t('timeline.legend'));
-        $deprecationLabel = htmlspecialchars(Lang::t('timeline.deprecation'));
-        $expiryLabel = htmlspecialchars(Lang::t('timeline.expiry'));
-
-        return <<<HTML
-            <section class="timeline">
-              <h2>$title</h2>
-              <div class="chart">
-                <div class="mark" style="left:{$deprLeft}%"><span>{$this->analysis->declaration->deprecationYear}<br>$deprecationLabel</span></div>
-                <div class="mark expiry" style="left:{$expiryLeft}%"><span>{$this->analysis->declaration->expiryYear}<br>$expiryLabel</span></div>
-                $bars
-              </div>
-              <p class="legend">$legend</p>
-            </section>
-            HTML;
-    }
 
     /** @param list<Finding> $group */
     private function section(string $verdict, array $group): string
@@ -520,7 +461,6 @@ final class HtmlReporter implements Reporter
         );
     }
 
-    /** @param list<Finding> $undetermined */
     private function blind(): string
     {
         $items = implode('', array_map(

@@ -252,6 +252,11 @@ final class AuditReporter implements Reporter
 
         $body .= '<p>'.htmlspecialchars(Lang::t('audit.s6.default', $declaration->defaultLifetime)).'</p>';
 
+        // The same chart as the technical report, in the section whose numbers
+        // it draws: a jury reads a bar against a line long before it reads a
+        // table of years.
+        $body .= Timeline::render($this->analysis);
+
         return $this->section(6, $body);
     }
 
@@ -353,7 +358,8 @@ final class AuditReporter implements Reporter
     private function css(): string
     {
         return <<<'CSS'
-            :root{--ink:#16181d;--muted:#55595f;--paper:#fff;--line:#c9c6c0;--flag:#8a5210}
+            :root{--ink:#16181d;--muted:#55595f;--paper:#fff;--line:#c9c6c0;--flag:#8a5210;
+                  --bad:#8f241c;--cool:#2a4c7d}
             *{box-sizing:border-box}
             body{max-width:47rem;margin:0 auto;padding:2.5rem 1.5rem 4rem;background:var(--paper);color:var(--ink);
                  font-family:Georgia,'Iowan Old Style','Times New Roman',serif;font-size:1rem;line-height:1.55}
@@ -396,6 +402,25 @@ final class AuditReporter implements Reporter
             .glossary dt{font-weight:700}
             .glossary dd{margin:.15rem 0 0}
             blockquote{margin:.6rem 0;padding-left:1rem;border-left:3px solid var(--line);font-style:italic}
+
+            /* The chart, in this document's ink: one blue for a duration, one
+               red for a duration a harvestable algorithm has to outlive. */
+            .timeline{margin:1.4rem 0 .4rem}
+            .timeline h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+                         border:none;margin:0 0 .6rem;font-family:inherit}
+            .timeline .chart{position:relative;border-left:1px solid var(--line);padding:1.9rem 0 .4rem}
+            .mark{position:absolute;top:0;bottom:0;border-left:1px dashed var(--muted);padding-left:.4rem}
+            .mark.expiry{border-left:2px solid var(--bad)}
+            .mark span{font-size:.62rem;color:var(--muted);line-height:1.2;display:block;font-family:ui-monospace,Menlo,monospace}
+            .mark.expiry span{color:var(--bad)}
+            .row{display:grid;grid-template-columns:9rem 1fr 4rem;gap:.6rem;align-items:center;margin:.3rem 0}
+            .lbl{font-size:.78rem;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+            .track{background:#00000008;height:13px;border-radius:2px;position:relative}
+            .bar{height:100%;background:var(--cool);border-radius:2px}
+            .bar.over{background:var(--bad)}
+            .yrs{font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
+            .legend{font-size:.84rem;color:var(--muted);margin:.7rem 0 0}
+            @media (max-width:36rem){.row{grid-template-columns:6rem 1fr 3.2rem}}
             h3.verdict-compromised,h3.verdict-urgent{color:#8f241c}
 
             @page{margin:20mm 17mm}
@@ -405,7 +430,7 @@ final class AuditReporter implements Reporter
                 section{break-inside:auto}
                 h2,h3{break-after:avoid}
                 tr{break-inside:avoid}
-                .glossary div,.plan li{break-inside:avoid}
+                .glossary div,.plan li,.timeline{break-inside:avoid}
             }
             CSS;
     }
