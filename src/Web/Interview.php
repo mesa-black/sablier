@@ -70,8 +70,8 @@ final class Interview
 
         return $this->page(
             Lang::t('web.intro.title'),
-            '<p class="purpose">'.htmlspecialchars(Lang::t('web.purpose')).'</p>'
-            .'<p class="lead">'.htmlspecialchars(Lang::t('web.intro.lead', \count($areas))).'</p>'
+            '<p class="purpose">'.htmlspecialchars(Lang::t('web.purpose', $this->project())).'</p>'
+            .'<p class="lead">'.htmlspecialchars(Lang::t('web.intro.lead', \count($areas), $this->project())).'</p>'
             .'<ol class="questions">'
             .'<li>'.htmlspecialchars(Lang::t('declare.q.name.first')).'</li>'
             .'<li>'.htmlspecialchars(Lang::t('declare.q.retention')).'</li>'
@@ -159,12 +159,17 @@ final class Interview
             ? Lang::t(Questions::label($algorithms).'.name')
             : '';
 
+        // Signatures are published on purpose: the question is not what a leak
+        // would cost but how long the proof has to hold.
+        $signature = Questions::isSignature($algorithms);
         $years = '';
         foreach ([0, 1, 3, 5, 10, 20, 30] as $value) {
             $years .= \sprintf(
                 '<label class="year"><input type="radio" name="harm" value="%d"> %s</label>',
                 $value,
-                htmlspecialchars($value === 0 ? Lang::t('web.harm.none') : Lang::t('web.harm.years', $value)),
+                htmlspecialchars($value === 0
+                    ? Lang::t($signature ? 'web.trust.none' : 'web.harm.none')
+                    : Lang::t('web.harm.years', $value)),
             );
         }
 
@@ -176,8 +181,10 @@ final class Interview
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.q.name')).'</span>'
             .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.name.hint')).'</span>'
             .'<input type="text" name="name" value="'.htmlspecialchars($suggested).'" autofocus autocomplete="off"></label>'
-            .'<fieldset class="field"><legend class="q">'.htmlspecialchars(Lang::t('web.q.harm')).'</legend>'
+            .'<fieldset class="field"><legend class="q">'.htmlspecialchars(Lang::t($signature ? 'web.q.trust' : 'web.q.harm')).'</legend>'
+            .'<span class="hint">'.htmlspecialchars(Lang::t($signature ? 'web.q.trust.hint' : 'web.q.harm.hint')).'</span>'
             .'<div class="years">'.$years.'</div></fieldset>'
+            .'<input type="hidden" name="kind" value="'.($signature ? 'signature' : 'secret').'">'
             .'<label class="field optional"><span class="q">'.htmlspecialchars(Lang::t('web.q.retention')).'</span>'
             .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.retention.hint')).'</span>'
             .'<input type="text" name="retention" inputmode="numeric" autocomplete="off"></label>'
@@ -190,6 +197,12 @@ final class Interview
             .'<p class="where">'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', Value::strings($area['names'] ?? null)))).'</p>',
             timer: true,
         );
+    }
+
+    /** What the client calls the thing being audited, on every screen. */
+    private function project(): string
+    {
+        return $this->session->string('project', basename($this->session->string('target')));
     }
 
     /** `src/Feedback` reads as "Feedback": the last word, and no slash. */
@@ -215,7 +228,7 @@ final class Interview
             if (\in_array($regime, ['general', 'anssi', 'nss'], true)) {
                 $project['regime'] = $regime;
             }
-            $this->session->set('project', $project);
+            $this->session->set('context', $project);
             $this->session->set('context_seconds', $seconds);
 
             return $this->redirect('/subject');
@@ -242,11 +255,15 @@ final class Interview
             $retention = $this->years($post['retention'] ?? '');
             $harm = $this->years($post['harm'] ?? '');
             $lifetime = Questions::lifetime($retention ?? 0, $harm ?? 0);
+            // Ten years of required proof is what this project calls a trust
+            // anchor: the one case where a signature has to be migrated early.
+            $anchor = ($post['kind'] ?? '') === 'signature' && ($harm ?? 0) >= 10;
             $answers[] = [
                 'name' => $name,
                 'paths' => [Value::string($area['pattern'] ?? null)],
                 'lifetime' => $lifetime,
                 'note' => trim($post['note'] ?? ''),
+                'trust_anchor' => $anchor,
             ];
             $record[] = [
                 'area' => Value::string($area['path'] ?? null),
@@ -367,11 +384,12 @@ final class Interview
                 'paths' => Value::strings($answer['paths'] ?? null),
                 'lifetime' => Value::int($answer['lifetime'] ?? null),
                 'note' => Value::string($answer['note'] ?? null),
+                'trust_anchor' => ($answer['trust_anchor'] ?? false) === true,
             ];
         }
 
         /** @var array<string, mixed> $context */
-        $context = [...$existing, ...$this->session->map('project')];
+        $context = [...$existing, ...$this->session->map('context')];
         $merged = Questions::merge($context, $answers);
         file_put_contents($out, json_encode($merged, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
 
@@ -463,6 +481,7 @@ final class Interview
     {
         $lang = Lang::locale();
         $css = self::css();
+        $project = htmlspecialchars($this->project());
         $clock = $timer
             ? '<div class="clock" id="clock" aria-hidden="true">0:00</div>'
             .'<script>(function(){var s=Date.now(),e=document.getElementById("clock");'
@@ -477,7 +496,7 @@ final class Interview
             <title>Sablier — {$title}</title>
             <style>$css</style></head>
             <body>
-            <header><span class="brand">SABLIER</span>$clock</header>
+            <header><span class="brand">SABLIER<span class="project">$project</span></span>$clock</header>
             <main><h1>{$title}</h1>$body</main>
             </body></html>
             HTML;
@@ -493,6 +512,7 @@ final class Interview
             header{display:flex;justify-content:space-between;align-items:center;gap:1rem;
                    padding:1rem 1.5rem;border-bottom:1px solid var(--line)}
             .brand{font-weight:700;letter-spacing:.22em;font-size:.8rem}
+            .project{font-weight:400;letter-spacing:0;color:var(--muted);margin-left:.7rem;text-transform:none}
             .clock{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem}
             main{max-width:40rem;margin:0 auto;padding:2.5rem 1.5rem 4rem}
             h1{font-size:1.5rem;line-height:1.25;margin:0 0 1.2rem;text-wrap:balance}

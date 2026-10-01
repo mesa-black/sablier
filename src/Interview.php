@@ -122,6 +122,22 @@ final class Interview
     }
 
     /**
+     * Whether this subject is about proving who sent something.
+     *
+     * The duration question — "if this got out, how long would it hurt" —
+     * assumes the thing is secret. A signature is not: it is published on
+     * purpose, and what matters is how long somebody must still be able to
+     * prove it was yours. Asking the confidentiality question there produces
+     * an answer to a question nobody asked.
+     *
+     * @param list<string> $algorithms
+     */
+    public static function isSignature(array $algorithms): bool
+    {
+        return self::subject($algorithms) === 'declare.subject.signature';
+    }
+
+    /**
      * The same thing in three words, for a list rather than a question.
      *
      * The sentence above introduces a subject somebody is about to be asked
@@ -183,7 +199,7 @@ final class Interview
      * silently rewrites a lifetime somebody argued about last quarter.
      *
      * @param array<string, mixed>                                                    $existing
-     * @param list<array{name:string, paths:list<string>, lifetime:int, note:string}> $answers
+     * @param list<array{name:string, paths:list<string>, lifetime:int, note:string, trust_anchor?:bool}> $answers
      *
      * @return array<string, mixed>
      */
@@ -191,11 +207,17 @@ final class Interview
     {
         $domains = Value::map($existing['domains'] ?? null);
         foreach ($answers as $answer) {
-            $domains[$answer['name']] = [
+            $domain = [
                 'paths' => $answer['paths'],
                 'lifetime_years' => $answer['lifetime'],
                 'note' => $answer['note'],
             ];
+            // A long-lived trust anchor is a different claim from a long-lived
+            // secret, and the declaration has a word for it.
+            if (($answer['trust_anchor'] ?? false) === true) {
+                $domain['trust_anchor'] = true;
+            }
+            $domains[$answer['name']] = $domain;
         }
 
         $existing['domains'] = $domains;

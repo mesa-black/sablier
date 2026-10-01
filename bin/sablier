@@ -215,6 +215,9 @@ if ($command === 'serve') {
     $sessionFile = $directory.'/session.json';
     Session::create($sessionFile, [
         'target' => $root,
+        // The name the client uses for the thing being audited. "This
+        // application" means nothing to somebody who runs four of them.
+        'project' => $declaration->project !== '' ? $declaration->project : basename($root),
         'out' => $out,
         'log' => \dirname($out).'/session.json',
         'report' => $directory.'/report.html',
@@ -222,7 +225,7 @@ if ($command === 'serve') {
         'index' => 0,
         'answers' => [],
         'record' => [],
-        'project' => [],
+        'context' => [],
     ]);
 
     $url = 'http://127.0.0.1:'.$port.'/';
