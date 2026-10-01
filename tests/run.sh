@@ -305,6 +305,25 @@ if grep -q 'class="todo"' "$aud/signed.html" || ! grep -q 'A. Lambert' "$aud/sig
 fi
 printf '  ✓ %-24s %-10s %s\n' "audit" "identity" "declared or flagged"
 
+# The auditor's identity is filled from their own file; the engagement is not,
+# and a declaration that states a field wins over the convenience one.
+cat >"$aud/identity.json" <<'IDENTITY'
+{ "auditor": "A. Lambert", "organisation": "Lambert & Co", "client": "Wrong Client" }
+IDENTITY
+php -r '
+	$d = json_decode(file_get_contents("tests/fixtures/sample/sablier.json"), true);
+	$d["audit"] = ["client" => "Acme"];
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$aud/engagement.json"
+SABLIER_IDENTITY="$aud/identity.json" ./bin/sablier scan tests/fixtures/sample --declare="$aud/engagement.json" \
+	--out="$aud/t.html" --audit="$aud/merged.html" --quiet >/dev/null || true
+if ! grep -q 'A. Lambert' "$aud/merged.html" || grep -q 'Wrong Client' "$aud/merged.html" || ! grep -q 'Acme' "$aud/merged.html"; then
+	echo "✗ audit: the identity file must fill the blanks and lose every conflict"
+	rm -rf "$aud"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "audit" "identity" "filled, declaration wins"
+
 for lang in fr en es; do
 	./bin/sablier scan tests/fixtures/sample --lang="$lang" --out="$aud/t.html" \
 		--audit="$aud/$lang.html" --quiet >/dev/null || true

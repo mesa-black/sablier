@@ -3,14 +3,11 @@
 
   "project": "",
 
-  "_audit": "Only read by the audit report (--audit). Never invented: a field left empty prints as a field to complete, and the statement is yours to write, date and sign.",
+  "_audit": "Only read by the audit report (--audit). The engagement goes here — it changes every mission and is reviewed with this file. The auditor, their organisation and the statement they sign belong to the person rather than to the project: put those in ~/.config/sablier/identity.json (see examples/identity.json) and they fill in by themselves. Nothing is invented: a field left empty prints as a field to complete.",
   "audit": {
     "client": "",
-    "auditor": "",
-    "organisation": "",
     "reference": "",
-    "mandate": "",
-    "statement": ""
+    "mandate": ""
   },
 
   "expiry_year": 2035,

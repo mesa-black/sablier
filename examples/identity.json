@@ -1,0 +1,7 @@
+{
+  "_": "The auditor, not the project. Copy this to ~/.config/sablier/identity.json (or point SABLIER_IDENTITY at it) and it fills the audit report on every engagement. Anything the project's own declaration states wins over what is here, because that file is versioned and reviewed.",
+
+  "auditor": "A. Lambert",
+  "organisation": "Lambert & Co",
+  "statement": "The findings in section 5 were produced by the tool named in section 1, on the scope and at the date shown there. The opinion in section 7 is mine and rests on the lifetimes in section 6, as declared by the party commissioning the audit."
+}

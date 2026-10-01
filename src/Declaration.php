@@ -124,6 +124,7 @@ final class Declaration
         foreach (array_keys($self->audit) as $field) {
             $self->audit[$field] = trim(Value::string($audit[$field] ?? null));
         }
+        $self->mergeIdentity();
 
         foreach (Value::map($raw['domains'] ?? null) as $name => $domain) {
             $domain = Value::map($domain);
@@ -149,6 +150,35 @@ final class Declaration
      * @var array{auditor:string, organisation:string, client:string, reference:string, mandate:string, statement:string}
      */
     public array $audit = ['auditor' => '', 'organisation' => '', 'client' => '', 'reference' => '', 'mandate' => '', 'statement' => ''];
+
+    /**
+     * Fill the blanks from the auditor's own file, never the other way round.
+     *
+     * Two different things were being asked of one block. The client, the
+     * reference and the mandate belong to an engagement, change every time,
+     * and are reviewed with the project they concern — so they stay in the
+     * versioned declaration. The auditor's name, their organisation and the
+     * statement they sign belong to the person, not to the project, and typing
+     * them again into every client's repository is how they end up stale in
+     * one of them.
+     *
+     * So the identity file fills what the declaration left empty, and loses
+     * every conflict: the versioned file is the one somebody reviewed.
+     */
+    private function mergeIdentity(): void
+    {
+        $path = getenv('SABLIER_IDENTITY') ?: (getenv('HOME') ?: '').'/.config/sablier/identity.json';
+        if (!is_file($path)) {
+            return;
+        }
+
+        $identity = Value::map(json_decode((string) file_get_contents($path), true));
+        foreach (array_keys($this->audit) as $field) {
+            if ($this->audit[$field] === '') {
+                $this->audit[$field] = trim(Value::string($identity[$field] ?? null));
+            }
+        }
+    }
 
     /** @var list<string> Fingerprints declared without a reason or without an expiry. */
     public array $rejectedAcceptances = [];

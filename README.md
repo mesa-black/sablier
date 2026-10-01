@@ -224,19 +224,38 @@ borrows its shape from expert reports rather than from dashboards:
   date and sign. A report that fills in a plausible auditor is a forgery with
   good intentions.
 
-The identity comes from the declaration, where it is versioned with everything
-else:
+The identity comes from two files, because two different things were being
+asked of one block. **The engagement** changes every mission and is reviewed
+with the project it concerns, so it lives in the versioned declaration:
 
 ```json
 "audit": {
   "client": "Example SAS",
+  "reference": "AUD-2026-014",
+  "mandate": "Establish the exposure of confidential data to harvesting."
+}
+```
+
+**The auditor** belongs to a person rather than to a project, and typing their
+name into every client's repository is how it goes stale in one of them. It
+sits once in `~/.config/sablier/identity.json` (or wherever `SABLIER_IDENTITY`
+points), and fills in by itself on every engagement:
+
+```json
+{
   "auditor": "A. Lambert",
   "organisation": "Lambert & Co",
-  "reference": "AUD-2026-014",
-  "mandate": "Establish the exposure of confidential data to harvesting.",
   "statement": "The findings in section 5 were produced by the tool named in section 1…"
 }
 ```
+
+The identity file fills what the declaration leaves empty and loses every
+conflict: the versioned file is the one somebody reviewed. `examples/identity.json`
+is the template.
+
+There is no YAML here and there will not be: PHP ships no YAML parser, so
+supporting it means either a dependency this project refuses or a parser
+written by hand — and a hand-rolled YAML parser is a liability, not a feature.
 
 ```bash
 sablier scan . --out=report.html --audit=audit.html --pdf=report.pdf --sign=sablier.key
