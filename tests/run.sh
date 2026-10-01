@@ -147,6 +147,66 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- the interview in a browser ----------------------------------------------
+# The terminal version is for us; this one is for the room. Walk the whole
+# flow the way a person would — start, the system's context, one subject
+# answered, one skipped, the questions about the tool itself — and check that
+# what comes out is the same declaration the CLI would have written.
+web=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$web/"
+rm -f "$web/sablier.json"
+./bin/sablier serve "$web" --out="$web/sablier.json" --port=8791 >"$web/serve.log" 2>&1 &
+server=$!
+sleep 2
+
+walk=$(php -r '
+	$base = "http://127.0.0.1:8791";
+	$post = static function (string $path, array $fields) use ($base): void {
+		@file_get_contents($base.$path, false, stream_context_create(["http" => [
+			"method" => "POST",
+			"header" => "Content-Type: application/x-www-form-urlencoded",
+			"content" => http_build_query($fields),
+			"follow_location" => 0,
+			"ignore_errors" => true,
+		]]));
+	};
+	if (!str_contains((string) @file_get_contents($base."/"), "SABLIER")) { echo "no intro"; return; }
+	$post("/start", []);
+	$post("/subject", ["step" => "context", "service_until" => "2032", "regime" => "anssi"]);
+	$post("/subject", ["step" => "subject", "action" => "answer", "name" => "backups", "retention" => "10", "harm" => "2", "note" => "ten years"]);
+	$post("/subject", ["step" => "subject", "action" => "skip"]);
+	$post("/feedback", ["missing" => "how many clients", "unclear" => "fingerprint"]);
+	echo str_contains((string) @file_get_contents($base."/done"), "SABLIER") ? "ok" : "no done";
+')
+kill "$server" 2>/dev/null
+wait "$server" 2>/dev/null || true
+
+if [ "$walk" != "ok" ]; then
+	echo "✗ web: the interview did not survive a full walk ($walk)"
+	cat "$web/serve.log"
+	rm -rf "$web"
+	exit 1
+fi
+
+written=$(php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$log = json_decode(file_get_contents($argv[2]), true);
+	echo ($d["service_until"] ?? 0) === 2032
+		&& ($d["regime"] ?? "") === "anssi"
+		&& ($d["domains"]["backups"]["lifetime_years"] ?? -1) === 10
+		&& count($log["record"] ?? []) === 2
+		&& ($log["feedback"]["unclear"] ?? "") === "fingerprint"
+		? "ok" : "no";
+' "$web/sablier.json" "$web/session.json" 2>/dev/null)
+if [ "$written" != "ok" ]; then
+	echo "✗ web: the session did not write what was said"
+	cat "$web/sablier.json" "$web/session.json" 2>/dev/null
+	rm -rf "$web"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "web" "interview" "walked, declared, recorded"
+rm -rf "$web"
+
 # --- the system's own horizon, and whose deadline applies --------------------
 # Two facts about the system rather than about its data, and both move every
 # verdict under them: the last secret is written on the last day of service,

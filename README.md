@@ -120,6 +120,13 @@ undeclared and the report says so in its blind spots. A lifetime nobody chose
 would be worse than a gap, because the verdict above it would wear the same
 confident typeface as the rest.
 
+**For a session with somebody else in the room**, `sablier serve /path` opens
+the same interview in a browser: one subject per page, a clock the person can
+see, a button that starts it, and at the end the report their answers produced
+— plus two questions about the interview itself, because the session exists to
+correct the tool as much as to fill a declaration. The server is bound to the
+loopback and dies with the command.
+
 The protocol — what to measure during the session, and what result would
 falsify this tool's whole thesis — is in
 [English](docs/declaration-session.md), [French](docs/declaration-session.fr.md)

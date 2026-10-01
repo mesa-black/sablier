@@ -158,6 +158,7 @@ return [
   bin/sablier probe <hôte>          ce qu\'un serveur négocie réellement
   bin/sablier judge <cbom.json>     juger l\'inventaire d\'un autre outil (CycloneDX 1.6)
   bin/sablier declare <chemin>      entretien : les durées de confidentialité, en langage métier
+  bin/sablier serve <chemin>        le même entretien dans un navigateur, avec chronomètre
   bin/sablier advisories <chemin>   collecter les vulnérabilités publiées des dépendances
   bin/sablier accept <empreinte> --reason=…  accepter un constat, avec sa date d\'expiration
 
@@ -324,6 +325,33 @@ Première action : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'non déclaré',
+    // --- the interview in a browser ---
+    'web.serving' => 'Entretien ouvert sur %s',
+    'web.serving.stop' => 'Ctrl-C pour arrêter le serveur quand c\'est fini.',
+    'web.intro.title' => 'Avant de commencer',
+    'web.intro.lead' => 'Nous allons passer en revue %d sujets. Pour chacun, je vous montre ce que l\'application protège, et je vous pose trois questions.',
+    'web.intro.rules' => 'Aucune question n\'est technique, et il n\'y a pas de bonne réponse. Si vous ne savez pas, passez le sujet : ce qui reste sans réponse sera écrit comme tel dans le rapport, plutôt qu\'inventé. Le chronomètre sert à nous, pas à vous juger : il nous dit où nos questions sont mal posées.',
+    'web.intro.button' => 'Commencer',
+    'web.intro.files' => '%d fichier(s)',
+    'web.intro.note' => 'Rien n\'est enregistré avant la fin, rien ne quitte cette machine.',
+    'web.context.title' => 'Deux questions sur le système',
+    'web.context.lead' => 'Elles déplacent toutes les réponses qui suivent : combien de temps ce système écrira encore des données, et à quel cadre il répond.',
+    'web.context.regime' => 'Dans quel cadre ce système fonctionne-t-il ?',
+    'web.regime.general' => 'Commercial ou grand public — échéance 2035 (NIST IR 8547)',
+    'web.regime.anssi' => 'Institutionnel, données sensibles — échéance 2030 (position ANSSI)',
+    'web.regime.nss' => 'Systèmes de sécurité nationale — échéance 2030 (CNSA 2.0)',
+    'web.next' => 'Suivant',
+    'web.skip' => 'Passer ce sujet',
+    'web.feedback.title' => 'Deux dernières questions, sur l\'entretien lui-même',
+    'web.feedback.lead' => 'Celles-ci servent à corriger l\'outil. Elles ne vont pas dans le rapport : elles vont dans le compte rendu de séance.',
+    'web.feedback.missing' => 'Une question que vous auriez attendue et qu\'on ne vous a pas posée ?',
+    'web.feedback.unclear' => 'Un mot, une phrase que vous n\'avez pas compris ?',
+    'web.feedback.finish' => 'Terminer et voir le rapport',
+    'web.done.title' => 'Voilà ce que votre heure a produit',
+    'web.done.lead' => '%d sujet(s) déclaré(s), en %s.',
+    'web.done.verdicts' => 'Le rapport, après vos réponses',
+    'web.done.report' => 'Ouvrir le rapport',
+    'web.done.files' => 'Écrit dans %s, compte rendu de séance dans %s.',
     // --- how long the system itself lives, and whose deadline applies ---
     'crossing.row.outlives' => '%s — %d ans — le système s\'arrête avant la bascule de %d : rien de ce qu\'il écrira ne franchira la ligne',
     'blind.service_until' => "L'horizon d'exploitation du système n'est pas déclaré : le calcul suppose qu'il cesse d'écrire des données aujourd'hui. C'est l'hypothèse optimiste — un service encore en production dans dix ans produira dix ans de données de plus à protéger. Ajoutez `service_until` à la déclaration.",

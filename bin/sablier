@@ -62,6 +62,7 @@ use Sablier\Reporter\JsonReporter;
 use Sablier\Scanner;
 use Sablier\Signature;
 use Sablier\Value;
+use Sablier\Web\Session;
 
 // Arguments are read through the same door as every other outside value: a
 // list of strings, whatever the runtime put in $_SERVER.
@@ -162,6 +163,89 @@ if ($command === 'accept') {
     file_put_contents($file, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES)."\n");
 
     printf("  %s\n", Lang::t('cli.accept_written', $fingerprint, $until, $file));
+    exit(0);
+}
+
+// --- the interview in a browser: bin/sablier serve <path> ---------------
+// The terminal version works and nobody should have to use it in front of a
+// client. Same questions, same file written at the end, one subject per page
+// and a clock the person can see.
+if ($command === 'serve') {
+    $target = $argv[2] ?? '';
+    $port = 8765;
+    $out = null;
+    foreach (\array_slice($argv, 3) as $argument) {
+        if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
+            $out = $m[1];
+        } elseif (preg_match('/^--port=(\d{2,5})$/', $argument, $m) === 1) {
+            $port = (int) $m[1];
+        }
+    }
+
+    $root = $target !== '' ? realpath($target) : false;
+    if ($root === false || !is_dir($root)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.missing_path')."\n");
+        exit(1);
+    }
+
+    $out ??= $root.'/sablier.json';
+    $declaration = Declaration::load(is_file($out) ? $out : null);
+    $scan = (new Scanner([
+        new PhpDetector(),
+        new ShellDetector(),
+        new KeyMaterialDetector(),
+        new AssetDetector(),
+        new ServerConfigDetector(),
+        new SshConfigDetector(),
+        new EnvDetector(),
+        new FrameworkConfigDetector(),
+        new SymfonyVaultDetector(),
+        new DependencyDetector(),
+    ], $declaration->exclude))->scan($root);
+    $findings = (new Assessor($declaration, (int) date('Y')))->assess($scan['findings']);
+    $areas = Interview::areas($findings, $declaration);
+
+    if ($areas === []) {
+        printf("\n  %s\n\n", Lang::t('declare.nothing'));
+        exit(0);
+    }
+
+    $directory = sys_get_temp_dir().'/sablier-web-'.bin2hex(random_bytes(4));
+    @mkdir($directory, 0o755, true);
+    $sessionFile = $directory.'/session.json';
+    Session::create($sessionFile, [
+        'target' => $root,
+        'out' => $out,
+        'log' => \dirname($out).'/session.json',
+        'report' => $directory.'/report.html',
+        'areas' => $areas,
+        'index' => 0,
+        'answers' => [],
+        'record' => [],
+        'project' => [],
+    ]);
+
+    $url = 'http://127.0.0.1:'.$port.'/';
+    printf("\n  %s\n  %s\n\n", Lang::t('web.serving', $url), Lang::t('web.serving.stop'));
+
+    // Opening the browser is a convenience, never a requirement: the address
+    // is printed above and the server does not care who connects.
+    foreach (['open', 'xdg-open'] as $opener) {
+        if (trim((string) @shell_exec('command -v '.escapeshellarg($opener).' 2>/dev/null')) !== '') {
+            @shell_exec(\sprintf('%s %s >/dev/null 2>&1 &', $opener, escapeshellarg($url)));
+            break;
+        }
+    }
+
+    $command = \sprintf(
+        'SABLIER_SESSION=%s SABLIER_LANG=%s %s -S 127.0.0.1:%d %s 2>/dev/null',
+        escapeshellarg($sessionFile),
+        escapeshellarg(Lang::locale()),
+        escapeshellarg(\PHP_BINARY),
+        $port,
+        escapeshellarg(__DIR__.'/../src/Web/router.php'),
+    );
+    passthru($command);
     exit(0);
 }
 

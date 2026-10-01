@@ -149,6 +149,7 @@ return [
   bin/sablier probe <host>          what a server actually negotiates
   bin/sablier judge <cbom.json>     judge another tool\'s inventory (CycloneDX 1.6)
   bin/sablier declare <path>        interview: the confidentiality lifetimes, in business terms
+  bin/sablier serve <path>          the same interview in a browser, with a clock
   bin/sablier advisories <path>     collect published vulnerabilities of the dependencies
   bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
 
@@ -315,6 +316,33 @@ First action: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage: sablier verify <report.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'undeclared',
+    // --- the interview in a browser ---
+    'web.serving' => 'Interview open at %s',
+    'web.serving.stop' => 'Ctrl-C to stop the server when you are done.',
+    'web.intro.title' => 'Before we start',
+    'web.intro.lead' => 'We are going through %d subjects. For each one I show you what the application protects, and ask you three questions.',
+    'web.intro.rules' => 'None of the questions is technical, and there is no right answer. If you do not know, skip the subject: what stays unanswered is written as unanswered in the report, rather than invented. The clock is for us, not to judge you — it tells us where our questions are badly put.',
+    'web.intro.button' => 'Start',
+    'web.intro.files' => '%d file(s)',
+    'web.intro.note' => 'Nothing is recorded until the end, and nothing leaves this machine.',
+    'web.context.title' => 'Two questions about the system',
+    'web.context.lead' => 'They move every answer that follows: how long this system will keep writing data, and whose rules it answers to.',
+    'web.context.regime' => 'In what setting does this system run?',
+    'web.regime.general' => 'Commercial or consumer — expiry 2035 (NIST IR 8547)',
+    'web.regime.anssi' => 'Institutional, sensitive data — expiry 2030 (ANSSI position)',
+    'web.regime.nss' => 'National security systems — expiry 2030 (CNSA 2.0)',
+    'web.next' => 'Next',
+    'web.skip' => 'Skip this subject',
+    'web.feedback.title' => 'Two last questions, about the interview itself',
+    'web.feedback.lead' => 'These are to fix the tool. They do not go into the report: they go into the session record.',
+    'web.feedback.missing' => 'A question you expected and we did not ask?',
+    'web.feedback.unclear' => 'A word or a sentence you did not understand?',
+    'web.feedback.finish' => 'Finish and see the report',
+    'web.done.title' => 'Here is what your hour produced',
+    'web.done.lead' => '%d subject(s) declared, in %s.',
+    'web.done.verdicts' => 'The report, after your answers',
+    'web.done.report' => 'Open the report',
+    'web.done.files' => 'Written to %s, session record in %s.',
     // --- how long the system itself lives, and whose deadline applies ---
     'crossing.row.outlives' => '%s — %d years — the system stops before the %d crossing: nothing it will write ever crosses the line',
     'blind.service_until' => 'The system\'s service horizon is not declared: the calculation assumes it stops writing data today. That is the optimistic reading — a service still in production in ten years will produce ten more years of data to protect. Add `service_until` to the declaration.',

@@ -6,7 +6,7 @@ PHP_IMAGE ?= php:8.4-cli-alpine
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
 TRIVY_IMAGE ?= aquasec/trivy:0.75.0
 CHROME_IMAGE ?= zenika/alpine-chrome:124
-.PHONY: help test scan judge demo probe phpstan cve advisories declare
+.PHONY: help test scan judge demo probe phpstan cve advisories declare serve
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
@@ -62,6 +62,10 @@ scan: ## Scan a project: make scan DIR=/path [DECLARE=file.json] [LANG=en] [PDF=
 declare: ## Fill the lifetimes with the person who knows them: make declare DIR=/path [LANG=en]
 	@test -n "$(DIR)" || { echo "make declare DIR=/path"; exit 1; }
 	@./sablier declare "$(DIR)" $(if $(LANG),--lang=$(LANG),)
+
+serve: ## The same interview in a browser, for a session with somebody: make serve DIR=/path [LANG=en]
+	@test -n "$(DIR)" || { echo "make serve DIR=/path"; exit 1; }
+	@./bin/sablier serve "$(DIR)" $(if $(LANG),--lang=$(LANG),) $(if $(PORT),--port=$(PORT),)
 
 advisories: ## Collect published vulnerabilities: make advisories DIR=/path [OUT=file.json]
 	@test -n "$(DIR)" || { echo "make advisories DIR=/path"; exit 1; }

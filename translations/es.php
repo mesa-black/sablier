@@ -149,6 +149,7 @@ return [
   bin/sablier probe <host>          lo que un servidor negocia realmente
   bin/sablier judge <cbom.json>     juzgar el inventario de otra herramienta (CycloneDX 1.6)
   bin/sablier declare <ruta>        entrevista: las duraciones de confidencialidad, en términos de negocio
+  bin/sablier serve <ruta>          la misma entrevista en un navegador, con cronómetro
   bin/sablier advisories <ruta>     recopilar las vulnerabilidades publicadas de las dependencias
   bin/sablier accept <huella> --reason=…  aceptar un hallazgo, con su fecha de caducidad
 
@@ -315,6 +316,33 @@ Primera acción: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'uso: sablier verify <informe.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'sin declarar',
+    // --- the interview in a browser ---
+    'web.serving' => 'Entrevista abierta en %s',
+    'web.serving.stop' => 'Ctrl-C para parar el servidor cuando termine.',
+    'web.intro.title' => 'Antes de empezar',
+    'web.intro.lead' => 'Vamos a repasar %d asuntos. En cada uno le enseño lo que la aplicación protege y le hago tres preguntas.',
+    'web.intro.rules' => 'Ninguna pregunta es técnica, y no hay respuesta correcta. Si no lo sabe, salte el asunto: lo que quede sin responder se escribe como tal en el informe, en lugar de inventarlo. El cronómetro es para nosotros, no para juzgarle: nos dice dónde están mal planteadas nuestras preguntas.',
+    'web.intro.button' => 'Empezar',
+    'web.intro.files' => '%d archivo(s)',
+    'web.intro.note' => 'No se registra nada hasta el final, y nada sale de esta máquina.',
+    'web.context.title' => 'Dos preguntas sobre el sistema',
+    'web.context.lead' => 'Mueven todas las respuestas siguientes: cuánto tiempo seguirá escribiendo datos este sistema, y a qué marco responde.',
+    'web.context.regime' => '¿En qué marco funciona este sistema?',
+    'web.regime.general' => 'Comercial o gran público — caducidad 2035 (NIST IR 8547)',
+    'web.regime.anssi' => 'Institucional, datos sensibles — caducidad 2030 (posición ANSSI)',
+    'web.regime.nss' => 'Sistemas de seguridad nacional — caducidad 2030 (CNSA 2.0)',
+    'web.next' => 'Siguiente',
+    'web.skip' => 'Saltar este asunto',
+    'web.feedback.title' => 'Dos últimas preguntas, sobre la entrevista misma',
+    'web.feedback.lead' => 'Sirven para corregir la herramienta. No van al informe: van al acta de la sesión.',
+    'web.feedback.missing' => '¿Alguna pregunta que esperaba y no le hemos hecho?',
+    'web.feedback.unclear' => '¿Alguna palabra o frase que no haya entendido?',
+    'web.feedback.finish' => 'Terminar y ver el informe',
+    'web.done.title' => 'Esto es lo que ha producido su hora',
+    'web.done.lead' => '%d asunto(s) declarado(s), en %s.',
+    'web.done.verdicts' => 'El informe, tras sus respuestas',
+    'web.done.report' => 'Abrir el informe',
+    'web.done.files' => 'Escrito en %s, acta de la sesión en %s.',
     // --- how long the system itself lives, and whose deadline applies ---
     'crossing.row.outlives' => '%s — %d años — el sistema se detiene antes del cruce de %d: nada de lo que escriba cruzará la línea',
     'blind.service_until' => 'El horizonte de explotación del sistema no está declarado: el cálculo supone que deja de escribir datos hoy. Es la lectura optimista: un servicio todavía en producción dentro de diez años producirá diez años más de datos que proteger. Añada `service_until` a la declaración.',
