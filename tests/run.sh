@@ -793,18 +793,31 @@ printf '  ✓ %-24s %-10s %s\n' "airgap" "sockets" "four files, all behind the p
 
 # And the proof by execution, where the kernel can give us one: the same scan,
 # run with no network at all, must produce the same report.
-if command -v unshare >/dev/null 2>&1 && unshare -rn true 2>/dev/null; then
+airgap=""
+if command -v unshare >/dev/null 2>&1; then
+	if unshare -rn true 2>/dev/null; then
+		airgap="unshare -rn"
+	elif sudo -n unshare -n true 2>/dev/null; then
+		# A build runner usually gives root without a password and user
+		# namespaces without root; take whichever of the two is on offer.
+		airgap="sudo -n unshare -n"
+	fi
+fi
+if [ -n "$airgap" ]; then
 	air=$(mktemp -d)
-	if unshare -rn ./bin/sablier scan tests/fixtures/sample --out="$air/r.html" \
-		--json="$air/r.json" --no-probe --quiet >/dev/null 2>&1 || [ -s "$air/r.html" ]; then
+	$airgap ./bin/sablier scan tests/fixtures/sample --out="$air/r.html" \
+		--json="$air/r.json" --no-probe --quiet >/dev/null 2>&1 || true
+	# Root inside the namespace writes root-owned files; read them back as the
+	# measure of success rather than trusting an exit code.
+	if [ -s "$air/r.html" ] && [ -s "$air/r.json" ]; then
 		printf '  ✓ %-24s %-10s %s\n' "airgap" "no network" "scan completes with the stack removed"
 	else
 		echo "✗ airgap: the scan needs a network it should not need"
-		rm -rf "$air"; exit 1
+		sudo -n rm -rf "$air" 2>/dev/null || rm -rf "$air"; exit 1
 	fi
-	rm -rf "$air"
+	sudo -n rm -rf "$air" 2>/dev/null || rm -rf "$air"
 else
-	printf '  · %-24s %-10s %s\n' "airgap" "no network" "skipped: no user namespaces here"
+	printf '  · %-24s %-10s %s\n' "airgap" "no network" "skipped: no namespaces on this machine"
 fi
 
 # --- what --quiet writes, and what it does not -------------------------------
