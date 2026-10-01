@@ -61,7 +61,10 @@ service or an institutional one: no red at all, or one red.
   identifying the document, the project, the engagement and the version — Chrome
   ignores the CSS that would carry a page number, which was tested rather than
   assumed;
-- `sablier --version` answers directly.
+- `sablier --version` answers directly;
+- `--quiet` writes no report unless one is named: the flag means "the verdict is
+  in the exit code", and a build that drops an unrequested page at the root of a
+  repository every run is leaving state behind.
 
 ## v0.2.0 — 2026-10-01
 

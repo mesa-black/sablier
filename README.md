@@ -600,6 +600,12 @@ always()`, because the run you most want to read is the one that failed.
 Without `--baseline`, the exit code is `2` only when a `COMPROMISED` finding is
 present. That is enough to try the tool out, not enough to live in a pipeline.
 
+`--quiet` writes **no report unless you name one**. Run by hand, `scan` leaves a
+`report.html` next to you because that is what you came for; run with `--quiet`,
+it answers in the exit code and writes only the files you asked for by path. A
+tool that leaves an unrequested page at the root of somebody's repository on
+every build is leaving state behind.
+
 ## Signing a report
 
 ```bash

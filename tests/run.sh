@@ -733,5 +733,34 @@ for proto in smtp imap pop3; do
 done
 rm -rf "$tmp"
 
+# --- what --quiet writes, and what it does not -------------------------------
+# A pipeline asking for the verdict in the exit code must not find an
+# unrequested 27 kB page at the root of the repository afterwards. It is still
+# written when something downstream reads it back — the signature is filed
+# beside it, so it has to exist.
+out=$(mktemp -d)
+root="$PWD"
+cd "$out"
+"$root/bin/sablier" scan "$root/tests/fixtures/sample" --quiet >/dev/null 2>&1 || true
+if [ -e report.html ]; then
+	echo "✗ --quiet wrote a report nobody asked for"
+	cd "$root"; rm -rf "$out"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "quiet" "no --out" "nothing written"
+
+"$root/bin/sablier" scan "$root/tests/fixtures/sample" --quiet --out=asked.html >/dev/null 2>&1 || true
+[ -s asked.html ] || { echo "✗ --out under --quiet wrote nothing"; cd "$root"; rm -rf "$out"; exit 1; }
+printf '  ✓ %-24s %-10s %s\n' "quiet" "--out" "written"
+
+"$root/bin/sablier" keygen --out=key.json >/dev/null 2>&1
+"$root/bin/sablier" scan "$root/tests/fixtures/sample" --quiet --sign=key.json >/dev/null 2>&1 || true
+if [ ! -s report.html ] || [ ! -s report.html.sig ]; then
+	echo "✗ a signature under --quiet needs the report it is filed beside"
+	cd "$root"; rm -rf "$out"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "quiet" "--sign" "report kept"
+cd "$root"
+rm -rf "$out"
+
 echo
 echo "✓ the risk model still discriminates, and every transport reaches TLS"

@@ -665,7 +665,7 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'audit' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
@@ -674,6 +674,17 @@ foreach (\array_slice($argv, 2) as $arg) {
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
     }
+}
+
+// Where the HTML goes, and whether it goes anywhere at all. Run by hand without
+// --out, you want a report, so there is a default. Run with --quiet, you want
+// the verdict in the exit code — that is the pipeline's usage, and dropping an
+// unrequested page into somebody's repository is leaving state behind. It is
+// still written when something downstream needs it: the PDF is rendered from
+// it, and the signature is filed beside it.
+$reportPath = $options['out'];
+if ($reportPath === null && (!$options['quiet'] || $options['pdf'] !== null || $options['sign'] !== null)) {
+    $reportPath = 'report.html';
 }
 
 if ($target === null || ($command === 'scan' ? !is_dir($target) : !is_file($target))) {
@@ -790,9 +801,9 @@ if ($options['sign'] !== null) {
         // Whatever was signed at this path before. No flag: a second run over
         // the same output succeeds the first, and a chain nobody has to ask
         // for is a chain that exists.
-        Signature::previousDigest($options['out'].'.sig'),
+        Signature::previousDigest($reportPath.'.sig'),
     );
-    file_put_contents($options['out'].'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
+    file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
 }
 
 $analysis = new Analysis(
@@ -815,7 +826,9 @@ $analysis = new Analysis(
     )),
 );
 
-file_put_contents($options['out'], (new HtmlReporter())->render($analysis));
+if ($reportPath !== null) {
+    file_put_contents($reportPath, (new HtmlReporter())->render($analysis));
+}
 
 if ($options['json'] !== null) {
     file_put_contents($options['json'], (new JsonReporter())->render($analysis));
@@ -842,8 +855,8 @@ if ($options['calendar'] !== null) {
 
 $pdfMessage = null;
 $auditPdfMessage = null;
-if ($options['pdf'] !== null) {
-    [, $pdfMessage] = Pdf::render($options['out'], $options['pdf']);
+if ($options['pdf'] !== null && $reportPath !== null) {
+    [, $pdfMessage] = Pdf::render($reportPath, $options['pdf']);
     // The audit document is the one that gets printed, signed and filed, so
     // asking for a PDF asks for both. Its name is the audit file's, which is
     // predictable enough not to need an option of its own.
@@ -930,7 +943,10 @@ foreach (Assessor::order() as $verdict) {
         printf("    %s %d\n", mb_str_pad(Assessor::label($verdict), 24), $counts[$verdict]);
     }
 }
-printf("\n  → %s\n", $options['out']);
+echo "\n";
+if ($reportPath !== null) {
+    printf("  → %s\n", $reportPath);
+}
 if ($options['cbom'] !== null) {
     printf("  → %s\n", $options['cbom']);
 }
@@ -947,7 +963,7 @@ if ($pdfMessage !== null) {
     printf("  → %s\n", $pdfMessage);
 }
 if ($signature !== null) {
-    printf("  → %s\n", Lang::t('cli.signed', $options['out'].'.sig'));
+    printf("  → %s\n", Lang::t('cli.signed', $reportPath.'.sig'));
 }
 echo "\n";
 
