@@ -147,6 +147,55 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- the date a domain crosses the line --------------------------------------
+# The arithmetic has one answer and the report must print it rather than draw
+# it: backups keep data ten years against a 2035 expiry, so anything encrypted
+# from 2026 outlives the algorithm. And a domain that only signs never crosses
+# anything, because a signature is not harvested — printing a date about it
+# would be the chart's old bug, in words.
+cross=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --out="$cross/r.html" --calendar="$cross/c.ics" --quiet >/dev/null || true
+if ! grep -q "backups — 10 ans — bascule franchie depuis 2026" "$cross/r.html"; then
+	echo "✗ crossings: expected backups to have crossed in 2026"
+	rm -rf "$cross"
+	exit 1
+fi
+if grep -q "session tokens" "$cross/r.html" && grep -q "bascule" "$cross/r.html" && \
+	php -r 'exit(str_contains(file_get_contents($argv[1]), "session tokens — ") ? 0 : 1);' "$cross/r.html"; then
+	echo "✗ crossings: a domain that only signs was given a crossing date"
+	rm -rf "$cross"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "crossings" "date" "backups crossed in 2026"
+
+# A past crossing is not an appointment: the calendar carries the ones ahead.
+events=$(grep -c 'BEGIN:VEVENT' "$cross/c.ics" || true)
+if [ "$events" != "0" ] || ! grep -q 'BEGIN:VCALENDAR' "$cross/c.ics"; then
+	echo "✗ crossings: a calendar of past dates is a calendar nobody opens ($events events)"
+	rm -rf "$cross"
+	exit 1
+fi
+
+# Projected forward, the same domain has not crossed yet and must be bookable.
+./bin/sablier scan tests/fixtures/sample --year=2020 --out="$cross/r.html" --calendar="$cross/future.ics" --quiet >/dev/null || true
+if [ "$(grep -c 'BEGIN:VEVENT' "$cross/future.ics")" != "1" ]; then
+	echo "✗ crossings: expected one event for a crossing still ahead"
+	rm -rf "$cross"
+	exit 1
+fi
+if [ "$(php -r '
+	foreach (explode("\r\n", file_get_contents($argv[1])) as $line) {
+		if (strlen($line) > 75) { echo "long"; return; }
+	}
+	echo "ok";
+' "$cross/future.ics")" != "ok" ]; then
+	echo "✗ crossings: iCalendar lines must fold at 75 octets"
+	rm -rf "$cross"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "crossings" "calendar" "one event, folded to spec"
+rm -rf "$cross"
+
 # --- what hides in the files nobody reads ------------------------------------
 # Three verifiable facts, and one photo that must stay silent. The silent one
 # is the test that matters: a tool that cries wolf about an ordinary image

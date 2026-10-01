@@ -156,6 +156,7 @@ return [
     --json=ARCHIVO      inventario en bruto en JSON
     --cbom=ARCHIVO      inventario en formato CycloneDX 1.6 (CBOM)
     --audit=ARCHIVO     informe de auditoría: hechos numerados, método, límites, dictamen
+    --calendar=ARCHIVO  fechas de cruce en formato iCalendar (.ics)
     --advisories=ARCHIVO  vulnerabilidades publicadas recopiladas (ver el comando advisories)
     --baseline=ARCHIVO  comparar con un inventario JSON de referencia (salida 2 si hay que decidir)
     --lang=fr|en|es     idioma del informe
@@ -312,6 +313,17 @@ Primera acción: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'uso: sablier verify <informe.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'sin declarar',
+    // --- the date a domain crosses the line ---
+    'crossing.title' => 'Fechas de cruce',
+    'crossing.intro' => 'Un dato cifrado en el año Y sigue siendo sensible hasta Y más su duración. El año de cruce es, pues, aquel a partir del cual todo lo cifrado sobrevive a la caducidad de %d: antes, el dominio aguanta; a partir de él, lo que se emite ya está perdido el día en que caiga el algoritmo.',
+    'crossing.row' => '%s — %d años — cruza el 1 de enero de %d',
+    'crossing.row.past' => '%s — %d años — cruzó ya en %d',
+    'crossing.none' => 'Ningún dominio cruza: o las duraciones declaradas son más cortas que la ventana, o nada expuesto a la cosecha está protegido allí por un algoritmo que lo cuántico rompa.',
+    'crossing.next' => 'Próximo cruce: %s, el 1 de enero de %d.',
+    'crossing.next.past' => '%s ya cruzó en %d: lo que allí se cifra hoy sobrevive a la caducidad.',
+    'crossing.calendar.name' => 'Sablier — cruces de %s',
+    'crossing.calendar.summary' => 'Cruce del dominio %s (%s)',
+    'crossing.calendar.description' => 'A partir de este día, un dato del dominio %s cifrado con un algoritmo vulnerable sigue siendo confidencial %d años, es decir, más allá de la caducidad de %d. Migrar después de esta fecha ya no protege lo que se ha emitido.',
     // --- binary assets: what hides where nobody reads ---
     'blind.assets' => 'Los archivos binarios (imágenes, fuentes, archivos comprimidos) se leen solo en sus primeros megabytes, y solo en busca de tres señales verificables: un bloque de clave, bytes después del final de la imagen, una extensión que miente sobre el contenido. Un mensaje oculto en los bits de una imagen no se detecta aquí, y no se pretende lo contrario.',
     'detail.asset.key' => 'Bloque de clave encontrado en el byte %2$d de un archivo .%1$s. Un asset binario no es un sitio donde el material de clave llegue por accidente.',

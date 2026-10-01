@@ -165,6 +165,7 @@ return [
     --json=FICHIER      inventaire brut en JSON
     --cbom=FICHIER      inventaire au format CycloneDX 1.6 (CBOM)
     --audit=FICHIER     rapport d\'audit : faits numérotés, méthode, limites, avis
+    --calendar=FICHIER  dates de bascule au format iCalendar (.ics)
     --advisories=FICHIER  vulnérabilités publiées collectées (voir la commande advisories)
     --baseline=FICHIER  comparer à un inventaire JSON de référence (sortie 2 s\'il faut décider)
     --lang=fr|en|es     langue du rapport
@@ -321,6 +322,17 @@ Première action : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'non déclaré',
+    // --- the date a domain crosses the line ---
+    'crossing.title' => 'Dates de bascule',
+    'crossing.intro' => "Une donnée chiffrée l'année Y reste sensible jusqu'à Y + sa durée. L'année de bascule est donc celle à partir de laquelle tout ce qui est chiffré survit à la péremption de %d : avant, le domaine tient ; à partir d'elle, ce qui est émis est déjà perdu le jour où l'algorithme tombe.",
+    'crossing.row' => '%s — %d ans — bascule le 1er janvier %d',
+    'crossing.row.past' => '%s — %d ans — bascule franchie depuis %d',
+    'crossing.none' => "Aucun domaine ne bascule : soit les durées déclarées sont plus courtes que la fenêtre, soit rien d'exposé à la récolte n'y est protégé par un algorithme que le quantique casse.",
+    'crossing.next' => 'Prochaine bascule : %s, le 1er janvier %d.',
+    'crossing.next.past' => '%s a déjà basculé en %d : ce qui y est chiffré aujourd\'hui survit à la péremption.',
+    'crossing.calendar.name' => 'Sablier — bascules de %s',
+    'crossing.calendar.summary' => 'Bascule du domaine %s (%s)',
+    'crossing.calendar.description' => "À partir de ce jour, une donnée du domaine %s chiffrée avec un algorithme vulnérable reste confidentielle %d ans, donc au-delà de la péremption de %d. Migrer après cette date ne protège plus ce qui a déjà été émis.",
     // --- binary assets: what hides where nobody reads ---
     'blind.assets' => "Les fichiers binaires (images, polices, archives) ne sont lus que sur leurs premiers méga-octets, et seulement pour trois signes vérifiables : un bloc de clé, des octets après la fin de l'image, une extension qui ment sur le contenu. Un message dissimulé dans les bits d'une image n'est pas détecté ici, et ne prétend pas l'être.",
     'detail.asset.key' => "Bloc de clé trouvé à l'octet %2\$d d'un fichier .%1\$s. Un asset binaire n'est pas un endroit où du matériel de clé arrive par accident.",

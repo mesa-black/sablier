@@ -89,8 +89,15 @@ final class ActionPlan
             $actions[] = self::action('trust_anchors', [$analysis->declaration->deprecationYear]);
         }
 
-        // Always last, and always present: the window closes on its own.
+        // Always last, and always present: the window closes on its own — and
+        // now it says when. "Replay this once a year" is advice; "the next
+        // crossing is 1 January 2029" is an appointment.
+        $next = Crossings::next($analysis);
         $actions[] = self::action('calendar', [$analysis->declaration->expiryYear]);
+        if ($next !== null) {
+            $last = \count($actions) - 1;
+            $actions[$last]['body'] .= ' '.Lang::t('crossing.next', $next['domain'], $next['year']);
+        }
 
         return $actions;
     }

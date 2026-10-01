@@ -442,6 +442,11 @@ final class AuditReporter implements ReporterInterface
             .bar.over{background:var(--bad)}
             .yrs{font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
             .legend{font-size:.84rem;color:var(--muted);margin:.7rem 0 0}
+            .crossings{margin-top:1.2rem;border-top:1px solid var(--line);padding-top:.8rem;break-inside:avoid}
+            .crossings h3{margin:0 0 .4rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+            .crossings ul{margin:0;padding-left:1.1rem;font-size:.92rem}
+            .crossings li{margin:.2rem 0}
+            .crossings li.past{color:var(--bad)}
             @media (max-width:36rem){.row{grid-template-columns:6rem 1fr 3.2rem}}
             h3.verdict-compromised,h3.verdict-urgent{color:#8f241c}
 

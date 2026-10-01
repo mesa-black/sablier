@@ -497,6 +497,11 @@ final class HtmlReporter implements ReporterInterface
             .bar.over{background:var(--bad)}
             .yrs{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
             .legend{font-size:.8rem;color:var(--muted);margin:.8rem 0 0}
+            .crossings{margin-top:1.4rem;border-top:1px solid var(--line);padding-top:.9rem}
+            .crossings h3{margin:0 0 .5rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+            .crossings ul{margin:0;padding-left:1.1rem;font-size:.88rem}
+            .crossings li{margin:.2rem 0}
+            .crossings li.past{color:var(--bad)}
             article{border-top:1px solid var(--line);padding:1rem 0}
             article h3{margin:0 0 .3rem;font-size:1rem;font-weight:600;display:flex;gap:.55rem;align-items:baseline;flex-wrap:wrap}
             .dom{font-weight:400;color:var(--muted);font-size:.82rem}

@@ -6,6 +6,7 @@ namespace Sablier\Reporter;
 
 use Sablier\Analysis;
 use Sablier\Assessor;
+use Sablier\Crossings;
 use Sablier\Lang;
 
 /**
@@ -20,6 +21,34 @@ use Sablier\Lang;
  */
 final class Timeline
 {
+    /**
+     * The same chart, read as dates.
+     *
+     * A bar against a mark asks the reader to do the subtraction. The
+     * subtraction has one answer and it is a date, so the report prints it:
+     * nobody acts on a bar, and everybody acts on "1 January 2029".
+     */
+    private static function crossings(Analysis $analysis): string
+    {
+        $crossings = Crossings::for($analysis);
+        if ($crossings === []) {
+            return '';
+        }
+
+        $items = '';
+        foreach ($crossings as $crossing) {
+            $items .= '<li'.($crossing['past'] ? ' class="past"' : '').'>'.htmlspecialchars(Lang::t(
+                $crossing['past'] ? 'crossing.row.past' : 'crossing.row',
+                $crossing['domain'],
+                $crossing['lifetime'],
+                $crossing['year'],
+            )).'</li>';
+        }
+
+        return '<div class="crossings"><h3>'.htmlspecialchars(Lang::t('crossing.title')).'</h3><ul>'.$items.'</ul>'
+            .'<p class="legend">'.htmlspecialchars(Lang::t('crossing.intro', $analysis->declaration->expiryYear)).'</p></div>';
+    }
+
     /**
      * One bar per declared domain: how long its data must stay secret, against
      * the date its protection expires.
@@ -70,6 +99,7 @@ final class Timeline
 
         $title = htmlspecialchars(Lang::t('timeline.title'));
         $legend = htmlspecialchars(Lang::t('timeline.legend'));
+        $dates = self::crossings($analysis);
         $deprecationLabel = htmlspecialchars(Lang::t('timeline.deprecation'));
         $expiryLabel = htmlspecialchars(Lang::t('timeline.expiry'));
 
@@ -82,6 +112,7 @@ final class Timeline
                 $bars
               </div>
               <p class="legend">$legend</p>
+              $dates
             </section>
             HTML;
     }

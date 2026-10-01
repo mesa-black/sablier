@@ -35,11 +35,12 @@ probe: ## What a server actually negotiates: make probe HOST=example.org
 	@test -n "$(HOST)" || { echo "make probe HOST=example.org"; exit 1; }
 	@./sablier probe "$(HOST)" $(if $(LANG),--lang=$(LANG),)
 
-scan: ## Scan a project: make scan DIR=/path [DECLARE=file.json] [LANG=en] [PDF=1] [CBOM=1] [AUDIT=1]
+scan: ## Scan a project: make scan DIR=/path [DECLARE=file.json] [LANG=en] [PDF=1] [CBOM=1] [AUDIT=1] [ICS=1]
 	@test -n "$(DIR)" || { echo "make scan DIR=/path"; exit 1; }
 	@./sablier scan "$(DIR)" $(if $(DECLARE),--declare=$(DECLARE),) \
 		$(if $(LANG),--lang=$(LANG),) $(if $(PDF),--pdf=report.pdf,) \
-		$(if $(CBOM),--cbom=cbom.json,) $(if $(AUDIT),--audit=audit.html,) --out=report.html
+		$(if $(CBOM),--cbom=cbom.json,) $(if $(AUDIT),--audit=audit.html,) \
+		$(if $(ICS),--calendar=crossings.ics,) --out=report.html
 
 advisories: ## Collect published vulnerabilities: make advisories DIR=/path [OUT=file.json]
 	@test -n "$(DIR)" || { echo "make advisories DIR=/path"; exit 1; }

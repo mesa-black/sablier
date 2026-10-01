@@ -36,6 +36,7 @@ use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\Baseline;
 use Sablier\Catalogue;
+use Sablier\Crossings;
 use Sablier\Cbom;
 use Sablier\Declaration;
 use Sablier\Docker;
@@ -256,11 +257,11 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'audit' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'audit' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|cbom|audit|pdf|year|sign|baseline|advisories)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|audit|calendar|pdf|year|sign|baseline|advisories)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -418,6 +419,12 @@ if ($options['audit'] !== null) {
     file_put_contents($options['audit'], (new AuditReporter())->render($analysis));
 }
 
+// The crossings as appointments. A date in a report is read once; a date in a
+// calendar interrupts somebody in 2029, which is the only version that works.
+if ($options['calendar'] !== null) {
+    file_put_contents($options['calendar'], Crossings::toIcalendar($analysis));
+}
+
 $pdfMessage = null;
 $auditPdfMessage = null;
 if ($options['pdf'] !== null) {
@@ -514,6 +521,9 @@ if ($options['cbom'] !== null) {
 }
 if ($options['audit'] !== null) {
     printf("  → %s\n", $options['audit']);
+}
+if ($options['calendar'] !== null) {
+    printf("  → %s\n", $options['calendar']);
 }
 if ($auditPdfMessage !== null) {
     printf("  → %s\n", $auditPdfMessage);

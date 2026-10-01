@@ -196,6 +196,44 @@ the decision deserves a second look.
 carries a link that opens a pre-filled report — the link opens your browser on a
 form you fill in yourself; the file still sends nothing.
 
+## The date, not the bar
+
+A bar against a vertical mark asks the reader to do the subtraction. The
+subtraction has one answer and it is a date, so the report prints it under the
+chart:
+
+```
+DATES DE BASCULE
+  · backups — 10 ans — bascule franchie depuis 2026
+  · authentication — 3 ans — bascule le 1er janvier 2033
+```
+
+Data encrypted in year Y stays sensitive until Y plus its lifetime, so the
+crossing year is `expiry − lifetime + 1`: the first year whose output outlives
+the algorithm protecting it. Before it the domain holds; from it, everything
+emitted is already lost by the day the algorithm goes — and migrating later
+does not reach back.
+
+Two conditions, because a date about the wrong domain is worse than no date.
+It is about **confidentiality**, since a signature is not harvested; and about
+an algorithm **a quantum computer breaks**, since a domain protected by AES or
+ML-KEM can hold data for a century without crossing anything. Colouring by
+duration alone was a bug this project already fixed once, in the chart; this is
+the same bug in words, and the regression test asserts the silence.
+
+The action plan stops saying "replay this once a year" and names the
+appointment: *Prochaine bascule : authentication, le 1er janvier 2033.*
+
+```bash
+sablier scan . --calendar=crossings.ics
+```
+
+`--calendar` writes the ones still ahead as iCalendar — one all-day event per
+domain, folded at 75 octets as the specification requires, because a tool that
+spends its report telling people to read the standard does not get to ignore
+one. A date in a report is read once; a date in a calendar interrupts somebody
+in 2033, which is the only version that works.
+
 ## Two reports, for two rooms
 
 `--audit=FILE` writes a second document from the same analysis. Not a mode of

@@ -156,6 +156,7 @@ return [
     --json=FILE         raw inventory as JSON
     --cbom=FILE         inventory as CycloneDX 1.6 (CBOM)
     --audit=FILE        audit report: numbered facts, method, limits, opinion
+    --calendar=FILE     crossing dates as iCalendar (.ics)
     --advisories=FILE   collected published vulnerabilities (see the advisories command)
     --baseline=FILE     compare against a reference JSON inventory (exit 2 when a decision is due)
     --lang=fr|en|es     report language
@@ -312,6 +313,17 @@ First action: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage: sablier verify <report.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'undeclared',
+    // --- the date a domain crosses the line ---
+    'crossing.title' => 'Crossing dates',
+    'crossing.intro' => 'Data encrypted in year Y stays sensitive until Y plus its lifetime. The crossing year is therefore the one from which everything encrypted outlives the %d expiry: before it the domain holds; from it, what is emitted is already lost by the day the algorithm goes.',
+    'crossing.row' => '%s — %d years — crosses on 1 January %d',
+    'crossing.row.past' => '%s — %d years — crossed back in %d',
+    'crossing.none' => 'No domain crosses: either the declared lifetimes are shorter than the window, or nothing exposed to harvesting is protected there by an algorithm a quantum computer breaks.',
+    'crossing.next' => 'Next crossing: %s, on 1 January %d.',
+    'crossing.next.past' => '%s crossed back in %d: what is encrypted there today outlives the expiry.',
+    'crossing.calendar.name' => 'Sablier — crossings for %s',
+    'crossing.calendar.summary' => 'Crossing of the %s domain (%s)',
+    'crossing.calendar.description' => 'From this day, data in the %s domain encrypted with a vulnerable algorithm stays confidential for %d years, which is past the %d expiry. Migrating after this date no longer protects what has already been emitted.',
     // --- binary assets: what hides where nobody reads ---
     'blind.assets' => 'Binary files (images, fonts, archives) are read over their first few megabytes only, and only for three verifiable signs: a key block, bytes after the end of the image, an extension that lies about the content. A message hidden in the bits of an image is not detected here, and does not claim to be.',
     'detail.asset.key' => 'Key block found at byte %2$d of a .%1$s file. A binary asset is not a place key material arrives in by accident.',
