@@ -50,6 +50,11 @@ final class SourceFile
      * reports -1 for a group that did not take part in the match, and
      * substr_count would read that as "stop one byte from the end" — a wrong
      * line number, silently, which is worse than no line at all.
+     *
+     * Callers receive that offset inside a [text, offset] pair, and the static
+     * analysers disagree about its type — one reads it as a string, another as
+     * an int that may be -1. They convert it before calling in, which is why
+     * this parameter can simply be an int.
      */
     public function lineAt(int $offset): int
     {

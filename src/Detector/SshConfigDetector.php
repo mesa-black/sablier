@@ -8,6 +8,7 @@ use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\SourceFile;
+use Sablier\Value;
 
 /**
  * SSH, which is where deployment credentials actually live.
@@ -43,6 +44,7 @@ final class SshConfigDetector implements Detector
 
         if (preg_match_all('/^\s*KexAlgorithms\s+([^\n#]+)/mi', $content, $matches, \PREG_OFFSET_CAPTURE) > 0) {
             foreach ($matches[0] as $index => [$hit, $offset]) {
+                $offset = Value::int($offset);
                 $value = strtolower($matches[1][$index][0]);
                 $hybrid = str_contains($value, 'sntrup') || str_contains($value, 'mlkem') || str_contains($value, 'kyber');
 
@@ -66,6 +68,7 @@ final class SshConfigDetector implements Detector
             }
 
             foreach ($matches[0] as $index => [$hit, $offset]) {
+                $offset = Value::int($offset);
                 $value = strtolower($matches[1][$index][0]);
                 $algorithm = $purpose === Catalogue::PURPOSE_AUTHENTICITY
                     ? $this->hostKeyAlgorithm($value)

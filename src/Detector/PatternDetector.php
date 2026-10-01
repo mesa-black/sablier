@@ -7,6 +7,7 @@ namespace Sablier\Detector;
 use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\SourceFile;
+use Sablier\Value;
 
 /**
  * Shared machinery for detectors that recognise cryptography by pattern.
@@ -40,6 +41,7 @@ abstract class PatternDetector implements Detector
             }
 
             foreach ($matches[0] as $index => [, $offset]) {
+                $offset = Value::int($offset);
                 $resolved = $algorithm === self::CAPTURE
                     ? Catalogue::normalise($matches[1][$index][0] ?? '')
                     : $algorithm;

@@ -8,6 +8,7 @@ use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\SourceFile;
+use Sablier\Value;
 
 /**
  * Cryptography chosen in a PHP framework's configuration array.
@@ -65,6 +66,7 @@ final class FrameworkConfigDetector implements Detector
             }
 
             foreach ($matches[0] as $index => [$hit, $offset]) {
+                $offset = Value::int($offset);
                 // The first group, or an empty string: a rule whose pattern has
                 // no group, or a group that did not take part, must not reach
                 // strtolower() as a missing offset.

@@ -8,6 +8,7 @@ use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\SourceFile;
+use Sablier\Value;
 
 /**
  * What the web servers and OpenSSL itself are told to do.
@@ -103,6 +104,7 @@ final class ServerConfigDetector implements Detector
         }
 
         foreach ($matches[0] as $index => [$hit, $offset]) {
+            $offset = Value::int($offset);
             $value = strtolower($matches[2][$index][0]);
             $hybrid = str_contains($value, 'mlkem') || str_contains($value, 'kyber') || str_contains($value, 'sntrup');
 
@@ -125,6 +127,7 @@ final class ServerConfigDetector implements Detector
         }
 
         foreach ($matches[0] as $index => [$hit, $offset]) {
+            $offset = Value::int($offset);
             $value = strtolower($matches[2][$index][0]);
             // "-TLSv1" in Apache and "!TLSv1" elsewhere switch it off, not on.
             $enabled = preg_replace('/[-!]\s*\S+/', '', $value) ?? $value;
@@ -151,6 +154,7 @@ final class ServerConfigDetector implements Detector
         }
 
         foreach ($matches[0] as $index => [$hit, $offset]) {
+            $offset = Value::int($offset);
             $value = strtolower($matches[2][$index][0]);
             foreach (['rc4' => 'rc4', '3des' => 'des', 'des-cbc' => 'des'] as $needle => $algorithm) {
                 // A leading ! or - excludes the cipher instead of allowing it.
@@ -178,6 +182,7 @@ final class ServerConfigDetector implements Detector
         }
 
         foreach ($matches[0] as $index => [$hit, $offset]) {
+            $offset = Value::int($offset);
             $value = strtolower($matches[1][$index][0]);
             $algorithm = match (true) {
                 str_contains($value, 'ed25519') => 'ed25519',
