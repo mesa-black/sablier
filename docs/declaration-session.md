@@ -120,18 +120,26 @@ write it on the sheet.
 encrypted, and the person opens a link:
 
 ```bash
-# on your machine
-sablier serve /path/to/project --host=0.0.0.0 --port=8765
+# on your machine: the server stays on the loopback, the tunnel carries it
+sablier serve /path/to/project --expose --public=https://audit.example.org
 
-# then a tunnel to a host you control
-ssh -R 8765:127.0.0.1:8765 you@your-server
+# then a tunnel to a host you control, which proxies that name to the port
+ssh -N -R 8765:127.0.0.1:8765 you@your-server
 ```
 
-Tailscale or a Cloudflare tunnel is the same idea with less configuration. The
-moment the server leaves the loopback the tool mints **a key** and puts it in
-the link: without it, 403. That is not authentication — whoever holds the link
-can answer — but an interview that writes a declaration and runs a scan has no
-business being open to whoever guesses the port.
+`--expose` is there because a bind address is a bad judge of exposure: behind a
+tunnel and a reverse proxy the server never leaves the loopback and the link is
+public all the same. It mints **a key** and puts it in the link — without it,
+403 — and `--public` prints the exact address to hand over, so nobody retypes a
+host in front of a client. That is not authentication: whoever holds the link
+can answer. It is enough that an interview which writes a declaration and runs a
+scan is not open to whoever guesses the name.
+
+Terminate TLS on the host that holds the tunnel — the key travels in the link,
+and a tool whose whole subject is cryptography does not hand out a `http://`
+address. The proxy's `X-Forwarded-Proto` is what tells the server to mark its
+cookie `Secure`. Tailscale or a Cloudflare tunnel is the same shape with less to
+configure.
 
 Three rules if you take this road: give the link to the interviewee and nobody
 else, stop the server when the session ends (Ctrl-C), and never expose a

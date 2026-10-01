@@ -47,7 +47,11 @@ if ($token !== '') {
     $given = \Sablier\Value::string($_GET['k'] ?? null);
     $held = \Sablier\Value::string($_COOKIE['sablier'] ?? null);
     if ($given !== '' && hash_equals($token, $given)) {
-        setcookie('sablier', $token, ['path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+        // Secure when the public leg is TLS, which only the proxy in front can
+        // say: a cookie that carries the key has no business travelling in
+        // clear once somebody took the trouble to terminate HTTPS.
+        $https = \Sablier\Value::string($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) === 'https';
+        setcookie('sablier', $token, ['path' => '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => $https]);
     } elseif (!hash_equals($token, $held)) {
         http_response_code(403);
         echo 'lien incomplet';

@@ -124,19 +124,27 @@ contrôle à distance n'est pas possible, et à noter sur la feuille.
 passe chiffré, et la personne ouvre un lien :
 
 ```bash
-# sur votre machine
-sablier serve /chemin/du/projet --host=0.0.0.0 --port=8765
+# sur votre machine : le serveur reste sur la boucle locale, le tunnel le porte
+sablier serve /chemin/du/projet --expose --public=https://audit.exemple.org
 
-# puis un tunnel vers une machine que vous contrôlez
-ssh -R 8765:127.0.0.1:8765 vous@votre-serveur
+# puis un tunnel vers une machine que vous contrôlez, qui proxifie ce nom
+ssh -N -R 8765:127.0.0.1:8765 vous@votre-serveur
 ```
 
-Avec Tailscale ou un tunnel Cloudflare, c'est la même idée en moins de
-configuration. Dès que le serveur quitte la boucle locale, l'outil génère
-**une clé** et la met dans le lien : sans elle, c'est 403. Ce n'est pas de
-l'authentification — qui a le lien peut répondre — mais un entretien qui écrit
-une déclaration et lance une analyse n'a rien à faire ouvert à qui devine le
-port.
+`--expose` existe parce que l'adresse d'écoute juge mal l'exposition : derrière
+un tunnel et un proxy, le serveur ne quitte jamais la boucle locale et le lien
+est public quand même. Il génère **une clé** et la met dans le lien — sans
+elle, c'est 403 — et `--public` affiche l'adresse exacte à transmettre, pour que
+personne ne retape un nom d'hôte devant un client. Ce n'est pas de
+l'authentification : qui a le lien peut répondre. C'est assez pour qu'un
+entretien qui écrit une déclaration et lance une analyse ne soit pas ouvert à
+qui devine le nom.
+
+Terminez le TLS sur la machine qui tient le tunnel — la clé voyage dans le
+lien, et un outil dont le sujet est la cryptographie ne distribue pas une
+adresse en `http://`. C'est l'en-tête `X-Forwarded-Proto` du proxy qui dit au
+serveur de marquer son cookie `Secure`. Avec Tailscale ou un tunnel Cloudflare,
+c'est la même forme avec moins à configurer.
 
 Trois règles si vous prenez cette voie : ne diffusez le lien qu'à la personne
 interrogée, arrêtez le serveur à la fin de la séance (Ctrl-C), et n'exposez

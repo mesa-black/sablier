@@ -244,13 +244,20 @@ if ($command === 'serve') {
     $port = 8765;
     $host = '127.0.0.1';
     $out = null;
+    $expose = false;
+    $public = null;
     foreach (\array_slice($argv, 3) as $argument) {
-        if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
+        if ($argument === '--expose') {
+            $expose = true;
+        } elseif (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
             $out = $m[1];
         } elseif (preg_match('/^--port=(\d{2,5})$/', $argument, $m) === 1) {
             $port = (int) $m[1];
         } elseif (preg_match('/^--host=([\d.:a-fA-F]+)$/', $argument, $m) === 1) {
             $host = $m[1];
+        } elseif (preg_match('#^--public=(https?://[^\s?]+)/?$#', $argument, $m) === 1) {
+            $public = $m[1];
+            $expose = true;
         }
     }
 
@@ -304,11 +311,15 @@ if ($command === 'serve') {
     // authentication — anyone the link reaches can answer — but an interview
     // that writes a declaration and runs a scan has no business being open to
     // whoever guesses the port.
-    $local = \in_array($host, ['127.0.0.1', '::1', 'localhost'], true);
+    // Reached from outside, one way or another. A bind address is a bad judge of
+    // that: behind an SSH tunnel and a reverse proxy the server stays on the
+    // loopback and the link is still public, so the operator can say so with
+    // --expose, and --public says it by naming the address being handed over.
+    $local = \in_array($host, ['127.0.0.1', '::1', 'localhost'], true) && !$expose;
     $token = $local ? '' : bin2hex(random_bytes(8));
     Session::open($sessionFile)?->set('token', $token);
 
-    $url = 'http://'.$host.':'.$port.'/'.($token !== '' ? '?k='.$token : '');
+    $url = ($public ?? 'http://'.$host.':'.$port).'/'.($token !== '' ? '?k='.$token : '');
     printf("\n  %s\n", Lang::t('web.serving', $url));
     if (!$local) {
         printf("  %s\n", Lang::t('web.serving.exposed'));
@@ -317,7 +328,7 @@ if ($command === 'serve') {
 
     // Opening the browser is a convenience, never a requirement: the address
     // is printed above and the server does not care who connects.
-    foreach ($local ? ['open', 'xdg-open'] : [] as $opener) {
+    foreach ($local && $public === null ? ['open', 'xdg-open'] : [] as $opener) {
         if (trim((string) @shell_exec('command -v '.escapeshellarg($opener).' 2>/dev/null')) !== '') {
             @shell_exec(\sprintf('%s %s >/dev/null 2>&1 &', $opener, escapeshellarg($url)));
             break;

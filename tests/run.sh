@@ -733,6 +733,47 @@ for proto in smtp imap pop3; do
 done
 rm -rf "$tmp"
 
+# --- a session handed over through a tunnel ----------------------------------
+# A bind address is a bad judge of exposure: behind an SSH tunnel and a reverse
+# proxy the server stays on the loopback and the link is still public. --expose
+# mints the key anyway, --public prints the address to hand over, and the key is
+# then required on every page.
+exp=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$exp/"
+rm -f "$exp/sablier.json"
+./bin/sablier serve "$exp" --out="$exp/sablier.json" --port=8793 \
+	--expose --public=https://audit.example.org >"$exp/serve.log" 2>&1 &
+server=$!
+sleep 2
+
+key=$(sed -n 's#.*https://audit\.example\.org/?k=\([0-9a-f]*\).*#\1#p' "$exp/serve.log")
+guard=$(php -r '
+	$base = "http://127.0.0.1:8793";
+	$code = static function (string $url): int {
+		@file_get_contents($url, false, stream_context_create(["http" => ["ignore_errors" => true]]));
+		foreach ($http_response_header ?? [] as $line) {
+			if (preg_match("#^HTTP/\S+ (\d{3})#", $line, $m) === 1) { return (int) $m[1]; }
+		}
+		return 0;
+	};
+	printf("%d/%d", $code($base."/"), $code($base."/?k=".$argv[1]));
+' "$key")
+kill "$server" 2>/dev/null || true
+wait "$server" 2>/dev/null || true
+pkill -f "127.0.0.1:8793" 2>/dev/null || true
+
+if [ -z "$key" ]; then
+	echo "✗ expose: no key in the link that was handed over"
+	cat "$exp/serve.log"; rm -rf "$exp"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "expose" "--public" "named, keyed"
+if [ "$guard" != "403/200" ]; then
+	echo "✗ expose: the key is not enforced (got $guard, wanted 403/200)"
+	cat "$exp/serve.log"; rm -rf "$exp"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
+rm -rf "$exp"
+
 # --- what --quiet writes, and what it does not -------------------------------
 # A pipeline asking for the verdict in the exit code must not find an
 # unrequested 27 kB page at the root of the repository afterwards. It is still

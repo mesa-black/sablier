@@ -124,19 +124,27 @@ sea posible, y anótelo en la hoja.
 cifrado y la persona abre un enlace:
 
 ```bash
-# en su máquina
-sablier serve /ruta/del/proyecto --host=0.0.0.0 --port=8765
+# en su máquina: el servidor se queda en el bucle local, el túnel lo transporta
+sablier serve /ruta/del/proyecto --expose --public=https://audit.ejemplo.org
 
-# y luego un túnel hacia un host que usted controle
-ssh -R 8765:127.0.0.1:8765 usted@su-servidor
+# y luego un túnel hacia un host que usted controle, que proxifica ese nombre
+ssh -N -R 8765:127.0.0.1:8765 usted@su-servidor
 ```
 
-Con Tailscale o un túnel de Cloudflare es la misma idea con menos
-configuración. En cuanto el servidor sale del bucle local, la herramienta
-genera **una clave** y la pone en el enlace: sin ella, 403. No es
-autenticación —quien tenga el enlace puede responder— pero una entrevista que
-escribe una declaración y lanza un análisis no tiene por qué estar abierta a
-quien adivine el puerto.
+`--expose` existe porque la dirección de escucha juzga mal la exposición: detrás
+de un túnel y un proxy inverso el servidor nunca sale del bucle local y el
+enlace es público igualmente. Genera **una clave** y la pone en el enlace —sin
+ella, 403— y `--public` imprime la dirección exacta que hay que entregar, para
+que nadie reescriba un nombre de host delante de un cliente. No es
+autenticación: quien tenga el enlace puede responder. Basta para que una
+entrevista que escribe una declaración y lanza un análisis no quede abierta a
+quien adivine el nombre.
+
+Termine el TLS en la máquina que sostiene el túnel: la clave viaja en el enlace,
+y una herramienta cuyo tema es la criptografía no reparte una dirección
+`http://`. Es la cabecera `X-Forwarded-Proto` del proxy la que indica al
+servidor que marque su cookie como `Secure`. Con Tailscale o un túnel de
+Cloudflare es la misma forma con menos configuración.
 
 Tres reglas si toma este camino: entregue el enlace solo a la persona
 entrevistada, pare el servidor al terminar (Ctrl-C) y no exponga nunca la

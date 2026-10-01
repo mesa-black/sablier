@@ -136,6 +136,13 @@ see, a button that starts it, and at the end the report their answers produced
 correct the tool as much as to fill a declaration. The server is bound to the
 loopback and dies with the command.
 
+**Remotely**, add `--expose` and the server mints a key into the link; `--public=`
+prints the address to hand over, for when a tunnel and a reverse proxy carry a
+server that never leaves the loopback. A bind address is a bad judge of
+exposure, so the operator says it. Terminate TLS at the proxy —
+`docs/declaration-session.md` has the three ways to run the session when the
+person is not in the room, and what each one costs the measurement.
+
 Each lifetime carries **who declared it and when**: the audit report prints
 both next to the number, and a lifetime nobody has revisited for two years
 becomes a blind spot — acceptances expire, regulatory dates carry a
