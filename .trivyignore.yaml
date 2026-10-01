@@ -1,0 +1,26 @@
+# A decision, not a suppression.
+#
+# This file carries the same two things `sablier accept` demands of anybody
+# using this tool: a statement somebody wrote, and a date it stops being true.
+# An entry without both is the thing this project exists to refuse, and an
+# entry that outlives its expiry turns the gate red again rather than quietly
+# keeping it green.
+#
+# One limitation, stated because it matters: Trivy applies an ignored id to
+# every image scanned, not to the one named below. So an entry here has to be
+# justified for all four, and narrow enough in time that the question comes
+# back quickly.
+vulnerabilities:
+  - id: CVE-2026-103111
+    statement: >-
+      pcre2 10.48-r0 ships in ghcr.io/phpstan/phpstan:2-php8.4, on both
+      architectures. The fix is published upstream as 10.49-r0 and the image
+      has not been rebuilt yet; we do not control that rebuild, and pinning an
+      older tag would be older code, not safer code. The exposure is a crafted
+      regular expression, and the only patterns reaching this container are the
+      ones in this repository's own source, analysed by PHPStan on our own
+      machines and runners. The other three images are unaffected:
+      php:8.4-cli-alpine ships no pcre2 package, aquasec/trivy already carries
+      10.49-r0, and Trivy reports nothing against the Chromium image.
+      Re-checked every Monday by the scheduled run.
+    expired_at: 2026-10-22

@@ -598,12 +598,15 @@ is not an image with no known vulnerability in March. It has already caught
 one: a pcre2 advisory that landed in the PHPStan image between two runs, hours
 before upstream rebuilt it.
 
-Which is the case the gate has to survive without being switched off. When an
-image we do not control ships a hole with no fix published, the decision goes
-in `.trivyignore.yaml` — with a statement and an expiry date, the same two
-things `sablier accept` demands of its own users, and reviewed in the same
-place. No file ships with this repository: there is nothing to accept today,
-and the flag disappears along with it.
+Which is the case the gate has to survive without being switched off, and it
+arrived the same day. `.trivyignore.yaml` carries that decision — a statement
+somebody wrote and a date it stops being true, the same two things `sablier
+accept` demands of anybody using this tool. One entry stands today:
+**CVE-2026-103111**, pcre2 in the PHPStan image, fix published upstream and
+the image not rebuilt yet; the only regular expressions reaching that
+container are the ones in this repository. It expires on 2026-10-22, after
+which the gate goes red again rather than quietly staying green — which is the
+entire difference between a decision and a suppression file.
 
 The claim is exactly that, and no larger: *no known high or critical
 vulnerability, per Trivy's database at the time of the scan*. There is no
