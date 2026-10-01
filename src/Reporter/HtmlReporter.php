@@ -72,6 +72,7 @@ final class HtmlReporter implements Reporter
             : '';
         $seal = $this->seal();
         $plan = $this->actionPlan($headline, $actionable);
+        $fpLegend = $this->analysis->findings === [] ? '' : $this->falsePositiveLegend();
         $probeBlock = $this->probeBlock();
         $timeline = $this->timeline();
         $blind = $this->blind($byVerdict[Assessor::DECLARE] ?? []);
@@ -116,6 +117,7 @@ final class HtmlReporter implements Reporter
             $rows
             $blind
             $plan
+            $fpLegend
 
             $seal
             <footer>$footer</footer>
@@ -328,7 +330,12 @@ final class HtmlReporter implements Reporter
     }
 
     /**
-     * The two ways a finding can be wrong, and the two different places they go.
+     * Per finding: the two commands, and nothing else.
+     *
+     * The explanation lives in the legend, once. Printing it under all
+     * twenty findings taught the reader nothing by the third one and buried
+     * the only part that differs — the fingerprint, and the two lines that
+     * carry it.
      *
      * Nothing here sends anything: the acceptance is a block of text to paste
      * into a versioned file, and the report link opens the reader's browser on
@@ -355,24 +362,56 @@ final class HtmlReporter implements Reporter
 
         return \sprintf(
             '<details class="fp"><summary>%s %s <code>%s</code></summary>
-               <p class="fp-intro">%s %s</p>
-               <p><strong>1.</strong> %s</p>
+               <p class="fp-lead">%s <code>%s</code></p>
                <pre>%s</pre>
-               <p class="fp-cli">%s <code>%s</code></p>
-               <p><strong>2.</strong> %s <a href="%s">%s</a></p>
+               <p class="fp-lead">%s <a href="%s">%s</a></p>
              </details>',
             htmlspecialchars(Lang::t('falsepositive.title')),
             htmlspecialchars(Lang::t('label.fingerprint')),
             htmlspecialchars($fingerprint),
+            htmlspecialchars(Lang::t('falsepositive.accept_lead')),
+            htmlspecialchars($cli),
+            htmlspecialchars($snippet),
+            htmlspecialchars(Lang::t('falsepositive.report_lead')),
+            htmlspecialchars($href),
+            htmlspecialchars(Lang::t('falsepositive.link')),
+        );
+    }
+
+    /**
+     * What a false positive is, said once.
+     *
+     * Two things wear the name and they are not settled the same way, so the
+     * distinction is stated where a reader can find it — next to the seal,
+     * with the fingerprint explained — rather than repeated under every
+     * finding until it reads as boilerplate and nobody reads it at all.
+     */
+    private function falsePositiveLegend(): string
+    {
+        $placeholder = '<'.Lang::t('label.fingerprint').'>';
+        $until = (new \DateTimeImmutable('+6 months'))->format('Y-m-d');
+        $snippet = "\"accepted\": {\n  \"$placeholder\": {\n    \"reason\": \"…\",\n    \"until\": \"$until\"\n  }\n}";
+        $cli = 'sablier accept '.$placeholder.' --reason="…" --until='.$until;
+
+        return \sprintf(
+            '<section class="fp-legend"><h2>%s</h2>
+               <p>%s</p>
+               <p><strong>1.</strong> %s</p>
+               <pre>%s</pre>
+               <p class="fp-cli">%s <code>%s</code></p>
+               <p><strong>2.</strong> %s <a href="%s">%s</a></p>
+               <p class="fp-note">%s</p>
+             </section>',
+            htmlspecialchars(Lang::t('falsepositive.title')),
             htmlspecialchars(Lang::t('falsepositive.intro')),
-            htmlspecialchars(Lang::t('falsepositive.fingerprint', $fingerprint)),
             htmlspecialchars(Lang::t('falsepositive.accept')),
             htmlspecialchars($snippet),
             htmlspecialchars(Lang::t('falsepositive.cli')),
             htmlspecialchars($cli),
             htmlspecialchars(Lang::t('falsepositive.report')),
-            htmlspecialchars($href),
-            htmlspecialchars(Lang::t('falsepositive.link')),
+            htmlspecialchars(self::ISSUES_URL),
+            'github.com/mesa-black/sablier',
+            htmlspecialchars(Lang::t('falsepositive.fingerprint')),
         );
     }
 
@@ -574,8 +613,13 @@ final class HtmlReporter implements Reporter
             .fp summary{cursor:pointer;color:var(--muted)}
             .fp summary code{font-size:.92em}
             .fp p{margin:.7rem 0 .2rem}
-            .fp-intro{color:var(--muted)}
+            .fp-lead{color:var(--muted)}
             .fp-cli{color:var(--muted)}
+            .fp-legend{border:1px solid var(--line);border-radius:3px;padding:1.1rem 1.3rem;margin-top:2.6rem;font-size:.86rem}
+            .fp-legend h2{margin-top:0}
+            .fp-legend p{margin:.8rem 0 .2rem}
+            .fp-legend pre{margin:.5rem 0}
+            .fp-note{color:var(--muted)}
             .verdict.accepted .count{background:var(--muted)}
             article.accepted h3{opacity:.85}
             .plan{margin-top:3rem;border-top:2px solid var(--ink);padding-top:1.2rem}
@@ -616,6 +660,17 @@ final class HtmlReporter implements Reporter
                 .summary details{display:block}
                 .summary details>summary{list-style:none}
                 .files{display:none}
+                /* Paper has no disclosure triangle, so a closed <details>
+                   prints as a dead question. Unfold them — the browser that
+                   makes the PDF is also told to open them, because this
+                   pseudo-element is recent and the export must not depend on
+                   which Chrome the machine happens to have. The acceptance
+                   block is dropped per finding: the legend carries one, and
+                   the command line below it carries the fingerprint. */
+                details::details-content{content-visibility:visible;block-size:auto}
+                .fp,.fp-legend{break-inside:avoid}
+                .fp summary{list-style:none}
+                .fp pre{display:none}
                 pre{white-space:pre-wrap;word-break:break-word}
                 footer{break-before:avoid}
             }

@@ -80,6 +80,8 @@ final class Pdf
             return [false, Lang::t('pdf.missing_html', $htmlPath)];
         }
 
+        $printable = self::unfolded($absolute);
+
         // A private profile in a temporary directory: the export must not touch
         // the operator's own browser session.
         $profile = sys_get_temp_dir().'/sablier-pdf-'.bin2hex(random_bytes(4));
@@ -88,16 +90,50 @@ final class Pdf
             escapeshellarg($browser),
             escapeshellarg($profile),
             escapeshellarg($pdfPath),
-            escapeshellarg('file://'.$absolute),
+            escapeshellarg('file://'.($printable ?? $absolute)),
         );
         @shell_exec($command);
         self::removeDirectory($profile);
+        if ($printable !== null) {
+            @unlink($printable);
+        }
 
         if (!is_file($pdfPath) || filesize($pdfPath) === 0) {
             return [false, Lang::t('pdf.failed', basename($browser))];
         }
 
         return [true, Lang::t('pdf.written', $pdfPath, number_format(filesize($pdfPath) / 1024, 0, ',', ' '))];
+    }
+
+    /**
+     * The same report, with every disclosure already open.
+     *
+     * A reader can click a <details>; paper cannot. Printing the file as it
+     * stands turns each collapsed block into a question with no answer under
+     * it, so the export prints a copy with the attribute set rather than
+     * relying on a print rule the installed Chrome may not know yet. The copy
+     * is a temporary file next to the report's own directory contents, deleted
+     * as soon as the browser is done, and it is still only ever read from
+     * disk: nothing is sent anywhere.
+     *
+     * Returns null when the copy cannot be written — printing the original is
+     * a worse PDF, not a failure.
+     */
+    private static function unfolded(string $htmlPath): ?string
+    {
+        $html = @file_get_contents($htmlPath);
+        if ($html === false) {
+            return null;
+        }
+
+        $opened = preg_replace('/<details(?![^>]*\bopen\b)/i', '<details open', $html);
+        if ($opened === null) {
+            return null;
+        }
+
+        $copy = sys_get_temp_dir().'/sablier-print-'.bin2hex(random_bytes(4)).'.html';
+
+        return @file_put_contents($copy, $opened) === false ? null : $copy;
     }
 
     private static function removeDirectory(string $path): void
