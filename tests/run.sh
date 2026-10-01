@@ -147,6 +147,76 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- published vulnerabilities in declared libraries -------------------------
+# The claim that separates this from the rest of the report: a library with a
+# published hole is a problem today, not in 2035. Without the advisory file the
+# same lock file must stay plain inventory — a tool that guesses in the absence
+# of data is worse than one that says it did not look.
+adv=$(mktemp -d)
+./bin/sablier scan tests/fixtures/advisories --json="$adv/plain.json" --out="$adv/r.html" --quiet >/dev/null || true
+./bin/sablier scan tests/fixtures/advisories --advisories=tests/fixtures/advisories/advisories.json \
+	--json="$adv/judged.json" --out="$adv/r.html" --quiet >/dev/null || true
+
+verdicts=$(php -r '
+	$read = static function (string $file): array {
+		$out = [];
+		foreach (json_decode(file_get_contents($file), true) as $row) { $out[$row["algorithm"]] = $row; }
+		return $out;
+	};
+	$plain = $read($argv[1]);
+	$judged = $read($argv[2]);
+	// phpseclib is rsa, firebase/php-jwt is rsa-sign, otphp is sha1.
+	$was = $plain["rsa"]["verdict"] ?? "?";
+	$now = $judged["rsa"]["verdict"] ?? "?";
+	$refs = $judged["rsa"]["references"] ?? [];
+	$untouched = $judged["sha1"]["verdict"] ?? "?";   // no advisory in the fixture
+	echo $was === "watch" && $now === "urgent" && in_array("CVE-2023-27560", $refs, true) && $untouched === "watch"
+		? "ok" : "was=$was now=$now untouched=$untouched";
+' "$adv/plain.json" "$adv/judged.json")
+if [ "$verdicts" != "ok" ]; then
+	echo "✗ advisories: expected watch → urgent for the vulnerable library only ($verdicts)"
+	rm -rf "$adv"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "advisories" "verdict" "watch → urgent"
+
+# A medium or low advisory is attached, never promoted: the threshold is the
+# one make cve applies to our own images, and it has to be visible.
+low=$(php -r '
+	foreach (json_decode(file_get_contents($argv[1]), true) as $row) {
+		if ($row["algorithm"] === "aes-256") { echo $row["verdict"]; return; }
+	}
+	echo "absent";
+' "$adv/judged.json")
+if [ "$low" = "urgent" ]; then
+	echo "✗ advisories: a low-severity advisory promoted a finding"
+	rm -rf "$adv"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "advisories" "threshold" "low not promoted"
+
+# The collection keeps what this tool inventories and counts the rest; a
+# project's whole dependency tree does not belong under a cryptographic heading.
+scoped=$(php -r '
+	foreach (["Lang", "Value", "Catalogue", "Finding", "SourceFile", "Detector/DetectorInterface", "Detector/DependencyDetector", "Advisories"] as $class) {
+		require "src/$class.php";
+	}
+	$report = ["Results" => [["Vulnerabilities" => [
+		["PkgName" => "phpseclib/phpseclib", "VulnerabilityID" => "CVE-1", "Severity" => "HIGH", "FixedVersion" => "3.0.19"],
+		["PkgName" => "symfony/http-kernel", "VulnerabilityID" => "CVE-2", "Severity" => "CRITICAL"],
+		["PkgName" => "lodash", "VulnerabilityID" => "CVE-3", "Severity" => "HIGH"],
+	]]]];
+	$collected = Sablier\Advisories::fromScannerReport($report, "test", "/tmp");
+	echo count($collected["packages"]) === 1 && $collected["other_vulnerable_packages"] === 2 ? "ok" : "no";
+')
+if [ "$scoped" != "ok" ]; then
+	echo "✗ advisories: the collection must keep cryptographic packages and count the others"
+	rm -rf "$adv"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "advisories" "scope" "crypto kept, rest counted"
+rm -rf "$adv"
+
 # --- published defects, cited rather than asserted -------------------------
 # A CVE is a dated fact somebody else published; the post-quantum deadline is
 # not one. The table must cover the first family and leave the second alone,

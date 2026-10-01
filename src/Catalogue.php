@@ -85,10 +85,20 @@ final class Catalogue
         return self::REFERENCES[$algorithm] ?? [];
     }
 
-    /** Where a reader checks the claim for themselves. */
+    /**
+     * Where a reader checks the claim for themselves.
+     *
+     * Each identifier is served by the body that issued it: NIST for a CVE,
+     * GitHub for a GHSA, OSV for the rest. Sending all three to the same place
+     * would produce a link that looks authoritative and 404s.
+     */
     public static function referenceUrl(string $reference): string
     {
-        return 'https://nvd.nist.gov/vuln/detail/'.rawurlencode($reference);
+        return match (true) {
+            str_starts_with($reference, 'CVE-') => 'https://nvd.nist.gov/vuln/detail/'.rawurlencode($reference),
+            str_starts_with($reference, 'GHSA-') => 'https://github.com/advisories/'.rawurlencode($reference),
+            default => 'https://osv.dev/vulnerability/'.rawurlencode($reference),
+        };
     }
 
     /** @return array{label:string, purpose:string, quantum:bool, broken:bool, note:string, replacement:string}|null */

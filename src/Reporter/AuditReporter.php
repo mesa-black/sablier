@@ -295,7 +295,7 @@ final class AuditReporter implements ReporterInterface
                 // contradiction, and the reader is right to stumble on it.
                 $references = \in_array($verdict, [Assessor::CLEAR, Assessor::NOISE], true)
                     ? []
-                    : Catalogue::references($findings[0]->algorithm);
+                    : $findings[0]->references();
                 if ($references !== []) {
                     $links = array_map(
                         static fn (string $reference): string => \sprintf(

@@ -16,6 +16,13 @@ final class Finding
     public string $verdict = '';
     public string $because = '';
 
+    /**
+     * Published advisories against the declared version of a library.
+     *
+     * @var list<string>
+     */
+    public array $advisories = [];
+
     /** Set when an acceptance applies: what the verdict would have been. */
     public string $originalVerdict = '';
     public string $acceptedReason = '';
@@ -35,6 +42,20 @@ final class Finding
         /** A declared dependency, not an observed call: presence is not usage. */
         public readonly bool $inventory = false,
     ) {
+    }
+
+    /**
+     * What a reader can go and check about this finding.
+     *
+     * An advisory against this very version outranks the defects the catalogue
+     * knows about the algorithm in general: both are true, and the one that
+     * describes the verdict is the specific one.
+     *
+     * @return list<string>
+     */
+    public function references(): array
+    {
+        return $this->advisories !== [] ? $this->advisories : Catalogue::references($this->algorithm);
     }
 
     /**

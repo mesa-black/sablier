@@ -31,12 +31,14 @@ spl_autoload_register(static function (string $class): void {
 // shebang line anyway — PHP tolerates it, the specification does not, and an
 // entry point that makes an editor shout is a poor advertisement for a tool
 // that spends its time telling people what is wrong with their code.
+use Sablier\Advisories;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\Baseline;
 use Sablier\Catalogue;
 use Sablier\Cbom;
 use Sablier\Declaration;
+use Sablier\Docker;
 use Sablier\Detector\DependencyDetector;
 use Sablier\Detector\EnvDetector;
 use Sablier\Detector\FrameworkConfigDetector;
@@ -160,6 +162,66 @@ if ($command === 'accept') {
     exit(0);
 }
 
+// --- collect published vulnerabilities: bin/sablier advisories <path> ---
+// The one command in this tool that is allowed to reach the network, and it
+// reaches it for a database rather than with your inventory: the scanner runs
+// in a container, reads the lock files from a read-only mount, and writes a
+// file you can read. A scan never does any of that.
+if ($command === 'advisories') {
+    $target = $argv[2] ?? '';
+    $out = '.sablier/advisories.json';
+    foreach (\array_slice($argv, 3) as $argument) {
+        if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
+            $out = $m[1];
+        }
+    }
+
+    $root = $target !== '' ? realpath($target) : false;
+    if ($root === false || !is_dir($root)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.missing_path')."\n");
+        exit(1);
+    }
+
+    $docker = Docker::binary();
+    if ($docker === null) {
+        fwrite(\STDERR, '✗ '.Lang::t('advisories.no_docker')."\n");
+        exit(1);
+    }
+
+    $scanner = getenv('SABLIER_TRIVY_IMAGE') ?: 'aquasec/trivy:0.75.0';
+    $cache = (getenv('HOME') ?: sys_get_temp_dir()).'/.cache/trivy';
+    @mkdir($cache, 0o755, true);
+    printf("\n  %s\n", Lang::t('advisories.running', $scanner));
+
+    $raw = (string) @shell_exec(\sprintf(
+        '%s run --rm --volume %s:/root/.cache --volume %s:/project:ro %s fs --scanners vuln --format json --quiet /project 2>/dev/null',
+        escapeshellarg($docker),
+        escapeshellarg($cache),
+        escapeshellarg($root),
+        escapeshellarg($scanner),
+    ));
+
+    $report = Value::map(json_decode($raw, true));
+    if ($report === []) {
+        fwrite(\STDERR, '✗ '.Lang::t('advisories.failed', $scanner)."\n");
+        exit(1);
+    }
+
+    $collected = Advisories::fromScannerReport($report, $scanner, $root);
+    // dirname() always answers something, "." included; only a directory that
+    // is not there yet needs creating.
+    $directory = \dirname($out);
+    if (!is_dir($directory)) {
+        @mkdir($directory, 0o755, true);
+    }
+    file_put_contents($out, json_encode($collected, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+
+    $packages = Value::map($collected['packages'] ?? null);
+    printf("  %s\n", Lang::t('advisories.written', $out, \count($packages), Value::int($collected['other_vulnerable_packages'] ?? null)));
+    printf("  %s\n\n", Lang::t('advisories.next', $out));
+    exit(0);
+}
+
 // --- probe only: bin/sablier probe example.org --------------------------
 if ($command === 'probe') {
     $target = $argv[2] ?? null;
@@ -193,11 +255,11 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'audit' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => 'report.html', 'json' => null, 'cbom' => null, 'audit' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|cbom|audit|pdf|year|sign|baseline)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|audit|pdf|year|sign|baseline|advisories)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -283,7 +345,22 @@ if ($command === 'scan') {
     }
 }
 
-$findings = (new Assessor($declaration, $currentYear))->assess($inventory);
+// Published vulnerabilities are read from a file the operator collected on
+// purpose. Absent, the report says the question was not asked rather than
+// implying the answer was no.
+$advisories = null;
+if ($options['advisories'] !== null) {
+    $advisories = Advisories::load($options['advisories']);
+    if ($advisories === null) {
+        fwrite(\STDERR, '✗ '.Lang::t('advisories.unreadable', $options['advisories'])."\n");
+        exit(1);
+    }
+    $blind[] = Lang::t('advisories.blind.used', $advisories->scanner, substr($advisories->generatedAt, 0, 10), $advisories->count(), $advisories->ignored);
+} else {
+    $blind[] = Lang::t('advisories.blind.absent');
+}
+
+$findings = (new Assessor($declaration, $currentYear, $advisories))->assess($inventory);
 $duration = microtime(true) - $startedAt;
 
 // Signing happens after the analysis and over the findings, never over the

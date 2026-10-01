@@ -258,7 +258,7 @@ final class HtmlReporter implements ReporterInterface
                 : '';
             // A published defect is checkable by whoever reads this; the
             // post-quantum deadline is not one, and is cited as a deadline.
-            $references = self::references($finding->algorithm);
+            $references = self::references($finding);
             $confidence = $finding->confidence === Finding::CONFIDENCE_MEDIUM
                 ? '<span class="conf">'.htmlspecialchars(Lang::t('label.medium_confidence')).'</span>'
                 : '';
@@ -287,9 +287,9 @@ final class HtmlReporter implements ReporterInterface
     }
 
     /** The CVE numbers behind a verdict, linked where a reader can check them. */
-    private static function references(string $algorithm): string
+    private static function references(Finding $finding): string
     {
-        $references = Catalogue::references($algorithm);
+        $references = $finding->references();
         if ($references === []) {
             return '';
         }

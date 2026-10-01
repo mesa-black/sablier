@@ -103,7 +103,7 @@ final class Pdf
         }
 
         $browser = self::browser();
-        $container = $browser === null ? self::container() : null;
+        $container = $browser === null ? Docker::binary() : null;
         if ($browser === null && $container === null) {
             return [false, Lang::t('pdf.no_browser')];
         }
@@ -166,8 +166,8 @@ final class Pdf
             .' --headless --disable-gpu --no-sandbox --user-data-dir=/tmp/sablier --no-pdf-header-footer'
             .' --print-to-pdf=%s %s 2>/dev/null',
             escapeshellarg($docker),
-            escapeshellarg((string) self::currentUid()),
-            escapeshellarg((string) self::currentGid()),
+            escapeshellarg((string) Docker::uid()),
+            escapeshellarg((string) Docker::gid()),
             escapeshellarg(\dirname($source)),
             escapeshellarg($target),
             escapeshellarg(self::CONTAINER_IMAGE),
@@ -176,31 +176,6 @@ final class Pdf
         );
     }
 
-    /**
-     * Who is running this, as the kernel sees it.
-     *
-     * getmyuid() answers about the owner of the script file, which is not the
-     * same person the moment the repository is shared or checked out by root.
-     * ext-posix knows the difference and is present in every CLI build this
-     * tool supports; the fallback is there for the one that is not.
-     */
-    private static function currentUid(): int
-    {
-        return \function_exists('posix_getuid') ? posix_getuid() : (int) getmyuid();
-    }
-
-    private static function currentGid(): int
-    {
-        return \function_exists('posix_getgid') ? posix_getgid() : (int) getmygid();
-    }
-
-    /** Docker, only if it is both installed and answering. */
-    private static function container(): ?string
-    {
-        $docker = trim((string) @shell_exec('command -v docker 2>/dev/null'));
-
-        return $docker !== '' ? $docker : null;
-    }
 
     /**
      * The same report, with every disclosure already open.

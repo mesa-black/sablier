@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-10-01T18:00:00+00:00",
+  "scanner": "aquasec/trivy:0.75.0",
+  "target": "tests/fixtures/advisories",
+  "other_vulnerable_packages": 7,
+  "packages": {
+    "firebase/php-jwt": [
+      { "id": "CVE-2021-46743", "severity": "CRITICAL", "fixed": "6.0.0", "installed": "5.2.0" }
+    ],
+    "phpseclib/phpseclib": [
+      { "id": "CVE-2023-27560", "severity": "HIGH", "fixed": "3.0.19", "installed": "3.0.18" },
+      { "id": "CVE-2024-27354", "severity": "MEDIUM", "fixed": "3.0.36", "installed": "3.0.18" }
+    ],
+    "defuse/php-encryption": [
+      { "id": "CVE-2000-00000", "severity": "LOW", "fixed": "", "installed": "2.0.0" }
+    ]
+  }
+}

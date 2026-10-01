@@ -6,7 +6,7 @@ PHP_IMAGE ?= php:8.4-cli-alpine
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
 TRIVY_IMAGE ?= aquasec/trivy:0.75.0
 CHROME_IMAGE ?= zenika/alpine-chrome:124
-.PHONY: help test scan judge demo probe phpstan cve
+.PHONY: help test scan judge demo probe phpstan cve advisories
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
@@ -40,6 +40,10 @@ scan: ## Scan a project: make scan DIR=/path [DECLARE=file.json] [LANG=en] [PDF=
 	@./sablier scan "$(DIR)" $(if $(DECLARE),--declare=$(DECLARE),) \
 		$(if $(LANG),--lang=$(LANG),) $(if $(PDF),--pdf=report.pdf,) \
 		$(if $(CBOM),--cbom=cbom.json,) $(if $(AUDIT),--audit=audit.html,) --out=report.html
+
+advisories: ## Collect published vulnerabilities: make advisories DIR=/path [OUT=file.json]
+	@test -n "$(DIR)" || { echo "make advisories DIR=/path"; exit 1; }
+	@./sablier advisories "$(DIR)" $(if $(OUT),--out=$(OUT),)
 
 judge: ## Judge another tool's CBOM: make judge CBOM=cbom.json [DECLARE=file.json] [LANG=en]
 	@test -n "$(CBOM)" || { echo "make judge CBOM=cbom.json"; exit 1; }

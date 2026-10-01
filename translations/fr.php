@@ -157,6 +157,7 @@ return [
   bin/sablier scan <chemin> [options]
   bin/sablier probe <hôte>          ce qu\'un serveur négocie réellement
   bin/sablier judge <cbom.json>     juger l\'inventaire d\'un autre outil (CycloneDX 1.6)
+  bin/sablier advisories <chemin>   collecter les vulnérabilités publiées des dépendances
   bin/sablier accept <empreinte> --reason=…  accepter un constat, avec sa date d\'expiration
 
     --declare=FICHIER   déclaration des domaines de données (défaut : sablier.json à la racine analysée)
@@ -164,6 +165,7 @@ return [
     --json=FICHIER      inventaire brut en JSON
     --cbom=FICHIER      inventaire au format CycloneDX 1.6 (CBOM)
     --audit=FICHIER     rapport d\'audit : faits numérotés, méthode, limites, avis
+    --advisories=FICHIER  vulnérabilités publiées collectées (voir la commande advisories)
     --baseline=FICHIER  comparer à un inventaire JSON de référence (sortie 2 s\'il faut décider)
     --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
@@ -277,6 +279,8 @@ Première action : %s',
 
     // --- accepted findings ---
     'verdict.accepted' => 'ACCEPTÉ',
+    'reason.vulnerable_dependency' => "La version déclarée de %s porte %d vulnérabilité(s) publiée(s) de gravité haute ou critique. C'est un défaut d'aujourd'hui, indépendant du quantique : il passe avant toute migration.",
+    'reason.vulnerable_dependency.fixed' => "La version déclarée de %s porte %d vulnérabilité(s) publiée(s) de gravité haute ou critique, corrigée(s) en %s. C'est un défaut d'aujourd'hui, indépendant du quantique : il passe avant toute migration.",
     'reason.accepted' => 'Constat %s, accepté par le projet jusqu\'au %s.',
     'reason.acceptance_expired' => '⚠ L\'acceptation de ce constat a expiré le %s : il revient.',
     'accepted.reason' => 'Raison retenue',
@@ -317,6 +321,15 @@ Première action : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'non déclaré',
+    // --- published vulnerabilities in declared libraries ---
+    'advisories.no_docker' => "collecte impossible : Docker est requis pour exécuter le scanner de vulnérabilités sans rien installer sur cette machine.",
+    'advisories.running' => 'collecte des vulnérabilités publiées avec %s…',
+    'advisories.failed' => '%s n\'a rien produit : collecte abandonnée.',
+    'advisories.written' => '%s — %d bibliothèque(s) cryptographique(s) concernée(s), %d autre(s) paquet(s) vulnérable(s) laissé(s) de côté.',
+    'advisories.next' => 'Puis : sablier scan <chemin> --advisories=%s',
+    'advisories.unreadable' => 'fichier de vulnérabilités illisible : %s',
+    'advisories.blind.used' => 'Vulnérabilités publiées : base %s du %s, %d bibliothèque(s) cryptographique(s) concernée(s). %d autre(s) paquet(s) vulnérable(s) ne sont pas de la cryptographie et ne sont pas jugés ici.',
+    'advisories.blind.absent' => "Les vulnérabilités publiées des dépendances n'ont pas été vérifiées : lancez `sablier advisories <chemin>` puis `--advisories=<fichier>`. Sans cela, une bibliothèque trouée aujourd'hui est présentée comme un simple inventaire.",
 
     // --- audit report: the second document, written to be read by people who
     // do not write code and may have to weigh it in a dispute ---

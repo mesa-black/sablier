@@ -148,6 +148,7 @@ return [
   bin/sablier scan <path> [options]
   bin/sablier probe <host>          what a server actually negotiates
   bin/sablier judge <cbom.json>     judge another tool\'s inventory (CycloneDX 1.6)
+  bin/sablier advisories <path>     collect published vulnerabilities of the dependencies
   bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
 
     --declare=FILE      data domain declaration (default: sablier.json at the scanned root)
@@ -155,6 +156,7 @@ return [
     --json=FILE         raw inventory as JSON
     --cbom=FILE         inventory as CycloneDX 1.6 (CBOM)
     --audit=FILE        audit report: numbered facts, method, limits, opinion
+    --advisories=FILE   collected published vulnerabilities (see the advisories command)
     --baseline=FILE     compare against a reference JSON inventory (exit 2 when a decision is due)
     --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
@@ -268,6 +270,8 @@ First action: %s',
 
     // --- accepted findings ---
     'verdict.accepted' => 'ACCEPTED',
+    'reason.vulnerable_dependency' => 'The declared version of %s carries %d published high or critical vulnerability(ies). That is a defect of today, nothing to do with quantum computing, and it comes before any migration.',
+    'reason.vulnerable_dependency.fixed' => 'The declared version of %s carries %d published high or critical vulnerability(ies), fixed in %s. That is a defect of today, nothing to do with quantum computing, and it comes before any migration.',
     'reason.accepted' => 'A %s finding, accepted by the project until %s.',
     'reason.acceptance_expired' => '⚠ The acceptance of this finding expired on %s: it is back.',
     'accepted.reason' => 'Stated reason',
@@ -308,6 +312,15 @@ First action: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage: sablier verify <report.html.sig> [--declare=sablier.json]',
     'domain.undeclared' => 'undeclared',
+    // --- published vulnerabilities in declared libraries ---
+    'advisories.no_docker' => 'cannot collect: Docker is required to run the vulnerability scanner without installing anything on this machine.',
+    'advisories.running' => 'collecting published vulnerabilities with %s…',
+    'advisories.failed' => '%s produced nothing: collection abandoned.',
+    'advisories.written' => '%s — %d cryptographic library(ies) affected, %d other vulnerable package(s) left aside.',
+    'advisories.next' => 'Then: sablier scan <path> --advisories=%s',
+    'advisories.unreadable' => 'unreadable advisory file: %s',
+    'advisories.blind.used' => 'Published vulnerabilities: %s database of %s, %d cryptographic library(ies) affected. %d other vulnerable package(s) are not cryptography and are not judged here.',
+    'advisories.blind.absent' => 'Published vulnerabilities in dependencies were not checked: run `sablier advisories <path>`, then `--advisories=<file>`. Without it, a library with a hole in it today is presented as plain inventory.',
 
     // --- audit report: the second document, written to be read by people who
     // do not write code and may have to weigh it in a dispute ---

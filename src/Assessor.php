@@ -28,6 +28,8 @@ final class Assessor
     public function __construct(
         private readonly Declaration $declaration,
         private readonly int $currentYear,
+        /** Published vulnerabilities, when the operator has collected them. */
+        private readonly ?Advisories $advisories = null,
     ) {
     }
 
@@ -46,6 +48,7 @@ final class Assessor
             $finding->trustAnchor = $domain['trust_anchor'];
 
             [$finding->verdict, $finding->because] = $this->verdict($finding);
+            $this->applyAdvisories($finding);
             $this->applyAcceptance($finding);
         }
 
@@ -76,6 +79,52 @@ final class Assessor
      * verdict stays attached, the reason is printed, and the acceptance expires
      * on a date the reader can see.
      */
+    /**
+     * A declared library with a published hole in the declared version.
+     *
+     * This is the one place where "presence is not usage" gives way, and the
+     * reason is in the dates: the rest of this report argues about 2035, while
+     * an advisory says somebody found a way in before the report was printed.
+     * A high or critical one makes the finding urgent — the same category as
+     * MD5 and SHA-1, which is to say a problem that owes nothing to quantum
+     * computing. Medium and low are attached and shown, never promoted: a tool
+     * that raises everything is a tool nobody reads twice.
+     */
+    private function applyAdvisories(Finding $finding): void
+    {
+        if ($this->advisories === null || !$finding->inventory || $finding->evidence === '') {
+            return;
+        }
+
+        $all = $this->advisories->for($finding->evidence);
+        if ($all === []) {
+            return;
+        }
+
+        $finding->advisories = array_map(static fn (array $entry): string => $entry['id'], $all);
+
+        $raising = $this->advisories->raising($finding->evidence);
+        if ($raising === []) {
+            return;
+        }
+
+        $fixed = '';
+        foreach ($raising as $entry) {
+            if ($entry['fixed'] !== '') {
+                $fixed = $entry['fixed'];
+                break;
+            }
+        }
+
+        $finding->verdict = self::URGENT;
+        $finding->because = Lang::t(
+            $fixed !== '' ? 'reason.vulnerable_dependency.fixed' : 'reason.vulnerable_dependency',
+            $finding->evidence,
+            \count($raising),
+            $fixed,
+        );
+    }
+
     private function applyAcceptance(Finding $finding): void
     {
         $acceptance = $this->declaration->acceptanceFor($finding->fingerprint());

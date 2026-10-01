@@ -1,0 +1,11 @@
+{
+  "_readme": ["fixture"],
+  "content-hash": "0000000000000000000000000000000000",
+  "packages": [
+    { "name": "phpseclib/phpseclib", "version": "3.0.18", "source": {"type":"git","url":"https://github.com/phpseclib/phpseclib.git","reference":"x"} },
+    { "name": "firebase/php-jwt", "version": "5.2.0", "source": {"type":"git","url":"https://github.com/firebase/php-jwt.git","reference":"y"} },
+    { "name": "spomky-labs/otphp", "version": "11.2.0", "source": {"type":"git","url":"https://github.com/Spomky-Labs/otphp.git","reference":"z"} }
+  ],
+  "packages-dev": [],
+  "platform": {"php": ">=8.2"}
+}

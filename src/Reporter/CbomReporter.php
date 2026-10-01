@@ -195,7 +195,7 @@ final class CbomReporter implements ReporterInterface
                 'type' => 'advisories',
                 'comment' => $reference,
             ],
-            Catalogue::references($finding->algorithm),
+            $finding->references(),
         );
 
         $occurrence = ['location' => $finding->file];

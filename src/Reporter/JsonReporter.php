@@ -32,7 +32,7 @@ final class JsonReporter implements ReporterInterface
             'confidence' => $f->confidence,
             'inventory' => $f->inventory,
             'because' => $f->because,
-            'references' => Catalogue::references($f->algorithm),
+            'references' => $f->references(),
             'accepted_until' => $f->acceptedUntil,
         ], $analysis->findings);
 

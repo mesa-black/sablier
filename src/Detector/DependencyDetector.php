@@ -30,6 +30,18 @@ final class DependencyDetector implements DetectorInterface
         'spomky-labs/otphp' => ['sha1', 'detail.pkg.totp'],
     ];
 
+    /**
+     * The packages this tool claims to know, so the advisory collection can
+     * narrow itself to them rather than reporting a project's entire
+     * dependency tree under a cryptographic heading.
+     *
+     * @return list<string>
+     */
+    public static function packages(): array
+    {
+        return array_keys(self::PACKAGES);
+    }
+
     public function supports(SourceFile $file): bool
     {
         return $file->name === 'composer.lock';
