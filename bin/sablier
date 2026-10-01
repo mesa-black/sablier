@@ -15,8 +15,6 @@
 
 declare(strict_types=1);
 
-namespace Sablier;
-
 // A four-line autoloader rather than a require list that has to be kept in
 // order: adding a detector must not mean editing this file.
 spl_autoload_register(static function (string $class): void {
@@ -28,6 +26,17 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
+// This file is a script, not a library: it stays in the global namespace and
+// imports what it uses. A namespace declaration cannot legally follow the
+// shebang line anyway — PHP tolerates it, the specification does not, and an
+// entry point that makes an editor shout is a poor advertisement for a tool
+// that spends its time telling people what is wrong with their code.
+use Sablier\Analysis;
+use Sablier\Assessor;
+use Sablier\Baseline;
+use Sablier\Catalogue;
+use Sablier\Cbom;
+use Sablier\Declaration;
 use Sablier\Detector\DependencyDetector;
 use Sablier\Detector\EnvDetector;
 use Sablier\Detector\FrameworkConfigDetector;
@@ -37,10 +46,17 @@ use Sablier\Detector\ServerConfigDetector;
 use Sablier\Detector\ShellDetector;
 use Sablier\Detector\SshConfigDetector;
 use Sablier\Detector\SymfonyVaultDetector;
+use Sablier\Finding;
+use Sablier\Lang;
+use Sablier\Pdf;
+use Sablier\Probe;
 use Sablier\Reporter\AuditReporter;
 use Sablier\Reporter\CbomReporter;
 use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
+use Sablier\Scanner;
+use Sablier\Signature;
+use Sablier\Value;
 
 // Arguments are read through the same door as every other outside value: a
 // list of strings, whatever the runtime put in $_SERVER.
