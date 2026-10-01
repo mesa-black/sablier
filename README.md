@@ -575,7 +575,7 @@ jobs:
           coverage: none
 
       - name: Get Sablier
-        run: git clone --depth 1 --branch v0.2.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
+        run: git clone --depth 1 --branch v0.3.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
 
       - name: Inventory the cryptography
         run: |

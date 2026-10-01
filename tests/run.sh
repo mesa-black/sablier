@@ -240,7 +240,7 @@ printf '  ✓ %-24s %-10s %s\n' "provenance" "author" "named, and stale after 2 
 
 # A report that prints the command, the digest and a signature must say which
 # build produced it.
-if ! grep -q "Sablier 0.2.0" "$prov/audit.html"; then
+if ! grep -q "Sablier 0.3.0" "$prov/audit.html"; then
 	echo "✗ provenance: the audit must name the build that produced it"
 	rm -rf "$prov"
 	exit 1

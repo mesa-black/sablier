@@ -4,6 +4,65 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.3.0 — 2026-10-02
+
+The release where somebody who does not write code can answer the question the
+whole tool rests on.
+
+### The interview
+
+`sablier serve <path>` opens it in a browser: one subject per page, a button
+that starts the clock, a counter the person can see, and a skip that is a real
+answer. `sablier declare <path>` is the same questions in a terminal.
+
+Two dry runs with somebody playing the non-technical part rebuilt the screen
+and are worth recording, because each line of it answers a failure. A file path
+told them nothing, so the heading became the part of the application in words.
+"What would we be talking about" was answered with the incident — "a hack of my
+server" — so it asks for a name now, with examples and a suggestion to correct.
+The duration question was answered three times out of four by typing and four
+out of four once it became buttons; retention stayed at one in four, so it is
+optional and last. "I do not know" is a button, recorded separately from a
+plain skip. And nothing had said what the audit was for, so the opening says
+it, naming the project rather than "this application".
+
+A subject made of signatures is asked a different question — how long the proof
+must hold, not what a leak would cost — because a signature is published on
+purpose, and a long answer writes `trust_anchor` into the declaration.
+
+### What the session leaves behind
+
+Every lifetime now carries **who declared it and when**. The audit prints both
+beside the number, and one nobody has revisited for two years becomes a blind
+spot: acceptances expire and regulatory dates carry a verification date, while
+the one input that decides every verdict had neither.
+
+The session record holds the time spent per subject, what was skipped and why,
+and two questions about the interview itself — those go to us, not to the
+report.
+
+### The system, not only its data
+
+`service_until` puts the last day the system writes data into the arithmetic:
+backups kept ten years and written until 2032 are exposed to 2042, not 2036.
+`regime` picks whose deadline applies — NIST IR 8547, ANSSI, CNSA 2.0 — and
+with it the citation. Same code, same declared lifetimes, read as a commercial
+service or an institutional one: no red at all, or one red.
+
+### Elsewhere
+
+- `sablier init` writes a declaration to correct rather than a form to fill;
+- the probe gained LDAP, AMQP, Redis, MQTT, and **SSH**, which never becomes
+  TLS and so reads the server's KEXINIT instead — where a post-quantum key
+  exchange shows up that no file in a repository mentions;
+- a signed report names the one it replaces, inside what is signed, with no
+  flag to remember: a folder of reports is an audit trail;
+- the audit report names the build that produced it, and every page runs a line
+  identifying the document, the project, the engagement and the version — Chrome
+  ignores the CSS that would carry a page number, which was tested rather than
+  assumed;
+- `sablier --version` answers directly.
+
 ## v0.2.0 — 2026-10-01
 
 The release where the report stopped being the only thing this tool produced.
