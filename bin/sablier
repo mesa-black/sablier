@@ -212,12 +212,16 @@ if ($command === 'declare') {
         exit(0);
     }
     printf("  %s\n", Lang::t('declare.found', \count($areas)));
-    printf("  %s\n", Lang::t('declare.target', $root));
+    printf("  %s\n", Lang::t('declare.target', basename($root)));
 
-    $ask = static function (string $question, bool $optional = false): ?string {
+    // The hint and the examples are shown on the first subject and never
+    // again: a person reads them once, and repeating them twelve times turns
+    // the screen into a form rather than a conversation.
+    $first = true;
+    $ask = static function (string $question, bool $optional = false) use (&$first): ?string {
         while (true) {
             printf("\n  %s\n", $question);
-            if ($optional) {
+            if ($optional && $first) {
                 printf("  %s\n", Lang::t('declare.q.skip'));
             }
             $line = fgets(\STDIN);
@@ -256,9 +260,11 @@ if ($command === 'declare') {
         $areaStartedAt = microtime(true);
         printf("\n  ———\n  %s\n\n", Lang::t('declare.area', $index + 1, \count($areas), $area['files']));
         printf("  %s\n", wordwrap(Lang::t(Interview::subject($area['algorithms'])), 76, "\n  "));
-        printf("  %s\n", Lang::t('declare.area.where', implode(', ', $area['names']).($area['files'] > \count($area['names']) ? ' …' : '')));
+        printf("  %s\n", Lang::t('declare.area.where', $area['files'] === 1
+            ? $area['names'][0]
+            : implode(', ', array_map(basename(...), $area['names'])).($area['files'] > \count($area['names']) ? ' …' : '')));
 
-        $name = $ask(Lang::t('declare.q.name'), true);
+        $name = $ask(Lang::t($first ? 'declare.q.name.first' : 'declare.q.name'), true);
         if ($name === null) {
             ++$skipped;
             $record[] = ['area' => $area['path'], 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
@@ -290,6 +296,7 @@ if ($command === 'declare') {
             'note' => $ask(Lang::t('declare.q.note'), true) ?? '',
         ];
 
+        $first = false;
         $seconds = round(microtime(true) - $areaStartedAt, 1);
         $record[] = [
             'area' => $area['path'],
@@ -300,7 +307,6 @@ if ($command === 'declare') {
             'skipped' => false,
             'seconds' => $seconds,
         ];
-        printf("  %s\n", Lang::t('declare.area.time', $seconds));
     }
 
     if ($answers !== []) {
@@ -308,7 +314,7 @@ if ($command === 'declare') {
         $existing = is_file($out) ? Value::map(json_decode((string) file_get_contents($out), true)) : [];
         $merged = Interview::merge($existing, $answers);
         file_put_contents($out, json_encode($merged, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
-        printf("\n  %s\n", Lang::t('declare.written', \count($answers), $out));
+        printf("\n  %s\n", Lang::t('declare.written', \count($answers), basename($out)));
     }
 
     $elapsed = microtime(true) - $startedAt;
