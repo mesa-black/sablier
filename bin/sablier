@@ -237,8 +237,11 @@ if ($command === 'serve') {
         }
     }
 
+    // exec, so the server replaces the shell instead of hiding behind it: a
+    // stray php -S holding the port after its parent was killed is a bad way
+    // to learn that the command leaked a process.
     $command = \sprintf(
-        'SABLIER_SESSION=%s SABLIER_LANG=%s %s -S 127.0.0.1:%d %s 2>/dev/null',
+        'exec env SABLIER_SESSION=%s SABLIER_LANG=%s %s -S 127.0.0.1:%d %s 2>/dev/null',
         escapeshellarg($sessionFile),
         escapeshellarg(Lang::locale()),
         escapeshellarg(\PHP_BINARY),

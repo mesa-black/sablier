@@ -178,8 +178,11 @@ walk=$(php -r '
 	$post("/feedback", ["missing" => "how many clients", "unclear" => "fingerprint"]);
 	echo str_contains((string) @file_get_contents($base."/done"), "SABLIER") ? "ok" : "no done";
 ')
-kill "$server" 2>/dev/null
+kill "$server" 2>/dev/null || true
 wait "$server" 2>/dev/null || true
+# Belt and braces: a server left holding the port would make the next run fail
+# for a reason that has nothing to do with the code.
+pkill -f "127.0.0.1:8791" 2>/dev/null || true
 
 if [ "$walk" != "ok" ]; then
 	echo "✗ web: the interview did not survive a full walk ($walk)"
