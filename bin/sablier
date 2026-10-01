@@ -500,7 +500,7 @@ if ($command === 'declare') {
         $name = $ask(Lang::t($first ? 'declare.q.name.first' : 'declare.q.name'), true, $first);
         if ($name === null) {
             ++$skipped;
-            $record[] = ['area' => $area['path'], 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
+            $record[] = ['area' => Interview::where($area['paths']), 'places' => $area['paths'], 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
             printf("  %s\n", Lang::t('declare.skipped'));
             continue;
         }
@@ -509,7 +509,7 @@ if ($command === 'declare') {
         $damage = $years(Lang::t('declare.q.damage'), $first);
         if ($retention === null && $damage === null) {
             ++$skipped;
-            $record[] = ['area' => $area['path'], 'name' => $name, 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
+            $record[] = ['area' => Interview::where($area['paths']), 'places' => $area['paths'], 'name' => $name, 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
             printf("  %s\n", Lang::t('declare.skipped'));
             continue;
         }
@@ -532,7 +532,8 @@ if ($command === 'declare') {
         $first = false;
         $seconds = round(microtime(true) - $areaStartedAt, 1);
         $record[] = [
-            'area' => $area['path'],
+            'area' => Interview::where($area['paths']),
+            'places' => $area['paths'],
             'name' => $name,
             'retention_years' => $retention,
             'harm_years' => $damage,

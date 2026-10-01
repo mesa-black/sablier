@@ -277,6 +277,7 @@ final class Interview
         $index = $this->session->int('index');
         $areas = array_values($this->session->map('areas'));
         $area = Value::map($areas[$index] ?? []);
+        $places = Value::strings($area['paths'] ?? null);
         $name = trim($post['name'] ?? '');
         $record = $this->session->map('record');
         $answers = $this->session->map('answers');
@@ -284,7 +285,8 @@ final class Interview
         $action = $post['action'] ?? '';
         if ($action === 'skip' || $action === 'unknown' || $name === '') {
             $record[] = [
-                'area' => Value::string($area['path'] ?? null),
+                'area' => Questions::where($places),
+                'places' => $places,
                 'skipped' => true,
                 // Not knowing and choosing not to answer are two results, and
                 // the difference is the whole point of running the session.
@@ -307,7 +309,8 @@ final class Interview
                 'declared_by' => $this->session->string('who'),
             ];
             $record[] = [
-                'area' => Value::string($area['path'] ?? null),
+                'area' => Questions::where($places),
+                'places' => $places,
                 'name' => $name,
                 'retention_years' => $retention,
                 'harm_years' => $harm,

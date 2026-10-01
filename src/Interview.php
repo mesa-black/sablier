@@ -129,6 +129,22 @@ final class Interview
     }
 
     /**
+     * How a subject is named in the record, when it covers several places.
+     *
+     * The log is read in a table, and five directories spelled out push the
+     * duration off the edge. The first place plus a count says as much in a
+     * column that fits; the declaration holds the five paths in full.
+     *
+     * @param list<string> $paths
+     */
+    public static function where(array $paths): string
+    {
+        $first = $paths[0] ?? '';
+
+        return \count($paths) > 1 ? \sprintf('%s +%d', $first, \count($paths) - 1) : $first;
+    }
+
+    /**
      * What was found here, said without a single technical word.
      *
      * The first dry run showed an area as "`.env` — cryptographie relevée :
