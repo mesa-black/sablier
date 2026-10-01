@@ -179,7 +179,11 @@ final class AssetDetector implements DetectorInterface
     {
         $out = '';
         foreach (str_split($bytes) as $byte) {
-            $out .= ctype_print($byte) ? $byte : '\x'.bin2hex($byte);
+            // Printable ASCII and nothing else: ctype_print() answers for the
+            // current locale, and a byte it calls printable still arrives in
+            // the report as a question mark once the page is encoded.
+            $code = \ord($byte);
+            $out .= $code >= 0x20 && $code <= 0x7E ? $byte : '\x'.bin2hex($byte);
         }
 
         return $out;
