@@ -189,6 +189,10 @@ return [
     'pdf.failed' => 'Exportación a PDF fallida: %s no ha producido ningún archivo.',
     'pdf.written' => '%s (%s KB)',
 
+    // --- imported inventory ---
+    'report.imported_tag' => 'inventario importado',
+    'report.imported_banner' => '⤵ Inventario importado: los hallazgos vienen de un CBOM producido por %s. Aquí no se ha leído código alguno: el dominio, la duración y el veredicto son de Sablier, la detección viene de ese archivo.',
+
     // --- projection ---
     'report.projection' => '⚠ Proyección: este informe simula la situación en %d. No es un estado actual: los veredictos son los que tendrían los mismos datos si se cifraran ese año.',
 

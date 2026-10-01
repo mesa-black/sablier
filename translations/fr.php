@@ -198,6 +198,10 @@ return [
     'pdf.failed' => 'export PDF échoué : %s n\'a produit aucun fichier.',
     'pdf.written' => '%s (%s Ko)',
 
+    // --- imported inventory ---
+    'report.imported_tag' => 'inventaire importé',
+    'report.imported_banner' => '⤵ Inventaire importé : les constats viennent d\'un CBOM produit par %s. Aucun code n\'a été relu ici — le domaine, la durée et le verdict sont de Sablier, la détection vient de ce fichier.',
+
     // --- projection ---
     'report.projection' => '⚠ Projection : ce rapport simule la situation en %d. Ce n\'est pas un état actuel — les verdicts sont ceux qu\'auraient les mêmes données si elles étaient chiffrées cette année-là.',
 

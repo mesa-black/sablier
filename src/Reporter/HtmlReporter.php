@@ -70,6 +70,13 @@ final class HtmlReporter implements Reporter
         $projection = $this->analysis->projected
             ? '<p class="projection">'.htmlspecialchars(Lang::t('report.projection', $this->analysis->currentYear)).'</p>'
             : '';
+        // An imported inventory must never be mistaken for one this tool read
+        // itself: two reports that look the same and were produced differently
+        // is how a reader ends up trusting the wrong one. Same prominence as
+        // the projection banner, for the same reason.
+        $imported = $this->analysis->importedFrom !== ''
+            ? '<p class="imported">'.htmlspecialchars(Lang::t('report.imported_banner', $this->analysis->importedFrom)).'</p>'
+            : '';
         $seal = $this->seal();
         $plan = $this->actionPlan($headline, $actionable);
         $fpLegend = $this->analysis->findings === [] ? '' : $this->falsePositiveLegend();
@@ -81,6 +88,7 @@ final class HtmlReporter implements Reporter
         $date = (new \DateTimeImmutable())->format('d/m/Y');
         $project = htmlspecialchars($this->analysis->declaration->project !== '' ? $this->analysis->declaration->project : basename($this->analysis->target));
 
+        $titleTag = $this->analysis->importedFrom !== '' ? ' · '.Lang::t('report.imported_tag') : '';
         $lang = Lang::locale();
         $about = Lang::t('about.tool');
         $pq = Lang::t('about.postquantum');
@@ -99,7 +107,7 @@ final class HtmlReporter implements Reporter
             <!DOCTYPE html>
             <html lang="$lang"><head><meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>Sablier — $project</title>
+            <title>Sablier — $project$titleTag</title>
             <style>$css</style></head>
             <body>
             <header>
@@ -110,6 +118,7 @@ final class HtmlReporter implements Reporter
             <div class="about">$pq</div>
             <div class="about">$about</div>
 
+            $imported
             $projection
             <p class="headline">$headline</p>
             <p class="sub">$subtitle</p>
@@ -594,6 +603,8 @@ final class HtmlReporter implements Reporter
             .stale{color:var(--warn)}
             .projection{border:1px solid var(--warn);color:var(--warn);border-radius:3px;
                         padding:.6rem .85rem;margin:0 0 1.4rem;font-size:.86rem}
+            .imported{border:1px solid var(--cool);color:var(--cool);border-radius:3px;
+                      padding:.6rem .85rem;margin:0 0 1.4rem;font-size:.86rem}
             .probe{border-top:1px solid var(--line);padding:.9rem 0}
             .probe h3{margin:0 0 .5rem;font-family:ui-monospace,Menlo,monospace;font-size:.85rem;font-weight:600}
             .probe dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.35rem 1.2rem}

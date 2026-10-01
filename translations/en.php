@@ -189,6 +189,10 @@ return [
     'pdf.failed' => 'PDF export failed: %s produced no file.',
     'pdf.written' => '%s (%s KB)',
 
+    // --- imported inventory ---
+    'report.imported_tag' => 'imported inventory',
+    'report.imported_banner' => '⤵ Imported inventory: the findings come from a CBOM produced by %s. No code was read here — the domain, the lifetime and the verdict are Sablier\'s, the detection comes from that file.',
+
     // --- projection ---
     'report.projection' => '⚠ Projection: this report simulates the situation in %d. It is not a current state — the verdicts are those the same data would get if it were encrypted that year.',
 
