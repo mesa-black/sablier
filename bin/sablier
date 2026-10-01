@@ -218,10 +218,10 @@ if ($command === 'declare') {
     // again: a person reads them once, and repeating them twelve times turns
     // the screen into a form rather than a conversation.
     $first = true;
-    $ask = static function (string $question, bool $optional = false) use (&$first): ?string {
+    $ask = static function (string $question, bool $optional = false, bool $hint = false): ?string {
         while (true) {
             printf("\n  %s\n", $question);
-            if ($optional && $first) {
+            if ($optional && $hint) {
                 printf("  %s\n", Lang::t('declare.q.skip'));
             }
             $line = fgets(\STDIN);
@@ -235,9 +235,9 @@ if ($command === 'declare') {
         }
     };
 
-    $years = static function (string $question) use ($ask): ?int {
+    $years = static function (string $question, bool $hint = false) use ($ask): ?int {
         while (true) {
-            $answer = $ask($question, true);
+            $answer = $ask($question, true, $hint);
             if ($answer === null) {
                 return null;
             }
@@ -264,7 +264,7 @@ if ($command === 'declare') {
             ? $area['names'][0]
             : implode(', ', array_map(basename(...), $area['names'])).($area['files'] > \count($area['names']) ? ' …' : '')));
 
-        $name = $ask(Lang::t($first ? 'declare.q.name.first' : 'declare.q.name'), true);
+        $name = $ask(Lang::t($first ? 'declare.q.name.first' : 'declare.q.name'), true, $first);
         if ($name === null) {
             ++$skipped;
             $record[] = ['area' => $area['path'], 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
@@ -272,8 +272,8 @@ if ($command === 'declare') {
             continue;
         }
 
-        $retention = $years(Lang::t('declare.q.retention'));
-        $damage = $years(Lang::t('declare.q.damage'));
+        $retention = $years(Lang::t('declare.q.retention'), $first);
+        $damage = $years(Lang::t('declare.q.damage'), $first);
         if ($retention === null && $damage === null) {
             ++$skipped;
             $record[] = ['area' => $area['path'], 'name' => $name, 'skipped' => true, 'seconds' => round(microtime(true) - $areaStartedAt, 1)];
@@ -293,7 +293,7 @@ if ($command === 'declare') {
             'name' => $name,
             'paths' => [$area['pattern']],
             'lifetime' => $lifetime,
-            'note' => $ask(Lang::t('declare.q.note'), true) ?? '',
+            'note' => $ask(Lang::t('declare.q.note'), true, $first) ?? '',
         ];
 
         $first = false;
