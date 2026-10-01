@@ -448,7 +448,9 @@ if ($signature !== null) {
 echo "\n";
 
 if ($diff !== null) {
-    printf("  %s\n", Lang::t('diff.header', $options['baseline'], $baseline->count()));
+    // The reference names itself: reading the path back out of the options bag
+    // asks every reader, human or machine, to prove it is still a string.
+    printf("  %s\n", Lang::t('diff.header', $baseline->path, $baseline->count()));
     if ($diff['new'] !== [] || $diff['worsened'] !== [] || $diff['red'] !== [] || $diff['resolved'] !== []) {
         echo "\n";
     }
