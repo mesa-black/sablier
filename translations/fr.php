@@ -137,6 +137,7 @@ return [
     'timeline.expiry' => 'péremption',
     'label.replacement' => 'Remplacement',
     'label.medium_confidence' => 'confiance moyenne',
+    'label.fingerprint' => 'empreinte',
 
     // --- blind spots ------------------------------------------------------
     'blind.title' => "Ce que ce rapport n'a pas regardé",
@@ -251,7 +252,8 @@ Première action : %s',
     'accepted.reason' => 'Raison retenue',
     'accepted.until' => 'Jusqu\'au',
     'falsepositive.title' => 'Faux positif ?',
-    'falsepositive.intro' => 'Deux cas, et ils ne vont pas au même endroit.',
+    'falsepositive.intro' => 'Deux choses s\'appellent « faux positif », et elles ne vont pas au même endroit : soit l\'outil a raison et le projet assume le constat, soit l\'outil se trompe sur ce que fait ce code.',
+    'falsepositive.fingerprint' => 'L\'empreinte %s désigne ce constat, et c\'est elle qu\'on cite dans les deux cas. Elle est calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code et change quand la ligne change vraiment.',
     'falsepositive.accept' => 'L\'outil a raison, mais ce constat est accepté ici. C\'est une décision de projet : ajoutez ce bloc à votre déclaration, elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d\'expiration sont obligatoires.',
     'falsepositive.report' => 'L\'outil a tort. C\'est une règle à corriger, et sa place est dans le dépôt de Sablier :',
     'falsepositive.link' => 'Ouvrir un signalement pré-rempli',

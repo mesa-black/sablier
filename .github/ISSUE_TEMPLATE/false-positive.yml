@@ -17,7 +17,7 @@ body:
     id: fingerprint
     attributes:
       label: Fingerprint
-      description: The eight characters shown under the finding.
+      description: The eight characters printed next to "False positive?" under the finding.
       placeholder: a3f1c2
     validations:
       required: false

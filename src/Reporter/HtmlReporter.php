@@ -286,7 +286,7 @@ final class HtmlReporter implements Reporter
                     htmlspecialchars(Catalogue::label($finding->algorithm)),
                     htmlspecialchars($finding->domain),
                     htmlspecialchars($finding->file.($finding->line > 0 ? ':'.$finding->line : '')),
-                    htmlspecialchars($finding->fingerprint()),
+                    htmlspecialchars(Lang::t('label.fingerprint').' '.$finding->fingerprint()),
                     htmlspecialchars($finding->because),
                     htmlspecialchars(Lang::t('accepted.reason')),
                     htmlspecialchars($finding->acceptedReason),
@@ -354,16 +354,18 @@ final class HtmlReporter implements Reporter
             .'&body='.rawurlencode($body).'&labels='.rawurlencode('false-positive');
 
         return \sprintf(
-            '<details class="fp"><summary>%s <code>%s</code></summary>
-               <p class="fp-intro">%s</p>
+            '<details class="fp"><summary>%s %s <code>%s</code></summary>
+               <p class="fp-intro">%s %s</p>
                <p><strong>1.</strong> %s</p>
                <pre>%s</pre>
                <p class="fp-cli">%s <code>%s</code></p>
                <p><strong>2.</strong> %s <a href="%s">%s</a></p>
              </details>',
             htmlspecialchars(Lang::t('falsepositive.title')),
+            htmlspecialchars(Lang::t('label.fingerprint')),
             htmlspecialchars($fingerprint),
             htmlspecialchars(Lang::t('falsepositive.intro')),
+            htmlspecialchars(Lang::t('falsepositive.fingerprint', $fingerprint)),
             htmlspecialchars(Lang::t('falsepositive.accept')),
             htmlspecialchars($snippet),
             htmlspecialchars(Lang::t('falsepositive.cli')),
