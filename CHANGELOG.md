@@ -23,6 +23,20 @@ The browser collects answers and nothing more. The merge — a name given twice
 is one domain holding both paths and the longer lifetime — stays in PHP, so
 there is one definition of it rather than two that drift.
 
+### The browser is gone
+
+`--pdf` no longer hunts for Chrome in fourteen locations and no longer falls
+back to a pinned Chromium container. It typesets the file here: A4, the three
+fonts every reader carries, the numbered sections, the tables, and the timeline
+drawn in vector operations — the figure carries the argument, so it travels.
+
+What that cost is colour and typography. What it bought is an export that
+cannot fail for want of something to borrow, a file eighteen times smaller, a
+page number on every page (which Chrome never gave us, since it ignores the CSS
+that would print one), and **one container fewer to vouch for** — `make cve`
+now proves three images instead of four, which is one less thing standing
+behind the claim.
+
 ### A closed site, all the way to the printer
 
 `--airgap` refuses instead of disabling: the probe and the advisory database

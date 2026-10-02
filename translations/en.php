@@ -197,7 +197,7 @@ return [
     'cbom.blind.no_location' => 'Components that arrived with no location: %d. Their domain cannot be resolved, so they fall under the default lifetime.',
 
     // --- PDF export ---
-    'pdf.no_browser' => 'PDF export unavailable: no Chrome or Chromium found on this machine. The HTML report prints to PDF from any browser (a print stylesheet is included).',
+    'pdf.no_dom' => 'PDF export unavailable: the PHP dom extension is missing. The HTML report prints to PDF from any browser (a print stylesheet is included).',
     'pdf.missing_html' => 'PDF export unavailable: %s not found.',
     'pdf.failed' => 'PDF export failed: %s produced no file.',
     'pdf.written' => '%s (%s KB)',

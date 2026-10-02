@@ -61,22 +61,24 @@ The report is a self-contained HTML file: no remote font, no script, no request.
 A tool that reads where the keys are must not open a socket to render its own
 output.
 
-`--pdf=FILE` writes a PDF as well, by borrowing a browser rather than shipping
-one — the same rule as the TLS probe: use what is present, add nothing. It
-looks for Chrome, Chromium, Brave or Edge: the macOS bundles by path, and on
-Linux the usual PATH names (`google-chrome-stable`, `chromium`,
-`brave-browser`, …), the snap shim, the two `/opt` paths the Debian and RPM
-packages really install, and a Chromium that Playwright or Puppeteer already
-downloaded.
+`--pdf=FILE` writes a PDF as well, typeset here rather than printed by a
+borrowed browser. A4, the three fonts every reader already carries, the ten
+numbered sections, the declared lifetimes, and the timeline drawn in vector
+operations — the one figure that carries the argument, so it travels rather
+than being dropped.
 
-**And if there is none**, it borrows one from a container
-(`zenika/alpine-chrome`, pinned, scanned by `make cve` like the rest): the page
-is mounted read-only, the destination directory writable, nothing else, and the
-PDF belongs to whoever ran the command. The report says which browser produced
-it, because one of the two did not exist on the machine five seconds earlier.
+This replaced a hunt for Chrome in fourteen locations and a pinned Chromium
+container. The file is plainer: no colour beyond the bars, no typography to
+speak of. It is also eighteen times smaller, it carries **a page number on
+every page** — which the browser would never give us, since Chrome ignores the
+CSS that would print one — and it cannot fail for want of something to borrow.
+That last property is the one that mattered: on a closed site there is no
+browser to find and no image to pull, and a report that cannot be printed
+cannot be signed or filed.
 
-With neither a browser nor Docker, the tool says so and stops there — the HTML
-report still prints to PDF from any browser, since it ships a print stylesheet
+It needs PHP's `dom` extension, which is enabled in every standard build and in
+the container this project ships with. Without it, the tool says so and the
+HTML still prints to PDF from any browser, since it ships a print stylesheet
 that forces the light palette and keeps charts, findings and the probe block
 off page breaks.
 
@@ -723,10 +725,10 @@ who does not trust you, a timestamping authority answers it in one request.
 ## The three containers, and what is claimed about them
 
 A tool that reads where your keys are has no business telling you to run
-images it has not looked at. Four are named in this repository —
-`php:8.4-cli-alpine` for machines without PHP, `zenika/alpine-chrome` for
-machines without a browser, `ghcr.io/phpstan/phpstan` for the static analysis,
-and the scanner itself — and one command re-checks all four:
+images it has not looked at. Three are named in this repository —
+`php:8.4-cli-alpine` for machines without PHP, `ghcr.io/phpstan/phpstan` for
+the static analysis, and the scanner itself — and one command re-checks all
+three:
 
 ```bash
 make cve

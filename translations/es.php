@@ -197,7 +197,7 @@ return [
     'cbom.blind.no_location' => 'Componentes llegados sin ubicación: %d. Su dominio no puede resolverse, así que caen en la duración por defecto.',
 
     // --- PDF export ---
-    'pdf.no_browser' => 'Exportación a PDF imposible: no se ha encontrado Chrome ni Chromium en esta máquina. El informe HTML se imprime a PDF desde cualquier navegador (incluye hoja de impresión).',
+    'pdf.no_dom' => 'Exportación a PDF imposible: falta la extensión PHP dom. El informe HTML se imprime a PDF desde cualquier navegador (incluye hoja de impresión).',
     'pdf.missing_html' => 'Exportación a PDF imposible: no se encuentra %s.',
     'pdf.failed' => 'Exportación a PDF fallida: %s no ha producido ningún archivo.',
     'pdf.written' => '%s (%s KB)',

@@ -125,6 +125,81 @@ final class PdfWriter
         $this->space(6.0);
     }
 
+    /**
+     * The timeline, drawn rather than described.
+     *
+     * The one figure both reports carry: a bar per domain, as long as the data
+     * must stay confidential, against the years at which the algorithms
+     * protecting it stop being credible. A bar that crosses a mark is the whole
+     * argument of the document, so it is worth drawing even without a browser.
+     *
+     * @param list<array{name:string, years:int, exposed:bool}> $bars
+     * @param list<array{year:int, label:string}>               $marks
+     */
+    public function chart(array $bars, int $start, int $end, array $marks): void
+    {
+        if ($bars === []) {
+            return;
+        }
+
+        $span = max(1, $end - $start);
+        $labelWidth = 118.0;
+        $yearsWidth = 54.0;
+        $left = self::MARGIN + $labelWidth;
+        $track = self::WIDTH - 2 * self::MARGIN - $labelWidth - $yearsWidth;
+        $rowHeight = 15.0;
+
+        $this->space(18.0);
+        $this->ensure($rowHeight * (\count($bars) + 1) + 24);
+
+        // The marks first, so the bars sit on top of their lines.
+        $top = $this->y + 10;
+        $bottom = $this->y - $rowHeight * \count($bars) + 4;
+        foreach ($marks as $mark) {
+            $x = $left + ($mark['year'] - $start) / $span * $track;
+            $this->current .= \sprintf(
+                "0.72 G 0.5 w [2 2] 0 d %.2f %.2f m %.2f %.2f l S [] 0 d\n",
+                $x, $top, $x, $bottom,
+            );
+            $this->current .= $this->text('F1', 7.0, $x - 9, $top + 4, (string) $mark['year'], '0.45 g');
+            $this->current .= $this->text('F1', 6.5, $x - 9, $bottom - 9, $mark['label'], '0.45 g');
+        }
+
+        foreach ($bars as $bar) {
+            $y = $this->y;
+            $width = max(2.0, min($track, $bar['years'] / $span * $track));
+            $this->put('F1', 8.0, self::MARGIN, $y, self::clip($bar['name'], 'F1', 8.0, $labelWidth - 8));
+            // Grey track, then the bar: a reader sees at once how much of the
+            // horizon a domain eats, not only where it ends.
+            $this->current .= \sprintf("0.90 g %.2f %.2f %.2f %.2f re f\n", $left, $y - 1, $track, 6.0);
+            $this->current .= \sprintf(
+                "%s %.2f %.2f %.2f %.2f re f\n",
+                $bar['exposed'] ? '0.56 0.14 0.11 rg' : '0.17 0.30 0.49 rg',
+                $left, $y - 1, $width, 6.0,
+            );
+            $this->current .= $this->text(
+                'F1', 8.0, $left + $track + 8, $y,
+                \sprintf('%d %s', $bar['years'], Lang::t($bar['years'] > 1 ? 'unit.years' : 'unit.year')),
+                '0.35 g',
+            );
+            $this->y -= $rowHeight;
+        }
+
+        $this->space(14.0);
+    }
+
+    /** A label that would run into the bars, cut with an ellipsis. */
+    private static function clip(string $text, string $font, float $size, float $width): string
+    {
+        if (self::measure($text, $font) * $size / 1000 <= $width) {
+            return $text;
+        }
+
+        $cut = self::fit($text.'…', $font, $size, $width);
+
+        return rtrim(substr($text, 0, max(1, $cut - 1))).'…';
+    }
+
     public function rule(): void
     {
         $this->ensure(6.0);

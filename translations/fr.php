@@ -206,7 +206,7 @@ return [
     'cbom.blind.no_location' => 'Composants arrivés sans emplacement : %d. Leur domaine ne peut pas être résolu, ils tombent donc dans la durée par défaut.',
 
     // --- PDF export ---
-    'pdf.no_browser' => 'export PDF impossible : aucun navigateur Chrome ou Chromium trouvé sur cette machine. Le rapport HTML s\'imprime en PDF depuis n\'importe quel navigateur (feuille d\'impression fournie).',
+    'pdf.no_dom' => "export PDF impossible : l'extension PHP dom est absente. Le rapport HTML s'imprime en PDF depuis n'importe quel navigateur (feuille d'impression fournie).",
     'pdf.missing_html' => 'export PDF impossible : %s est introuvable.',
     'pdf.failed' => 'export PDF échoué : %s n\'a produit aucun fichier.',
     'pdf.written' => '%s (%s Ko)',

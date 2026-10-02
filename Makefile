@@ -1,11 +1,12 @@
 .DEFAULT_GOAL := help
 
 # The three images this project asks anyone to run. Pinned here so `make cve`
-# checks exactly what the launcher and the CI use, and nothing else.
+# checks exactly what the launcher and the CI use, and nothing else. The
+# Chromium one left with the browser it carried: the PDF is typeset in PHP now,
+# and a container nobody starts is one less thing to vouch for.
 PHP_IMAGE ?= php:8.4-cli-alpine
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
 TRIVY_IMAGE ?= aquasec/trivy:0.75.0
-CHROME_IMAGE ?= zenika/alpine-chrome:124
 .PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import
 
 help: ## Show this help
@@ -31,7 +32,7 @@ PLATFORMS ?= linux/amd64 linux/arm64
 IGNORE_FILE := $(wildcard .trivyignore.yaml)
 
 cve: ## Prove the containers we ask you to run carry no known high or critical CVE
-	@set -e; for image in $(PHP_IMAGE) $(PHPSTAN_IMAGE) $(CHROME_IMAGE) $(TRIVY_IMAGE); do \
+	@set -e; for image in $(PHP_IMAGE) $(PHPSTAN_IMAGE) $(TRIVY_IMAGE); do \
 		for platform in $(PLATFORMS); do \
 			printf '\n  %s (%s)\n' "$$image" "$$platform"; \
 			docker run --rm --volume "$(HOME)/.cache/trivy":/root/.cache \

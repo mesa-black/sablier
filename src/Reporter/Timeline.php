@@ -102,6 +102,29 @@ final class Timeline
             );
         }
 
+        // The same figure, as data, for a reader that cannot run CSS. The PDF
+        // typesetter draws from this rather than measuring inline styles back
+        // out of the markup: one computation, two renderings.
+        $chart = json_encode([
+            'title' => Lang::t('timeline.title'),
+            'start' => $start,
+            'end' => $end,
+            'marks' => [
+                ['year' => $analysis->declaration->deprecationYear, 'label' => Lang::t('timeline.deprecation')],
+                ['year' => $analysis->declaration->expiryYear, 'label' => Lang::t('timeline.expiry')],
+            ],
+            'bars' => array_map(
+                static fn (string $name, int $lifetime): array => [
+                    'name' => $name,
+                    'years' => $lifetime,
+                    'exposed' => $exposed[$name] ?? false,
+                ],
+                array_keys(\array_slice($domains, 0, 8, true)),
+                array_values(\array_slice($domains, 0, 8, true)),
+            ),
+        ], \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES);
+        $chart = '<script type="application/json" id="chart">'.str_replace('</', '<\\/', (string) $chart).'</script>';
+
         $title = htmlspecialchars(Lang::t('timeline.title'));
         $legend = htmlspecialchars(Lang::t('timeline.legend'));
         $dates = self::crossings($analysis);
@@ -111,6 +134,7 @@ final class Timeline
         return <<<HTML
             <section class="timeline">
               <h2>$title</h2>
+              $chart
               <div class="chart">
                 <div class="mark" style="left:{$deprLeft}%"><span>{$analysis->declaration->deprecationYear}<br>$deprecationLabel</span></div>
                 <div class="mark expiry" style="left:{$expiryLeft}%"><span>{$analysis->declaration->expiryYear}<br>$expiryLabel</span></div>
