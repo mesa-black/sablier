@@ -3,7 +3,7 @@
 // Every line here was taken from a public repository during the false-positive
 // measurement. The left column is what the tool must say about it.
 
-final class Mixed
+final class Digests
 {
     // NOISE — identity, not security.
     public function getHashCode(): string { return md5($this->serialised); }
