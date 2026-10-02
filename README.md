@@ -613,6 +613,34 @@ it answers in the exit code and writes only the files you asked for by path. A
 tool that leaves an unrequested page at the root of somebody's repository on
 every build is leaving state behind.
 
+## The interview as one file
+
+```bash
+sablier worksheet /path/to/project --out=worksheet.html   # [--lang=fr|en|es]
+# … the person fills it in, anywhere, and hands back a file
+sablier declare /path/to/project --import=answers.json
+```
+
+A page that talks to nothing: the subjects and the questions baked in, no
+server, no port, no request. It is opened from a memory stick or an attachment,
+answered in a browser with the cable out, and what comes back is a block of
+JSON the person can save or copy.
+
+It exists for the rooms the served interview cannot enter — a closed network, a
+client who will not run a command, a machine nobody may connect to — and it
+removes the tunnel, the certificate and the question of whether the auditor's
+laptop is sound for everybody else too.
+
+What travels is the point: the file carries **no absolute path** from the
+machine that wrote it, and what comes back carries durations and the names the
+person gave, never the inventory that produced them. Both are checked on every
+run. The report is then computed by the auditor, where it belongs.
+
+The merge rules are not reimplemented in the browser. The page collects
+answers; `--import` runs them through the same code a typed interview uses, so
+a name given twice means the same thing — one domain, both paths, the longer
+lifetime — wherever it was given.
+
 ## On a network that has none
 
 Nothing in this tool reaches the network unless you name a host. Sockets exist

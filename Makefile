@@ -6,7 +6,7 @@ PHP_IMAGE ?= php:8.4-cli-alpine
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
 TRIVY_IMAGE ?= aquasec/trivy:0.75.0
 CHROME_IMAGE ?= zenika/alpine-chrome:124
-.PHONY: help test scan judge demo probe phpstan cve advisories declare serve
+.PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
@@ -62,6 +62,15 @@ scan: ## Scan a project: make scan DIR=/path [DECLARE=file.json] [LANG=en] [PDF=
 declare: ## Fill the lifetimes with the person who knows them: make declare DIR=/path [LANG=en]
 	@test -n "$(DIR)" || { echo "make declare DIR=/path"; exit 1; }
 	@./sablier declare "$(DIR)" $(if $(LANG),--lang=$(LANG),)
+
+worksheet: ## The interview as one offline file, for a room with no network: make worksheet DIR=/path [LANG=en] [OUT=file.html]
+	@test -n "$(DIR)" || { echo "make worksheet DIR=/path"; exit 1; }
+	@./sablier worksheet "$(DIR)" $(if $(LANG),--lang=$(LANG),) --out=$(if $(OUT),$(OUT),worksheet.html)
+
+import: ## Take back the answers filled in that file: make import DIR=/path ANSWERS=answers.json
+	@test -n "$(DIR)" || { echo "make import DIR=/path ANSWERS=answers.json"; exit 1; }
+	@test -n "$(ANSWERS)" || { echo "make import DIR=/path ANSWERS=answers.json"; exit 1; }
+	@./sablier declare "$(DIR)" --import="$(ANSWERS)" $(if $(LANG),--lang=$(LANG),)
 
 serve: ## The same interview in a browser, for a session with somebody: make serve DIR=/path [LANG=en]
 	@test -n "$(DIR)" || { echo "make serve DIR=/path"; exit 1; }

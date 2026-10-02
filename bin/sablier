@@ -55,6 +55,7 @@ use Sablier\Interview;
 use Sablier\Lang;
 use Sablier\Pdf;
 use Sablier\Probe;
+use Sablier\Worksheet;
 use Sablier\Reporter\AuditReporter;
 use Sablier\Reporter\CbomReporter;
 use Sablier\Reporter\HtmlReporter;
@@ -85,6 +86,29 @@ foreach ($argv as $arg) {
 if ($command === '--version' || $command === 'version') {
     printf("%s\n", Version::label());
     exit(0);
+}
+
+/**
+ * Every detector, in one place.
+ *
+ * Four commands walk a project — scan, declare, serve and worksheet — and a
+ * detector added to three of them is a detector that silently does not exist in
+ * the fourth.
+ */
+function sablier_scanner(Declaration $declaration): Scanner
+{
+    return new Scanner([
+        new PhpDetector(),
+        new ShellDetector(),
+        new KeyMaterialDetector(),
+        new AssetDetector(),
+        new ServerConfigDetector(),
+        new SshConfigDetector(),
+        new EnvDetector(),
+        new FrameworkConfigDetector(),
+        new SymfonyVaultDetector(),
+        new DependencyDetector(),
+    ], $declaration->exclude);
 }
 
 // --- keys and verification ---------------------------------------------
@@ -269,18 +293,7 @@ if ($command === 'serve') {
 
     $out ??= $root.'/sablier.json';
     $declaration = Declaration::load(is_file($out) ? $out : null);
-    $scan = (new Scanner([
-        new PhpDetector(),
-        new ShellDetector(),
-        new KeyMaterialDetector(),
-        new AssetDetector(),
-        new ServerConfigDetector(),
-        new SshConfigDetector(),
-        new EnvDetector(),
-        new FrameworkConfigDetector(),
-        new SymfonyVaultDetector(),
-        new DependencyDetector(),
-    ], $declaration->exclude))->scan($root);
+    $scan = sablier_scanner($declaration)->scan($root);
     $findings = (new Assessor($declaration, (int) date('Y')))->assess($scan['findings']);
     $areas = Interview::areas($findings, $declaration);
 
@@ -356,15 +369,53 @@ if ($command === 'serve') {
 // room, and the only one whose output is a question rather than a verdict. It
 // asks about retention and about harm — two things a person answers every
 // week — and derives the lifetime nobody can state directly.
+// --- the interview as one file: bin/sablier worksheet <path> ------------
+// For a room with no network, a client who will not run a command, or a machine
+// nobody may connect to. The questions and the subjects are baked in; the
+// answers come back as a file, and the report is built here afterwards.
+if ($command === 'worksheet') {
+    $target = $argv[2] ?? '';
+    $out = null;
+    foreach (\array_slice($argv, 3) as $argument) {
+        if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
+            $out = $m[1];
+        }
+    }
+
+    $root = $target !== '' ? realpath($target) : false;
+    if ($root === false || !is_dir($root)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.missing_path')."\n");
+        exit(1);
+    }
+
+    $declaration = Declaration::load(is_file($root.'/sablier.json') ? $root.'/sablier.json' : null);
+    $scan = sablier_scanner($declaration)->scan($root);
+    $findings = (new Assessor($declaration, (int) date('Y')))->assess($scan['findings']);
+    $areas = Interview::areas($findings, $declaration);
+    if ($areas === []) {
+        printf("\n  %s\n\n", Lang::t('declare.nothing'));
+        exit(0);
+    }
+
+    $out ??= 'worksheet.html';
+    $project = $declaration->project !== '' ? $declaration->project : basename($root);
+    file_put_contents($out, Worksheet::render($project, $areas, date('Y-m-d')));
+    printf("\n  %s\n\n", Lang::t('worksheet.written', $out));
+    exit(0);
+}
+
 if ($command === 'declare') {
     $target = $argv[2] ?? '';
     $out = null;
     $log = null;
+    $import = null;
     foreach (\array_slice($argv, 3) as $argument) {
         if (preg_match('/^--out=(.+)$/', $argument, $m) === 1) {
             $out = $m[1];
         } elseif (preg_match('/^--log=(.+)$/', $argument, $m) === 1) {
             $log = $m[1];
+        } elseif (preg_match('/^--import=(.+)$/', $argument, $m) === 1) {
+            $import = $m[1];
         }
     }
 
@@ -376,21 +427,63 @@ if ($command === 'declare') {
 
     $out ??= $root.'/sablier.json';
     $declaration = Declaration::load(is_file($out) ? $out : null);
-    $scan = (new Scanner([
-        new PhpDetector(),
-        new ShellDetector(),
-        new KeyMaterialDetector(),
-        new AssetDetector(),
-        new ServerConfigDetector(),
-        new SshConfigDetector(),
-        new EnvDetector(),
-        new FrameworkConfigDetector(),
-        new SymfonyVaultDetector(),
-        new DependencyDetector(),
-    ], $declaration->exclude))->scan($root);
+    $scan = sablier_scanner($declaration)->scan($root);
 
     $findings = (new Assessor($declaration, (int) date('Y')))->assess($scan['findings']);
     $areas = Interview::areas($findings, $declaration);
+
+    // Answers filled in elsewhere — the single-file worksheet, on a machine
+    // with no network. They go through the same merge as the ones typed here,
+    // because a second answer carrying a name already used means the same thing
+    // wherever it was given.
+    if ($import !== null) {
+        $payload = Value::map(json_decode((string) @file_get_contents($import), true));
+        $answers = [];
+        foreach (Value::map($payload['answers'] ?? null) as $entry) {
+            $answer = Value::map($entry);
+            $name = trim(Value::string($answer['name'] ?? null));
+            if ($name === '') {
+                continue;
+            }
+            $answers[] = [
+                'name' => $name,
+                'paths' => Value::strings($answer['paths'] ?? null),
+                'lifetime' => Value::int($answer['lifetime'] ?? null),
+                'note' => Value::string($answer['note'] ?? null),
+                'trust_anchor' => ($answer['trust_anchor'] ?? false) === true,
+                'declared_by' => Value::string($answer['declared_by'] ?? null),
+            ];
+        }
+
+        if ($answers === []) {
+            fwrite(\STDERR, '✗ '.Lang::t('worksheet.import.unreadable', $import)."\n");
+            exit(1);
+        }
+
+        /** @var array<string, mixed> $existing */
+        $existing = is_file($out) ? Value::map(json_decode((string) file_get_contents($out), true)) : [];
+        /** @var array<string, mixed> $context */
+        $context = Value::map($payload['context'] ?? null);
+        unset($context['who']);
+        /** @var array<string, mixed> $base */
+        $base = [...$existing, ...$context];
+        $merged = Interview::merge($base, $answers);
+        file_put_contents($out, json_encode($merged, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+
+        $log ??= \dirname($out).'/session.json';
+        file_put_contents($log, json_encode([
+            'project' => basename($root),
+            'finished_at' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+            'answered' => \count($answers),
+            'source' => basename($import),
+            'record' => Value::map($payload['record'] ?? null),
+            'feedback' => Value::map($payload['feedback'] ?? null),
+        ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+
+        printf("\n  %s\n", Lang::t('worksheet.imported', \count($answers), basename($import)));
+        printf("  → %s\n  → %s\n\n", $out, $log);
+        exit(0);
+    }
 
     printf("\n  %s\n\n", Lang::t('declare.intro'));
     if ($areas === []) {
@@ -730,18 +823,7 @@ $importedFrom = '';
 if ($command === 'scan') {
     // Composition happens here and nowhere else: the scanner receives what it
     // must run, instead of knowing the list itself.
-    $scan = (new Scanner([
-        new PhpDetector(),
-        new ShellDetector(),
-        new KeyMaterialDetector(),
-        new AssetDetector(),
-        new ServerConfigDetector(),
-        new SshConfigDetector(),
-        new EnvDetector(),
-        new FrameworkConfigDetector(),
-        new SymfonyVaultDetector(),
-        new DependencyDetector(),
-    ], $declaration->exclude))->scan($target);
+    $scan = sablier_scanner($declaration)->scan($target);
 
     // Live probes come from the declaration: what a server negotiates belongs
     // to the same inventory as what the code says, and it is the only part a

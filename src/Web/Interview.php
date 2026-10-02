@@ -555,7 +555,7 @@ final class Interview
             HTML;
     }
 
-    private static function css(): string
+    public static function css(): string
     {
         return <<<'CSS'
             :root{--ink:#16181d;--muted:#55595f;--paper:#fbfaf8;--line:#dcd8d2;--accent:#2a4c7d;--bad:#8f241c}

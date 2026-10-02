@@ -4,6 +4,35 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+### The interview as one file
+
+`sablier worksheet <path>` writes the whole interview into a single HTML page
+that talks to nothing — no server, no port, no request, and no absolute path
+from the machine that wrote it. It is opened from a memory stick in a room with
+no network, answered in a browser, and hands back a block of JSON;
+`sablier declare --import=` takes it from there.
+
+It was built for a closed network, where the output of an audit is as sensitive
+as the system it describes and a tunnel is not an option. It turns out to be
+the simpler answer everywhere else: no certificate, no DNS, no question about
+whether the auditor's laptop is sound.
+
+The browser collects answers and nothing more. The merge — a name given twice
+is one domain holding both paths and the longer lifetime — stays in PHP, so
+there is one definition of it rather than two that drift.
+
+### Smaller
+
+- the network surface is pinned by a test: sockets are allowed in four files,
+  all behind the probe, and the build fails the day a detector grows one. Where
+  the kernel allows it, a full scan also runs with the network stack removed;
+- `--quiet` writes no report unless one is named;
+- `--expose` mints a key for a session handed over through a tunnel, which a
+  bind address cannot judge, and `--public=` prints the address to hand over;
+- the ten detectors live in one place instead of three copies.
+
 ## v0.3.0 — 2026-10-02
 
 The release where somebody who does not write code can answer the question the

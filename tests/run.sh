@@ -774,6 +774,83 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
 rm -rf "$exp"
 
+# --- the interview as one file ----------------------------------------------
+# For a room with no network: the questions baked into a page that talks to
+# nothing, and answers that come back as a file. Three things make it safe to
+# hand over — it fetches nothing, it carries no absolute path from the auditor's
+# machine, and what comes back goes through the same merge as a typed answer.
+sheet=$(mktemp -d)
+# A declaration that already covers everything leaves nothing to ask, so the
+# worksheet is generated against the fixture stripped of its own.
+cp -R tests/fixtures/sample/. "$sheet/"
+rm -f "$sheet/sablier.json"
+./bin/sablier worksheet "$sheet" --out="$sheet/q.html" >/dev/null
+
+external=$(grep -cE "https?://|<script[^>]*src=|<link[^>]*href=|@import" "$sheet/q.html" || true)
+if [ "$external" != "0" ]; then
+	echo "✗ worksheet: it reaches for something ($external references)"
+	rm -rf "$sheet"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "worksheet" "offline" "no reference leaves the file"
+
+if grep -q "$PWD" "$sheet/q.html"; then
+	echo "✗ worksheet: it carries an absolute path from this machine"
+	rm -rf "$sheet"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "worksheet" "paths" "nothing absolute travels with it"
+
+subjects=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	echo \count($d["subjects"] ?? []);
+' "$sheet/q.html")
+if [ "$subjects" != "2" ]; then
+	echo "✗ worksheet: expected 2 subjects on the fixture, embedded $subjects"
+	rm -rf "$sheet"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "worksheet" "subjects" "the same two the interview raises"
+
+cat > "$sheet/answers.json" <<'JSON'
+{
+  "format": 1,
+  "context": {"who": "Marie Dupont", "regime": "anssi", "service_until": 2032},
+  "answers": [
+    {"name": "sauvegardes", "paths": ["deploy/*"], "lifetime": 10, "note": "dix ans de compta",
+     "trust_anchor": false, "declared_by": "Marie Dupont"},
+    {"name": "sauvegardes", "paths": ["src/Tokens.php"], "lifetime": 3, "note": "et les jetons",
+     "trust_anchor": false, "declared_by": "Marie Dupont"}
+  ],
+  "record": [{"area": "deploy", "name": "sauvegardes", "seconds": 12.3, "skipped": false, "lifetime_years": 10}],
+  "feedback": {"missing": "combien de clients", "unclear": ""}
+}
+JSON
+./bin/sablier declare "$sheet" --import="$sheet/answers.json" \
+	--out="$sheet/sablier.json" --log="$sheet/session.json" >/dev/null
+
+check_import=$(php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$s = $d["domains"]["sauvegardes"] ?? [];
+	echo ($d["regime"] ?? "?"), "|", ($d["service_until"] ?? 0), "|", \count($d["domains"] ?? []), "|",
+	     ($s["lifetime_years"] ?? 0), "|", \count($s["paths"] ?? []), "|", ($s["declared_by"] ?? "?"), "|",
+	     (isset($s["declared_on"]) ? "dated" : "undated"), "|", (isset($d["domains"]["sauvegardes"]["note"]) && str_contains($s["note"], "jetons") ? "kept" : "lost");
+' "$sheet/sablier.json")
+# One name given twice is one domain holding both paths, the longer lifetime and
+# both notes — exactly what the typed interview does, because it is the same code.
+if [ "$check_import" != "anssi|2032|1|10|2|Marie Dupont|dated|kept" ]; then
+	echo "✗ worksheet: the import did not merge like the interview ($check_import)"
+	rm -rf "$sheet"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "worksheet" "import" "merged like a typed answer"
+
+feedback=$(php -r '$d = json_decode(file_get_contents($argv[1]), true); echo $d["feedback"]["missing"] ?? "";' "$sheet/session.json")
+if [ "$feedback" != "combien de clients" ]; then
+	echo "✗ worksheet: the session record lost what she said about the tool"
+	rm -rf "$sheet"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "worksheet" "record" "times and feedback kept"
+rm -rf "$sheet"
+
 # --- the network surface, pinned --------------------------------------------
 # An inventory of where the cryptography lives is as sensitive as the system it
 # describes, so the claim that matters on a classified network is not "we do not
