@@ -32,6 +32,7 @@ spl_autoload_register(static function (string $class): void {
 // entry point that makes an editor shout is a poor advertisement for a tool
 // that spends its time telling people what is wrong with their code.
 use Sablier\Advisories;
+use Sablier\Airgap;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\Baseline;
@@ -80,6 +81,8 @@ Lang::use(getenv('SABLIER_LANG') ?: 'fr');
 foreach ($argv as $arg) {
     if (preg_match('/^--lang=(\w+)$/', $arg, $m) === 1) {
         Lang::use($m[1]);
+    } elseif ($arg === '--airgap') {
+        Airgap::enable();
     }
 }
 
@@ -687,6 +690,11 @@ if ($command === 'declare') {
 // in a container, reads the lock files from a read-only mount, and writes a
 // file you can read. A scan never does any of that.
 if ($command === 'advisories') {
+    // Reaches a vulnerability database, in a container. Both are the network.
+    if (Airgap::on()) {
+        Airgap::refuse('advisories');
+    }
+
     $target = $argv[2] ?? '';
     $out = '.sablier/advisories.json';
     foreach (\array_slice($argv, 3) as $argument) {
@@ -743,6 +751,10 @@ if ($command === 'advisories') {
 
 // --- probe only: bin/sablier probe example.org --------------------------
 if ($command === 'probe') {
+    if (Airgap::on()) {
+        Airgap::refuse('probe');
+    }
+
     $target = $argv[2] ?? null;
     if ($target === null) {
         fwrite(\STDERR, '✗ '.Lang::t('cli.missing_host')."\n");
@@ -829,7 +841,11 @@ if ($command === 'scan') {
     // to the same inventory as what the code says, and it is the only part a
     // file can contradict.
     $probeFindings = [];
-    if (!$options['no-probe']) {
+    // Declared hosts on a closed site: skipped rather than refused, because an
+    // audit stopped by its own flag helps nobody — and said out loud in the
+    // blind spots, which is what that section is for.
+    $airgapSkippedProbe = Airgap::on() && $declaration->probe !== [];
+    if (!$options['no-probe'] && !Airgap::on()) {
         foreach ($declaration->probe as $host) {
             $result = (new Probe())->run($host);
             $probes[] = ['target' => $host, 'facts' => $result['facts'], 'notes' => $result['notes']];
@@ -840,6 +856,11 @@ if ($command === 'scan') {
     $inventory = [...$scan['findings'], ...$probeFindings];
     $filesRead = $scan['files'];
     $blind = $scan['blind'];
+    if (Airgap::on()) {
+        $blind[] = $airgapSkippedProbe
+            ? Lang::t('airgap.blind.skipped', \count($declaration->probe))
+            : Lang::t('airgap.blind.on');
+    }
     $label = $target;
 } else {
     // Somebody else's inventory. We judge it; we did not detect it, and the

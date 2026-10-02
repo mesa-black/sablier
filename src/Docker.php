@@ -16,6 +16,13 @@ final class Docker
 {
     public static function binary(): ?string
     {
+        // A container is pulled over the network, so on a closed site it is not
+        // a fallback, it is a failure. Refusing here covers every borrowed tool
+        // at once rather than at each call site.
+        if (Airgap::on()) {
+            return null;
+        }
+
         $path = trim((string) @shell_exec('command -v docker 2>/dev/null'));
 
         return $path !== '' ? $path : null;

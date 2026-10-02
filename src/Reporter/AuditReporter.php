@@ -103,7 +103,7 @@ final class AuditReporter implements ReporterInterface
               <h1>$project</h1>
               <p class="subtitle">$subtitle · $date</p>
             </header>
-            <div class="runner">$runner</div>
+            <div class="runner" id="runner">$runner</div>
             $contents
             $sections
             </body></html>

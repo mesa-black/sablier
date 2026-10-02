@@ -643,6 +643,25 @@ lifetime — wherever it was given.
 
 ## On a network that has none
 
+```bash
+sablier scan /path/to/project --airgap --out=report.html --pdf=report.pdf
+```
+
+`--airgap` refuses rather than disables. `--no-probe` is a convenience — it
+skips a step you could have run; on a closed site that is the wrong shape,
+because a flag you can forget is a flag you will forget. So `sablier probe` and
+`sablier advisories` stop with a message naming what to do instead, every
+container is refused since a container is pulled, and a declared probe host is
+skipped and **written into the blind spots** rather than silently dropped. A
+site sets it once for everybody with `SABLIER_AIRGAP=1`.
+
+The PDF then has no browser to borrow and no container to pull one from, so it
+is typeset here instead: A4, the three fonts every reader already has, and a
+page number on every page — which is the one thing the browser export cannot do,
+because Chrome ignores the CSS that would carry one. Plainer than the printed
+HTML, and it exists, which is the whole argument: a report that cannot be
+printed cannot be signed or filed.
+
 Nothing in this tool reaches the network unless you name a host. Sockets exist
 in exactly four files — `Probe.php`, `SshProbe.php` and the two transports —
 all of them behind `sablier probe` and the probe step of a scan, which

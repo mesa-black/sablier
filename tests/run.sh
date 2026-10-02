@@ -774,6 +774,53 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
 rm -rf "$exp"
 
+# --- a closed site: refuse, and print anyway ---------------------------------
+# --airgap is not --no-probe with a different name. One skips a step, the other
+# refuses the commands that would reach out — and still produces a PDF, because
+# a report that cannot be printed cannot be signed or filed.
+for forbidden in probe advisories; do
+	if ./bin/sablier "$forbidden" --airgap example.org >/dev/null 2>&1; then
+		echo "✗ airgap: $forbidden ran anyway"
+		exit 1
+	fi
+done
+printf '  ✓ %-24s %-10s %s\n' "airgap" "refuses" "probe and advisories stop, loudly"
+
+gap=$(mktemp -d)
+SABLIER_AIRGAP=1 ./bin/sablier scan tests/fixtures/sample --out="$gap/r.html" \
+	--audit="$gap/a.html" --pdf="$gap/r.pdf" --quiet >/dev/null 2>&1 || true
+if [ ! -s "$gap/r.pdf" ]; then
+	echo "✗ airgap: no PDF without a browser"
+	rm -rf "$gap"; exit 1
+fi
+head -c 8 "$gap/r.pdf" | grep -q "%PDF-1" || { echo "✗ airgap: that is not a PDF"; rm -rf "$gap"; exit 1; }
+printf '  ✓ %-24s %-10s %s\n' "airgap" "pdf" "typeset without a browser"
+
+# The accents have to survive the trip into Windows-1252, and a mangled
+# conversion shows up as the same two bytes every time.
+if LC_ALL=C grep -q $'\xc3\xa9' "$gap/r.pdf"; then
+	echo "✗ airgap: the PDF carries double-encoded text"
+	rm -rf "$gap"; exit 1
+fi
+LC_ALL=C grep -aq "ann.e" "$gap/a.html" 2>/dev/null || true
+./bin/sablier scan tests/fixtures/sample --airgap --audit="$gap/a2.html" --pdf="$gap/a2.pdf" \
+	--out="$gap/r2.html" --quiet >/dev/null 2>&1 || true
+pages=$(LC_ALL=C grep -ac "/Type /Page" "$gap/a2.pdf" || true)
+if [ "$pages" -lt 2 ]; then
+	echo "✗ airgap: the typeset PDF has no pages ($pages)"
+	rm -rf "$gap"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "airgap" "encoding" "accents intact, pages numbered"
+
+# The environment variable is how a site sets this for everybody, so it has to
+# work without anybody passing a flag.
+if SABLIER_AIRGAP=1 ./bin/sablier probe example.org >/dev/null 2>&1; then
+	echo "✗ airgap: SABLIER_AIRGAP did not apply"
+	rm -rf "$gap"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "airgap" "env" "SABLIER_AIRGAP=1 is enough"
+rm -rf "$gap"
+
 # --- the interview as one file ----------------------------------------------
 # For a room with no network: the questions baked into a page that talks to
 # nothing, and answers that come back as a file. Three things make it safe to

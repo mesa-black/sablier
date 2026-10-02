@@ -23,6 +23,19 @@ The browser collects answers and nothing more. The merge — a name given twice
 is one domain holding both paths and the longer lifetime — stays in PHP, so
 there is one definition of it rather than two that drift.
 
+### A closed site, all the way to the printer
+
+`--airgap` refuses instead of disabling: the probe and the advisory database
+stop with a message naming the alternative, containers are refused because a
+container is pulled, and a declared host is skipped into the blind spots rather
+than dropped. `SABLIER_AIRGAP=1` sets it for a whole site.
+
+The PDF then has nothing to borrow, so it is written here: A4, the three fonts
+every reader carries, headings, tables, and a page number on every page — the
+one thing Chrome would not do. A report that cannot be printed cannot be signed
+or filed, and on those sites that is the difference between an audit and a
+folder of HTML.
+
 ### Smaller
 
 - the network surface is pinned by a test: sockets are allowed in four files,
