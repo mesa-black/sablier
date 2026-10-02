@@ -85,6 +85,35 @@ HTML still prints to PDF from any browser, since it ships a print stylesheet
 that forces the light palette and keeps charts, findings and the probe block
 off page breaks.
 
+## What it says about itself
+
+This repository carries its own declaration and is scanned on every build, with
+the result compared against `.sablier/baseline.json`. Nine findings: six
+Ed25519 signatures, two SHA-256 digests it is right to leave alone, and one it
+calls an identifier rather than a control — our own fingerprint function, which
+is exactly what it is.
+
+The declaration excludes four paths, and a reader is owed the reason for each:
+
+| excluded | why |
+|---|---|
+| `src/Detector/*` | the detectors contain the patterns — the string `rsa` there is what finds RSA, not a use of it |
+| `src/Probe.php` | the same, for the handshake it reads |
+| `tests/fixtures/*` | cryptography planted on purpose, so the tests have something to find |
+| `tests/run.sh` | the `openssl genrsa` the suite runs to make itself a key |
+
+Scanned with that list removed, the repository produces 47 findings instead of
+nine and **not one of them is red**: twelve pattern strings in the detectors,
+twenty-three in the fixtures, and the rest already reported. The list hides
+nothing; it was trimmed from eight entries to four when this was checked,
+because four of them excluded files that had nothing in them.
+
+The declaration also had to be brought up to the standard this tool asks of
+everybody else. It carries `declared_by` and `declared_on` now, and a
+`service_until`, because the report was printing our own missing horizon in its
+blind spots — which is the tool working, and was not a comfortable way to find
+out.
+
 ## How often it is wrong
 
 Measured, not claimed: **31 public PHP repositories, 959 findings, 24 of them

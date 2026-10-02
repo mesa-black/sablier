@@ -1,22 +1,22 @@
 {
   "project": "Sablier",
   "expiry_year": 2035,
+  "regime": "general",
+  "service_until": 2030,
   "default_lifetime_years": 3,
   "exclude": [
     "src/Detector/*",
     "src/Probe.php",
-    "src/Catalogue.php",
-    "translations/*",
     "tests/fixtures/*",
-    "tests/run.sh",
-    "docs/*",
-    "README.md"
+    "tests/run.sh"
   ],
   "domains": {
     "report signatures": {
       "paths": ["src/Signature.php"],
       "lifetime_years": 1,
-      "note": "A report is presented within the quarter. Put 15 here if you archive for a regulator: the verdict changes, and that is the point."
+      "note": "A report is presented within the quarter. Put 15 here if you archive for a regulator: the verdict changes, and that is the point.",
+      "declared_by": "Jérôme Nadaud, author",
+      "declared_on": "2026-10-03"
     }
   }
 }
