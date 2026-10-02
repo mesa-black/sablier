@@ -54,7 +54,10 @@ Reports are available in French, English and Spanish (`--lang=fr|en|es`).
 the technical report for the fixture project, and
 [`examples/audit.html`](examples/audit.html) the audit document of the same
 run. Both are regenerated at each release, and both are a single self-contained
-file — open them from disk. [`CHANGELOG.md`](CHANGELOG.md) says what each
+file — open them from disk. [`examples/report.pdf`](examples/report.pdf) and
+[`examples/audit.pdf`](examples/audit.pdf) are the same two documents as this
+tool typesets them, thirteen and twenty-six kilobytes, which is what a PDF
+weighs when no browser printed it. [`CHANGELOG.md`](CHANGELOG.md) says what each
 release changed.
 
 The report is a self-contained HTML file: no remote font, no script, no request.

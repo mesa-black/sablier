@@ -148,7 +148,7 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
 <body>
 <header>
   <div class="brand">SABLIER</div>
-  <div class="meta">Fixture · 01/10/2026 · 3 fichiers lus · analyse en 3 ms</div>
+  <div class="meta">Fixture · 02/10/2026 · 3 fichiers lus · analyse en 3 ms</div>
 </header>
 
 <div class="about"><strong>Le post-quantique, en trois phrases.</strong> La cryptographie qui protège aujourd'hui le web repose sur des problèmes faciles dans un sens et infaisables dans l'autre — multiplier deux grands nombres premiers est immédiat, retrouver ces facteurs demanderait des milliers d'années. Un calculateur quantique suffisamment grand rend ce retour possible : RSA et les courbes elliptiques, c'est-à-dire l'essentiel de ce qui chiffre et signe aujourd'hui, tombent d'un coup — la taille des clés n'y change rien. La cryptographie <em>post-quantique</em> désigne les algorithmes conçus pour résister à cette machine, normalisés en 2024 (ML-KEM pour le chiffrement, ML-DSA pour la signature) ; le chiffrement symétrique, lui, AES et ChaCha20, n'est pas menacé.</div>
@@ -161,6 +161,7 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
 
 <section class="timeline">
   <h2>Durée de confidentialité des données, face à la péremption des algorithmes</h2>
+  <script type="application/json" id="chart">{"title":"Durée de confidentialité des données, face à la péremption des algorithmes","start":2026,"end":2046,"marks":[{"year":2030,"label":"dépréciation"},{"year":2035,"label":"péremption"}],"bars":[{"name":"backups","years":10,"exposed":true},{"name":"session tokens","years":1,"exposed":false}]}</script>
   <div class="chart">
     <div class="mark" style="left:20%"><span>2030<br>dépréciation</span></div>
     <div class="mark expiry" style="left:45%"><span>2035<br>péremption</span></div>
@@ -174,11 +175,11 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
                  <div class="loc">deploy/backup.sh:3</div>
                  <pre>openssl genrsa -out /etc/backup/key.pem 2048</pre>
                  <p>Chiffré aujourd&#039;hui, à garder confidentiel jusqu&#039;en 2036 — soit 1 an après la péremption de RSA. Une capture faite maintenant sera lisible. <span class="detail">Génération de clé RSA.</span></p><div class="fix"><span>Remplacement</span> ML-KEM (chiffrement) ou ML-DSA (signature), en hybride pendant la transition</div><details class="fp"><summary>Faux positif ? empreinte <code>d45d9d61</code></summary>
-               <p class="fp-lead">Accepter ce constat : <code>sablier accept d45d9d61 --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept d45d9d61 --reason=&quot;…&quot; --until=2027-04-02</code></p>
                <pre>&quot;accepted&quot;: {
   &quot;d45d9d61&quot;: {
     &quot;reason&quot;: &quot;…&quot;,
-    &quot;until&quot;: &quot;2027-04-01&quot;
+    &quot;until&quot;: &quot;2027-04-02&quot;
   }
 }</pre>
                <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20rsa%20dans%20backup.sh&amp;body=Empreinte%20%3A%20d45d9d61%0AAlgorithme%20%3A%20rsa%0AVerdict%20%3A%20COMPROMIS%0AFichier%20%3A%20deploy%2Fbackup.sh%3A3%0APreuve%20%3A%20openssl%20genrsa%20-out%20%2Fetc%2Fbackup%2Fkey.pem%202048%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
@@ -186,11 +187,11 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
                  <div class="loc">src/Tokens.php:17</div>
                  <pre>return sha1($payload);</pre>
                  <p>Cassé classiquement, indépendamment du quantique. L&#039;échéance était hier. </p><div class="fix"><span>Références</span> <a href="https://nvd.nist.gov/vuln/detail/CVE-2005-4900">CVE-2005-4900</a></div><div class="fix"><span>Remplacement</span> SHA-256</div><details class="fp"><summary>Faux positif ? empreinte <code>d87d2d2b</code></summary>
-               <p class="fp-lead">Accepter ce constat : <code>sablier accept d87d2d2b --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept d87d2d2b --reason=&quot;…&quot; --until=2027-04-02</code></p>
                <pre>&quot;accepted&quot;: {
   &quot;d87d2d2b&quot;: {
     &quot;reason&quot;: &quot;…&quot;,
-    &quot;until&quot;: &quot;2027-04-01&quot;
+    &quot;until&quot;: &quot;2027-04-02&quot;
   }
 }</pre>
                <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20sha1%20dans%20Tokens.php&amp;body=Empreinte%20%3A%20d87d2d2b%0AAlgorithme%20%3A%20sha1%0AVerdict%20%3A%20CASS%C3%89%20AUJOURD%27HUI%0AFichier%20%3A%20src%2FTokens.php%3A17%0APreuve%20%3A%20return%20sha1%28%24payload%29%3B%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
@@ -198,11 +199,11 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
                  <div class="loc">deploy/backup.sh:5</div>
                  <pre>ssh-keygen -t rsa -b 4096 -f /root/.ssh/offsite</pre>
                  <p>Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité. <span class="detail">Génération de clé SSH.</span></p><div class="fix"><span>Remplacement</span> ML-DSA, ou SLH-DSA pour une ancre de confiance longue durée</div><details class="fp"><summary>Faux positif ? empreinte <code>e51683bf</code></summary>
-               <p class="fp-lead">Accepter ce constat : <code>sablier accept e51683bf --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept e51683bf --reason=&quot;…&quot; --until=2027-04-02</code></p>
                <pre>&quot;accepted&quot;: {
   &quot;e51683bf&quot;: {
     &quot;reason&quot;: &quot;…&quot;,
-    &quot;until&quot;: &quot;2027-04-01&quot;
+    &quot;until&quot;: &quot;2027-04-02&quot;
   }
 }</pre>
                <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20rsa-sign%20dans%20backup.sh&amp;body=Empreinte%20%3A%20e51683bf%0AAlgorithme%20%3A%20rsa-sign%0AVerdict%20%3A%20SURVEILLER%0AFichier%20%3A%20deploy%2Fbackup.sh%3A5%0APreuve%20%3A%20ssh-keygen%20-t%20rsa%20-b%204096%20-f%20%2Froot%2F.ssh%2Foffsite%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
@@ -210,11 +211,11 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
                  <div class="loc">src/Tokens.php:7</div>
                  <pre>return jwt_encode($claims, $this-&gt;key, &#039;RS256&#039;);</pre>
                  <p>Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité. <span class="detail">Algorithme JWT.</span></p><div class="fix"><span>Remplacement</span> ML-DSA, ou SLH-DSA pour une ancre de confiance longue durée</div><details class="fp"><summary>Faux positif ? empreinte <code>a994f9c6</code></summary>
-               <p class="fp-lead">Accepter ce constat : <code>sablier accept a994f9c6 --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <p class="fp-lead">Accepter ce constat : <code>sablier accept a994f9c6 --reason=&quot;…&quot; --until=2027-04-02</code></p>
                <pre>&quot;accepted&quot;: {
   &quot;a994f9c6&quot;: {
     &quot;reason&quot;: &quot;…&quot;,
-    &quot;until&quot;: &quot;2027-04-01&quot;
+    &quot;until&quot;: &quot;2027-04-02&quot;
   }
 }</pre>
                <p class="fp-lead">L&#039;outil a tort ? <a href="https://github.com/mesa-black/sablier/issues/new?title=Faux%20positif%20%3A%20rsa-sign%20dans%20Tokens.php&amp;body=Empreinte%20%3A%20a994f9c6%0AAlgorithme%20%3A%20rsa-sign%0AVerdict%20%3A%20SURVEILLER%0AFichier%20%3A%20src%2FTokens.php%3A7%0APreuve%20%3A%20return%20jwt_encode%28%24claims%2C%20%24this-%3Ekey%2C%20%27RS256%27%29%3B%0A%0APourquoi%20ce%20constat%20est%20faux%20%3A%0A&amp;labels=false-positive">Ouvrir un signalement pré-rempli</a></p>
@@ -225,7 +226,7 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
   <h2>Ce qu&#039;il faut faire, dans l&#039;ordre</h2>
   <p class="legend">Un inventaire qui ne conclut rien se range dans un dossier. Voici l&#039;arbitrage — et l&#039;ordre compte autant que la liste.</p>
   <ol><li><h3>Décider du sort des données déjà émises</h3><p>C&#039;est la décision que personne ne prend, et elle vient avant la migration. Les domaines concernés (backups) sont protégés par un algorithme qui ne tiendra pas jusqu&#039;au bout de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d&#039;un correctif. Trois issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire tourner les clés et réémettre ce qui peut l&#039;être, ou acter par écrit qu&#039;on accepte le risque sur les données antérieures à 2035. Migrer sans trancher cette question protège les données futures et laisse les anciennes exposées sans que personne ne l&#039;ait décidé.</p></li><li><h3>Remplacer ce qui est déjà cassé</h3><p>Un usage repose sur un algorithme cassé classiquement. Aucun raisonnement quantique n&#039;est nécessaire : l&#039;échéance était il y a dix ans, le remplacement est connu et ne demande pas un projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c&#039;est moins cher et déjà exploitable.</p></li><li><h3>Remettre ce rapport au calendrier</h3><p>La fenêtre se referme d&#039;elle-même : la date de péremption ne bouge pas (2035), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd&#039;hui avec une durée de neuf ans ne le sera plus l&#039;an prochain. Rejouer l&#039;analyse une fois par an suffit — et vérifier à cette occasion que l&#039;échéance réglementaire n&#039;a pas bougé.</p></li></ol>
-  <p class="share"><a href="threema://compose?text=Sablier%20%E2%80%94%20inventaire%20cryptographique%20de%20Fixture%20%2801%2F10%2F2026%29%0A%0A1%20usage%20cryptographique%20prot%C3%A8ge%20des%20donn%C3%A9es%20dont%20la%20confidentialit%C3%A9%20doit%20durer%20au-del%C3%A0%20de%20la%20p%C3%A9remption%20de%20l%27algorithme%20qui%20les%20prot%C3%A8ge.%0A%0A6%20constats%20retenus.%20%C3%89ch%C3%A9ance%20de%20p%C3%A9remption%20retenue%20%3A%202035.%0APremi%C3%A8re%20action%20%3A%20D%C3%A9cider%20du%20sort%20des%20donn%C3%A9es%20d%C3%A9j%C3%A0%20%C3%A9mises">Envoyer le résumé sur Threema</a></p>
+  <p class="share"><a href="threema://compose?text=Sablier%20%E2%80%94%20inventaire%20cryptographique%20de%20Fixture%20%2802%2F10%2F2026%29%0A%0A1%20usage%20cryptographique%20prot%C3%A8ge%20des%20donn%C3%A9es%20dont%20la%20confidentialit%C3%A9%20doit%20durer%20au-del%C3%A0%20de%20la%20p%C3%A9remption%20de%20l%27algorithme%20qui%20les%20prot%C3%A8ge.%0A%0A6%20constats%20retenus.%20%C3%89ch%C3%A9ance%20de%20p%C3%A9remption%20retenue%20%3A%202035.%0APremi%C3%A8re%20action%20%3A%20D%C3%A9cider%20du%20sort%20des%20donn%C3%A9es%20d%C3%A9j%C3%A0%20%C3%A9mises">Envoyer le résumé sur Threema</a></p>
   <p class="share-note">Ouvre Threema s&#039;il est installé. Rien n&#039;est transmis à un serveur tiers : le lien ne contient que le texte ci-dessus.</p>
 </section>
 <section class="fp-legend"><h2>Faux positif ?</h2>
@@ -234,10 +235,10 @@ footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:v
                <pre>&quot;accepted&quot;: {
   &quot;&lt;empreinte&gt;&quot;: {
     &quot;reason&quot;: &quot;…&quot;,
-    &quot;until&quot;: &quot;2027-04-01&quot;
+    &quot;until&quot;: &quot;2027-04-02&quot;
   }
 }</pre>
-               <p class="fp-cli">En ligne de commande : <code>sablier accept &lt;empreinte&gt; --reason=&quot;…&quot; --until=2027-04-01</code></p>
+               <p class="fp-cli">En ligne de commande : <code>sablier accept &lt;empreinte&gt; --reason=&quot;…&quot; --until=2027-04-02</code></p>
                <p><strong>2.</strong> L&#039;outil a tort. C&#039;est une règle à corriger, et sa place est dans le dépôt de Sablier : <a href="https://github.com/mesa-black/sablier/issues/new">github.com/mesa-black/sablier</a></p>
                <p class="fp-note">L&#039;empreinte imprimée à côté de chaque constat le désigne, et c&#039;est elle qu&#039;on cite dans les deux cas. Elle est calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code, et change le jour où la ligne change vraiment.</p>
              </section>
