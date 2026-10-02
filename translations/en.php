@@ -232,7 +232,8 @@ return [
     'action.calendar.title' => 'Put this report back on the calendar',
     'action.calendar.body' => 'The window closes by itself: the expiry date does not move (%d), but every year that passes brings your data closer to that line. A domain that is clear today with a nine-year lifetime will not be next year. Re-running the analysis once a year is enough — and checking, while you are there, that the regulatory deadline has not moved.',
     'share.threema' => 'Send the summary on Threema',
-    'share.note' => 'Opens Threema if it is installed. Nothing reaches a third-party server: the link carries only the text above.',
+    'share.note' => 'Opens Threema on a phone where the app is installed. On a desktop the scheme is usually not registered and the browser refuses the link: copy the text below instead. Nothing is sent to a third party.',
+    'share.reveal' => 'Show the text it would send',
     'share.text' => 'Sablier — cryptographic inventory of %s (%s)
 
 %s

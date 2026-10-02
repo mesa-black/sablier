@@ -232,7 +232,8 @@ return [
     'action.calendar.title' => 'Volver a poner este informe en el calendario',
     'action.calendar.body' => 'La ventana se cierra sola: la fecha de caducidad no se mueve (%d), pero cada año que pasa acerca sus datos a esa línea. Un dominio conforme hoy con una duración de nueve años dejará de serlo el año que viene. Basta con repetir el análisis una vez al año, y comprobar de paso que el plazo reglamentario no se ha movido.',
     'share.threema' => 'Enviar el resumen por Threema',
-    'share.note' => 'Abre Threema si está instalado. Nada llega a un servidor de terceros: el enlace solo lleva el texto anterior.',
+    'share.note' => 'Abre Threema en un teléfono donde la aplicación esté instalada. En un ordenador el esquema no suele estar registrado y el navegador rechaza el enlace: copie el texto de abajo. No se envía nada a terceros.',
+    'share.reveal' => 'Ver el texto que enviaría',
     'share.text' => 'Sablier — inventario criptográfico de %s (%s)
 
 %s

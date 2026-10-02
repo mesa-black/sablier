@@ -241,7 +241,8 @@ return [
     'action.calendar.title' => 'Remettre ce rapport au calendrier',
     'action.calendar.body' => 'La fenêtre se referme d\'elle-même : la date de péremption ne bouge pas (%d), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd\'hui avec une durée de neuf ans ne le sera plus l\'an prochain. Rejouer l\'analyse une fois par an suffit — et vérifier à cette occasion que l\'échéance réglementaire n\'a pas bougé.',
     'share.threema' => 'Envoyer le résumé sur Threema',
-    'share.note' => 'Ouvre Threema s\'il est installé. Rien n\'est transmis à un serveur tiers : le lien ne contient que le texte ci-dessus.',
+    'share.note' => "Ouvre Threema sur un téléphone où l'application est installée. Sur un ordinateur, le schéma n'est en général pas enregistré et le navigateur refuse le lien : copiez le texte ci-dessous. Rien n'est transmis à un serveur tiers.",
+    'share.reveal' => 'Voir le texte à envoyer',
     'share.text' => 'Sablier — inventaire cryptographique de %s (%s)
 
 %s

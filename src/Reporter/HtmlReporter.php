@@ -171,12 +171,17 @@ final class HtmlReporter implements ReporterInterface
             $this->analysis->declaration->expiryYear,
             $actions[0]['title'],
         );
+        // The scheme is the phone's. A desktop that has never registered it
+        // answers with a browser error nobody can act on, so the text it would
+        // have carried is printed right there, to be copied by hand.
         $href = 'threema://compose?text='.rawurlencode($summary);
 
         $title = htmlspecialchars(Lang::t('plan.title'));
         $intro = htmlspecialchars(Lang::t('plan.intro'));
         $share = htmlspecialchars(Lang::t('share.threema'));
         $note = htmlspecialchars(Lang::t('share.note'));
+        $reveal = htmlspecialchars(Lang::t('share.reveal'));
+        $text = htmlspecialchars($summary);
 
         return <<<HTML
             <section class="plan">
@@ -185,6 +190,7 @@ final class HtmlReporter implements ReporterInterface
               <ol>$items</ol>
               <p class="share"><a href="$href">$share</a></p>
               <p class="share-note">$note</p>
+              <details class="share-text"><summary>$reveal</summary><pre>$text</pre></details>
             </section>
             HTML;
     }
@@ -573,7 +579,12 @@ final class HtmlReporter implements ReporterInterface
             .share a:hover{background:var(--ink);color:var(--paper)}
             .share-note{color:var(--muted);font-size:.78rem;margin:0!important}
             @media (max-width:34rem){.plan p{text-align:left;hyphens:manual}}
-            @media print{.share,.share-note{display:none}}
+            .share-text{margin:.5rem 0 0}
+            .share-text summary{color:var(--muted);font-size:.78rem;cursor:pointer}
+            .share-text pre{white-space:pre-wrap;font-size:.8rem;background:#00000008;
+                            border-radius:3px;padding:.7rem .9rem;margin:.5rem 0 0;
+                            user-select:all;-webkit-user-select:all}
+            @media print{.share,.share-note,.share-text{display:none}}
             footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.8rem}
 
             /* Print, and therefore PDF. The palette is forced back to light: a

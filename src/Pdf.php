@@ -93,12 +93,12 @@ final class Pdf
             }
 
             $name = strtolower($child->tagName);
-            if ($name === 'script' && $child->getAttribute('id') === 'chart') {
+            if ($name === 'template' && $child->getAttribute('id') === 'chart') {
                 self::chart($child->textContent, $writer);
 
                 continue;
             }
-            if (\in_array($name, ['script', 'style', 'svg', 'head'], true)) {
+            if (\in_array($name, ['script', 'style', 'svg', 'head', 'template'], true)) {
                 continue;
             }
 
@@ -136,10 +136,10 @@ final class Pdf
         }
     }
 
-    /** The figure, from the data island the reporter wrote beside it. */
+    /** The figure, from the inert template the reporter wrote beside it. */
     private static function chart(string $json, PdfWriter $writer): void
     {
-        $data = Value::map(json_decode(str_replace('<\\/', '</', $json), true));
+        $data = Value::map(json_decode($json, true));
         $bars = [];
         foreach (Value::map($data['bars'] ?? null) as $entry) {
             $bar = Value::map($entry);

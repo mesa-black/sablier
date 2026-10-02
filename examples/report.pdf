@@ -135,25 +135,26 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 9 0 R /F2 10 0 R /F3 11 0 R >> >> /Contents 8 0 R >>
 endobj
 8 0 obj
-<< /Length 2022 >>
+<< /Length 2172 >>
 stream
 BT 0 g /F1 9.5 Tf 70.00 785.89 Td (cette occasion que l'échéance réglementaire n'a pas bougé.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 769.78 Td (Envoyer le résumé sur Threema) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 751.67 Td (Ouvre Threema s'il est installé. Rien n'est transmis à un serveur tiers : le lien ne contient que le texte ci-dessus.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 722.56 Td (Faux positif ?) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 702.69 Td (Deux choses s'appellent « faux positif », et elles ne vont pas au même endroit.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 684.58 Td (1. L'outil a raison, mais ce constat est accepté ici. C'est une décision de projet : ajoutez ce bloc à votre déclaration,) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 671.47 Td (elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d'expiration sont obligatoires.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 653.36 Td (En ligne de commande : sablier accept <empreinte> --reason="…" --until=2027-04-02) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 635.25 Td (2. L'outil a tort. C'est une règle à corriger, et sa place est dans le dépôt de Sablier : github.com/mesa-black/sablier) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 617.14 Td (L'empreinte imprimée à côté de chaque constat le désigne, et c'est elle qu'on cite dans les deux cas. Elle est) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 604.03 Td (calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code, et change le jour où la) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 590.92 Td (ligne change vraiment.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 561.81 Td (Empreinte et signature) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 541.94 Td (empreinte des constats) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 541.94 Td (92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 522.83 Td (L'empreinte porte sur les constats, pas sur ce fichier : deux rendus du même inventaire, dans deux langues,) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 509.72 Td (donnent la même valeur.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 751.67 Td (Ouvre Threema sur un téléphone où l'application est installée. Sur un ordinateur, le schéma n'est en général pas) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 738.56 Td (enregistré et le navigateur refuse le lien : copiez le texte ci-dessous. Rien n'est transmis à un serveur tiers.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 709.45 Td (Faux positif ?) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 689.58 Td (Deux choses s'appellent « faux positif », et elles ne vont pas au même endroit.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 671.47 Td (1. L'outil a raison, mais ce constat est accepté ici. C'est une décision de projet : ajoutez ce bloc à votre déclaration,) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 658.36 Td (elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d'expiration sont obligatoires.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 640.25 Td (En ligne de commande : sablier accept <empreinte> --reason="…" --until=2027-04-02) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 622.14 Td (2. L'outil a tort. C'est une règle à corriger, et sa place est dans le dépôt de Sablier : github.com/mesa-black/sablier) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 604.03 Td (L'empreinte imprimée à côté de chaque constat le désigne, et c'est elle qu'on cite dans les deux cas. Elle est) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 590.92 Td (calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code, et change le jour où la) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 577.81 Td (ligne change vraiment.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 548.70 Td (Empreinte et signature) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 528.83 Td (empreinte des constats) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 528.83 Td (92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 509.72 Td (L'empreinte porte sur les constats, pas sur ce fichier : deux rendus du même inventaire, dans deux langues,) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 496.61 Td (donnent la même valeur.) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Sablier — Fixture · 3/3) Tj ET
 
 endstream
@@ -168,7 +169,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 12 0 obj
-<< /Title (Sablier — Fixture) /Producer (Sablier 0.3.0) /CreationDate (D:20261002230528) >>
+<< /Title (Sablier — Fixture) /Producer (Sablier 0.3.0) /CreationDate (D:20261002231231) >>
 endobj
 xref
 0 13
@@ -181,12 +182,12 @@ xref
 0000004633 00000 n 
 0000010708 00000 n 
 0000010862 00000 n 
-0000012935 00000 n 
-0000013032 00000 n 
-0000013135 00000 n 
-0000013231 00000 n 
+0000013085 00000 n 
+0000013182 00000 n 
+0000013285 00000 n 
+0000013381 00000 n 
 trailer
 << /Size 13 /Root 1 0 R /Info 12 0 R >>
 startxref
-13339
+13489
 %%EOF

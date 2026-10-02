@@ -123,7 +123,10 @@ final class Timeline
                 array_values(\array_slice($domains, 0, 8, true)),
             ),
         ], \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES);
-        $chart = '<script type="application/json" id="chart">'.str_replace('</', '<\\/', (string) $chart).'</script>';
+        // A <template>, not a <script>: inert by specification, and the report
+        // can go on saying it carries no script at all — which is a claim worth
+        // keeping literally true in a tool that reads where the keys are.
+        $chart = '<template id="chart">'.str_replace('<', '&lt;', (string) $chart).'</template>';
 
         $title = htmlspecialchars(Lang::t('timeline.title'));
         $legend = htmlspecialchars(Lang::t('timeline.legend'));
