@@ -46,6 +46,15 @@ final class Catalogue
         // nothing to do with quantum computing.
         'tls-obsolete' => ['label' => 'TLS 1.0 / 1.1', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
 
+        // HMAC is not its digest. The collision attacks that break MD5 and SHA-1
+        // do not carry over to the construction built on them, so CRAM-MD5 and
+        // HMAC-SHA1 are legacy to migrate, not holes to close tonight. Calling
+        // them broken was six of the eighty-two false positives measured on
+        // public code, and it is the kind of error that teaches a reader to
+        // stop believing the red ones.
+        'hmac-md5' => ['label' => 'HMAC-MD5', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
+        'hmac-sha1' => ['label' => 'HMAC-SHA-1', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
+
         'md5' => ['label' => 'MD5', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
         'sha1' => ['label' => 'SHA-1', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
         'sha256' => ['label' => 'SHA-256', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],

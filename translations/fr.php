@@ -577,4 +577,7 @@ Première action : %s',
     'airgap.blind.on' => "Analyse menée en mode hors-réseau : rien n'a été joint, ni serveur ni base de vulnérabilités. Tout ce qui suit vient des fichiers lus.",
     'airgap.blind.skipped' => "Analyse menée en mode hors-réseau : %d hôte(s) déclaré(s) n'ont pas été interrogés. Ce que ces serveurs négocient réellement reste inconnu de ce rapport.",
     'pdf.typeset' => 'PDF composé sans navigateur : %s (%d Ko)',
+    'detail.hmac_legacy' => "HMAC construit sur un condensat dépassé : les collisions ne s'y appliquent pas, mais c'est un mécanisme d'authentification à migrer.",
+    'algo.hmac-md5.replacement' => 'HMAC-SHA-256',
+    'algo.hmac-sha1.replacement' => 'HMAC-SHA-256',
 ];

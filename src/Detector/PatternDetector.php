@@ -21,6 +21,9 @@ abstract class PatternDetector implements DetectorInterface
 {
     protected const string CAPTURE = 'capture';
 
+    /** Same capture, prefixed: HMAC-SHA-1 is not SHA-1 and must not be judged as one. */
+    protected const string CAPTURE_HMAC = 'capture-hmac';
+
     /**
      * @return list<array{0:string, 1:string|null, 2:string, 3:string}> pattern, algorithm, purpose, detail key
      */
@@ -42,12 +45,19 @@ abstract class PatternDetector implements DetectorInterface
 
             foreach ($matches[0] as $index => [, $offset]) {
                 $offset = Value::int($offset);
-                $resolved = $algorithm === self::CAPTURE
+                $captured = \in_array($algorithm, [self::CAPTURE, self::CAPTURE_HMAC], true);
+                $resolved = $captured
                     ? Catalogue::normalise($matches[1][$index][0] ?? '')
                     : $algorithm;
+                if ($algorithm === self::CAPTURE_HMAC && $resolved !== null) {
+                    // Only the outdated digests get an HMAC entry of their own.
+                    // HMAC-SHA-256 is judged as SHA-256, which is the same
+                    // answer by a shorter road.
+                    $resolved = Catalogue::get('hmac-'.$resolved) !== null ? 'hmac-'.$resolved : $resolved;
+                }
 
                 // An algorithm we do not know is not ours to judge.
-                if ($algorithm === self::CAPTURE && $resolved === null) {
+                if ($captured && $resolved === null) {
                     continue;
                 }
 
@@ -61,6 +71,13 @@ abstract class PatternDetector implements DetectorInterface
 
     protected function finding(SourceFile $file, int $offset, ?string $algorithm, string $purpose, string $detail): ?Finding
     {
+        // A match inside a comment is somebody describing the code, not the
+        // code. PHPMailer documents its own HMAC with the call it replaces, and
+        // that sentence was reported as a cryptographic use.
+        if ($file->isCommentAt($offset)) {
+            return null;
+        }
+
         return new Finding(
             algorithm: $algorithm ?? 'undetermined',
             purpose: $purpose,

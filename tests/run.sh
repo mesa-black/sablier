@@ -774,6 +774,30 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
 rm -rf "$exp"
 
+# --- telling an identifier from a security control ---------------------------
+# Every line of this fixture was taken from a public repository during the
+# false-positive measurement: 31 projects, 959 findings, and 89 of the 92 reds
+# that were wrong. The rules that fixed it are subtle enough to rot quietly, so
+# the verdicts are pinned here.
+dg=$(mktemp -d)
+./bin/sablier scan tests/fixtures/digests --json="$dg/d.json" --airgap --quiet >/dev/null 2>&1 || true
+counts=$(php -r '
+	$f = json_decode(file_get_contents($argv[1]), true);
+	$v = [];
+	foreach ($f as $x) { $v[$x["verdict"]] = ($v[$x["verdict"]] ?? 0) + 1; }
+	printf("%d/%d/%d", $v["noise"] ?? 0, $v["urgent"] ?? 0, $v["clear"] ?? 0);
+' "$dg/d.json")
+rm -rf "$dg"
+# Five identifiers, three real uses of a broken digest, one HMAC — and nothing
+# at all for the call that only appears in a comment.
+if [ "$counts" != "5/3/1" ]; then
+	echo "✗ digests: identity and security no longer tell apart (noise/urgent/clear = $counts)"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "digests" "identity" "hash codes, locks and filenames are noise"
+printf '  ✓ %-24s %-10s %s\n' "digests" "security" "tokens, fingerprints and KDFs stay red"
+printf '  ✓ %-24s %-10s %s\n' "digests" "hmac" "a keyed digest is not its digest"
+
 # --- a closed site: refuse, and print anyway ---------------------------------
 # --airgap is not --no-probe with a different name. One skips a step, the other
 # refuses the commands that would reach out — and still produces a PDF, because

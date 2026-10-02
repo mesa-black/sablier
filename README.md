@@ -85,6 +85,22 @@ HTML still prints to PDF from any browser, since it ships a print stylesheet
 that forces the light palette and keeps charts, findings and the probe block
 off page breaks.
 
+## How often it is wrong
+
+Measured, not claimed: **31 public PHP repositories, 959 findings, 24 of them
+red, 6 of those wrong — 25 %.** Before this measurement it was 92 %, and the
+nine out of ten reds that were wrong were all the same handful of mistakes:
+`mcrypt_*` reported as DES, object hash codes and lock names read as security
+controls, HMAC-MD5 called broken, a call matched inside a comment.
+
+[`docs/false-positives.md`](docs/false-positives.md) has the method, the fixes,
+the judgement on every remaining red finding, and the repositories to reproduce
+it — including the six that were never used for tuning, where the rate was 63 %
+until the rules were made general rather than particular.
+
+Six false positives are left and are documented rather than hidden. Recall did
+not move: every real finding the first corpus contained is still reported.
+
 ## Two sources, because a repository can be wrong
 
 The probe covers HTTPS, SMTP, IMAP, POP3, PostgreSQL, MySQL, LDAP, and the

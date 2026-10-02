@@ -568,4 +568,7 @@ First action: %s',
     'airgap.blind.on' => 'Run in air-gapped mode: nothing was contacted, no server and no vulnerability database. Everything below comes from the files that were read.',
     'airgap.blind.skipped' => 'Run in air-gapped mode: %d declared host(s) were not contacted. What those servers actually negotiate is unknown to this report.',
     'pdf.typeset' => 'PDF typeset without a browser: %s (%d KB)',
+    'detail.hmac_legacy' => 'HMAC built on an outdated digest: the collision attacks do not apply, but it is a legacy authentication mechanism to migrate.',
+    'algo.hmac-md5.replacement' => 'HMAC-SHA-256',
+    'algo.hmac-sha1.replacement' => 'HMAC-SHA-256',
 ];

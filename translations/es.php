@@ -568,4 +568,7 @@ Primera acción: %s',
     'airgap.blind.on' => 'Análisis realizado en modo sin red: no se contactó nada, ni servidores ni base de vulnerabilidades. Todo lo que sigue proviene de los archivos leídos.',
     'airgap.blind.skipped' => 'Análisis realizado en modo sin red: %d host(s) declarado(s) no fueron contactados. Lo que esos servidores negocian realmente queda fuera de este informe.',
     'pdf.typeset' => 'PDF compuesto sin navegador: %s (%d KB)',
+    'detail.hmac_legacy' => 'HMAC construido sobre un resumen obsoleto: los ataques de colisión no se aplican, pero es un mecanismo de autenticación heredado que hay que migrar.',
+    'algo.hmac-md5.replacement' => 'HMAC-SHA-256',
+    'algo.hmac-sha1.replacement' => 'HMAC-SHA-256',
 ];

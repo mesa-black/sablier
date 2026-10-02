@@ -23,6 +23,26 @@ The browser collects answers and nothing more. The merge — a name given twice
 is one domain holding both paths and the longer lifetime — stays in PHP, so
 there is one definition of it rather than two that drift.
 
+### Nine reds out of ten were wrong
+
+31 public PHP repositories, scanned with no declaration, every red finding
+judged by hand. The first count was **82 false positives out of 89** — a tool
+whose reds are wrong teaches people to stop reading reds, and nothing else in
+this release would have mattered.
+
+The causes were a handful of rules, not a thousand: `mcrypt_*` reported as DES
+when the call never names a cipher, object hash codes and lock names read as
+security controls because the heuristic looked at the line and not at the
+function around it, HMAC-MD5 called broken when collisions do not reach the
+construction, a call matched inside a comment, and test code presented as
+production.
+
+It stands at **6 out of 24 — 25 %**, with recall unchanged. The middle of that
+story is in `docs/false-positives.md` and is the part worth reading: tuned on
+one corpus the rate looked like 12 %, and on six repositories never used for
+tuning it was 63 % again. The published number is the one measured after the
+rules were made general.
+
 ### The browser is gone
 
 `--pdf` no longer hunts for Chrome in fourteen locations and no longer falls

@@ -76,6 +76,35 @@ final class SourceFile
     /** Test code is real, but it protects nothing. */
     public function isTestCode(): bool
     {
-        return preg_match('#(^|/)(tests?|spec|fixtures?)/#i', $this->relativePath) === 1;
+        return preg_match('#(^|/)(tests?|spec|fixtures?)/#i', $this->relativePath) === 1
+            || preg_match('#(Test|TestCase|Spec)\.php$#', $this->relativePath) === 1;
+    }
+
+    /**
+     * The name of the function a match sits in, when it sits in one.
+     *
+     * Measured need: twenty public repositories produced forty digests inside
+     * methods called `getHashCode`, `getIndexedFilename`, `generateClassName`.
+     * The line says `return md5(`, which carries no hint at all; the name three
+     * lines above says everything. Sixty lines back is enough for any body
+     * worth reading and cheap enough to do per match.
+     */
+    public function functionAt(int $offset): string
+    {
+        $before = substr($this->content(), 0, max(0, $offset));
+        $lines = array_slice(explode("\n", $before), -60);
+        for ($i = \count($lines) - 1; $i >= 0; --$i) {
+            if (preg_match('/function\s+(\w+)/', $lines[$i], $m) === 1) {
+                return $m[1];
+            }
+        }
+
+        return '';
+    }
+
+    /** A match inside a comment is a mention, not a call. */
+    public function isCommentAt(int $offset): bool
+    {
+        return preg_match('#^\s*(//|\*|/\*|\#)#', $this->lineTextAt($offset)) === 1;
     }
 }
