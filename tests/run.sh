@@ -936,6 +936,31 @@ if openssl list -signature-algorithms 2>/dev/null | grep -qi "ML-DSA-65"; then
 		rm -rf "$pq"; exit 1
 	fi
 	printf '  ✓ %-24s %-10s %s\n' "hybrid" "key" "the declaration vouches for both"
+
+	# The key an auditor should actually want: made for one report, used once,
+	# gone. Nothing to store, and the fingerprint is what ties the document to
+	# a person — carried by a channel that proves who they are.
+	eph=$(./bin/sablier scan "$pq" --out="$pq/e.html" --sign=ephemeral --no-probe 2>&1 \
+		| grep -oE "[0-9A-F]{4}( [0-9A-F]{4}){7}" | head -1)
+	if [ -z "$eph" ]; then
+		echo "✗ ephemeral: no fingerprint printed"
+		rm -rf "$pq"; exit 1
+	fi
+	if grep -q "PRIVATE" "$pq/e.html.sig"; then
+		echo "✗ ephemeral: a private key reached the signature file"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "ephemeral" "sign" "one key, one report, one fingerprint"
+
+	if ! ./bin/sablier verify "$pq/e.html.sig" --fingerprint="$eph" >/dev/null 2>&1; then
+		echo "✗ ephemeral: the printed fingerprint does not check out"
+		rm -rf "$pq"; exit 1
+	fi
+	if ./bin/sablier verify "$pq/e.html.sig" --fingerprint="0000 0000 0000 0000 0000 0000 0000 0000" >/dev/null 2>&1; then
+		echo "✗ ephemeral: a fingerprint nobody gave was accepted"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "ephemeral" "fingerprint" "checked, and a wrong one refused"
 	rm -rf "$pq"
 else
 	printf '  · %-24s %-10s %s\n' "hybrid" "skipped" "no ML-DSA in this OpenSSL"

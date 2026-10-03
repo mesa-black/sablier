@@ -396,6 +396,17 @@ final class AuditReporter implements ReporterInterface
             $body .= '<p>'.htmlspecialchars(\is_array($hybrid)
                 ? Lang::t('seal.hybrid', $hybrid['algorithm'])
                 : Lang::t('seal.single')).'</p>';
+
+            // A key that signed once and was destroyed ties the document to
+            // nobody by itself. The fingerprint is what the reader was given by
+            // another road, so the document prints it rather than assuming the
+            // reader still has the message.
+            if (($block['ephemeral'] ?? false) === true) {
+                $body .= '<p>'.htmlspecialchars(Lang::t('seal.ephemeral', Signature::fingerprint(
+                    $block['public_key'],
+                    \is_array($hybrid) ? $hybrid['public_key'] : '',
+                ))).'</p>';
+            }
             $body .= '<p>'.htmlspecialchars(Lang::t('audit.s10.verify')).' <code>sablier verify &lt;'
                 .htmlspecialchars(Lang::t('audit.doc_title')).'&gt;.sig --declare=&lt;declaration&gt;</code></p>';
             if (!\is_array($hybrid)) {

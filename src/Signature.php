@@ -61,6 +61,22 @@ final class Signature
         return hash('sha256', $canonical);
     }
 
+    /**
+     * The short form of a key pair, for a reader to check by hand.
+     *
+     * An ML-DSA public key is 2.7 kB of base64 and nobody pastes that into a
+     * message. This is one line: it travels by whatever channel already proves
+     * who is speaking, and the signature file carries the keys themselves. The
+     * recipient checks that the file hashes to the line they were given, which
+     * is how SSH host keys have been authenticated for thirty years.
+     */
+    public static function fingerprint(string $publicKeyBase64, string $pqPublicPem = ''): string
+    {
+        $raw = hash('sha256', $publicKeyBase64."\n".self::canonicalPem($pqPublicPem), true);
+
+        return implode(' ', str_split(strtoupper(bin2hex(substr($raw, 0, 16))), 4));
+    }
+
     /** Where the post-quantum half of a key pair lives, beside the other half. */
     public static function hybridKeyPath(string $keyPath): string
     {
@@ -89,7 +105,7 @@ final class Signature
     /**
      * @param string $previous the digest of the report this one succeeds, when there is one
      *
-     * @return array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string, previous?:string, hybrid?:array{algorithm:string, public_key:string, signature:string}}
+     * @return array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string, previous?:string, hybrid?:array{algorithm:string, public_key:string, signature:string}, ephemeral?:bool}
      */
     public static function sign(string $digest, string $secretKeyBase64, string $previous = '', string $hybridSecretPem = ''): array
     {
@@ -228,7 +244,7 @@ final class Signature
      * older versions still verify.
      */
     /** A PEM compared on its content, not on how its lines were wrapped. */
-    private static function canonicalPem(string $pem): string
+    public static function canonicalPem(string $pem): string
     {
         return (string) preg_replace('/\s+/', '', $pem);
     }

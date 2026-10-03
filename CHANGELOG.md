@@ -39,6 +39,22 @@ borrowed rather than implemented, because a hand-written lattice signature here
 would be indefensible; and stated when absent, with `verify` distinguishing
 *did not match* from *could not be checked on this machine*.
 
+### A key that signs once
+
+`--sign=ephemeral` makes a pair for one report, signs with it, and destroys the
+private halves before the command returns. Nothing to store, nothing to steal,
+nothing to rotate, and a key that can never sign a second document.
+
+What ties the document to a person is then a **fingerprint** — sixteen bytes
+over both public keys, one line, carried by a channel that already proves who
+is speaking. The report and that line must not travel the same way: whoever can
+alter one in flight can alter the other. The audit prints the fingerprint in its
+integrity section so a reader still has something to compare months later.
+
+The post-quantum key is also vouched for by the declaration now, for the
+long-lived case. It used to travel inside the signature it authenticated, which
+proves nothing to the one reader a post-quantum signature exists for.
+
 ### Smaller
 
 - a protocol's table of supported algorithms is inventory, not a use: an SSH

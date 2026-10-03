@@ -154,9 +154,12 @@ if ($command === 'keygen') {
 if ($command === 'verify') {
     $signaturePath = $argv[2] ?? '';
     $declarePath = null;
+    $claimed = '';
     foreach (\array_slice($argv, 3) as $arg) {
         if (preg_match('/^--declare=(.+)$/', $arg, $m) === 1) {
             $declarePath = $m[1];
+        } elseif (preg_match('/^--fingerprint=(.+)$/', $arg, $m) === 1) {
+            $claimed = $m[1];
         }
     }
     if (!is_file($signaturePath)) {
@@ -182,6 +185,22 @@ if ($command === 'verify') {
     ], null, $expectedKey, $expectedPqKey);
 
     printf("  %s\n", Lang::t($result['reason']));
+
+    // The keys in this file against the line that came by another road. With an
+    // ephemeral key there is nothing else to compare them to: the channel is
+    // what proves who signed, and this is where the two meet.
+    if ($claimed !== '') {
+        $actual = Signature::fingerprint(
+            Value::string($block['public_key'] ?? null),
+            Value::string($hybridClaim['public_key'] ?? null),
+        );
+        $normalise = static fn (string $v): string => strtoupper((string) preg_replace('/[^0-9A-Fa-f]/', '', $v));
+        $same = hash_equals($normalise($actual), $normalise($claimed));
+        printf("  %s\n", Lang::t($same ? 'seal.fingerprint.match' : 'seal.fingerprint.differs', $actual));
+        if (!$same) {
+            exit(1);
+        }
+    }
 
     // Which signatures the file carries, and which of them this machine could
     // check. A reader who cannot run ML-DSA must know that, not guess it.
@@ -946,21 +965,49 @@ $duration = microtime(true) - $startedAt;
 // exactly the same thing.
 $signature = null;
 if ($options['sign'] !== null) {
-    if (!is_file($options['sign'])) {
-        fwrite(\STDERR, '✗ '.Lang::t('cli.key_missing', $options['sign'])."\n");
-        exit(1);
-    }
     $preliminary = new Analysis($findings, $declaration, $label, $filesRead, $blind, $currentYear);
-    $hybridKey = Signature::hybridKeyPath($options['sign']);
+
+    // Two ways to hold a signing key, and the second is the one an auditor
+    // should want: a pair made for this report, used once, and gone before the
+    // command returns. Nothing to store, nothing to steal, nothing to rotate,
+    // and a key that can never sign a second document. What proves who signed
+    // is then the channel that carries the fingerprint, not a file on a laptop.
+    $ephemeral = $options['sign'] === 'ephemeral';
+    $fingerprint = '';
+    if ($ephemeral) {
+        $pair = Signature::keypair();
+        $pq = MlDsa::keypair();
+        $secret = $pair['secret'];
+        $pqSecret = $pq['secret'] ?? '';
+        $fingerprint = Signature::fingerprint($pair['public'], $pq['public'] ?? '');
+    } else {
+        if (!is_file($options['sign'])) {
+            fwrite(\STDERR, '✗ '.Lang::t('cli.key_missing', $options['sign'])."\n");
+            exit(1);
+        }
+        $hybridKey = Signature::hybridKeyPath($options['sign']);
+        $secret = trim((string) file_get_contents($options['sign']));
+        $pqSecret = is_file($hybridKey) ? (string) file_get_contents($hybridKey) : '';
+    }
+
     $signature = Signature::sign(
         Signature::digest($preliminary),
-        trim((string) file_get_contents($options['sign'])),
+        $secret,
         // Whatever was signed at this path before. No flag: a second run over
         // the same output succeeds the first, and a chain nobody has to ask
         // for is a chain that exists.
         Signature::previousDigest($reportPath.'.sig'),
-        is_file($hybridKey) ? (string) file_get_contents($hybridKey) : '',
+        $pqSecret,
     );
+
+    // The private halves leave with the command that made them.
+    if ($ephemeral) {
+        $signature['ephemeral'] = true;
+        sodium_memzero($secret);
+        if ($pqSecret !== '') {
+            sodium_memzero($pqSecret);
+        }
+    }
     file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
 }
 
@@ -1122,6 +1169,9 @@ if ($pdfMessage !== null) {
 }
 if ($signature !== null) {
     printf("  → %s\n", Lang::t('cli.signed', $reportPath.'.sig'));
+    if ($fingerprint !== '') {
+        printf("\n  %s\n\n    %s\n\n  %s\n", Lang::t('seal.ephemeral.done'), $fingerprint, Lang::t('seal.ephemeral.send'));
+    }
 }
 echo "\n";
 

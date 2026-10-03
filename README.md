@@ -780,8 +780,35 @@ PHP runs, and ML-DSA-65 in addition. Three rules keep that honest:
   from *could not be checked here*. Collapsing those two would turn a missing
   library into a forgery accusation.
 
-Both keys are vouched for by the versioned declaration, `signing_public_key`
-and `signing_public_key_pq`. A post-quantum key asserted only by the file it
+### A key that signs once
+
+```bash
+sablier scan /path --sign=ephemeral --out=report.html
+#   Key made for this report, used once, destroyed. Fingerprint of both public keys:
+#       7D52 D126 6B6B EA5D 58D4 1FE8 48D4 AFD9
+sablier verify report.html.sig --fingerprint="7D52 D126 …"
+```
+
+`--sign=ephemeral` makes the pair for this report, signs, and destroys the
+private halves before the command returns. Nothing to store, nothing to steal,
+nothing to rotate — and a key that can never sign a second document, which is a
+property a long-lived key does not have.
+
+What ties the report to a person is then the **fingerprint**, not a file: one
+line, carried by a channel that already proves who is speaking. An ML-DSA
+public key is 2.7 kB and nobody pastes that into a message; sixteen bytes of
+SHA-256 over both keys fit in a sentence, and the recipient checks the file
+against them. SSH host keys have been authenticated this way for thirty years.
+
+**The report and the fingerprint must not travel the same way.** Anyone who can
+alter one in flight can alter the other, and the whole guarantee collapses.
+Report by e-mail, fingerprint by Threema or out loud — not both by e-mail.
+
+The audit report prints the fingerprint in its integrity section, so a reader
+holding the document months later still has something to compare.
+
+For a long-lived key instead, both halves are vouched for by the versioned
+declaration, `signing_public_key` and `signing_public_key_pq`. A post-quantum key asserted only by the file it
 signs would be worth nothing to the one reader this signature exists for: the
 one who can already forge the Ed25519 half.
 

@@ -177,9 +177,21 @@ final class MlDsa
         return $path !== '' ? $path : null;
     }
 
+    /**
+     * A scratch path, in memory where the kernel offers one.
+     *
+     * The openssl binary needs a file, so one private key does touch a path.
+     * `/dev/shm` never reaches a disk, which is the difference between a key
+     * that was deleted and a key that was never written down. Where it does not
+     * exist — macOS — the temporary directory is used and the file is
+     * overwritten before it is unlinked, which is the best this can do and is
+     * said as such rather than called destruction.
+     */
     private static function temporary(): string
     {
-        return sys_get_temp_dir().'/sablier-mldsa-'.bin2hex(random_bytes(6));
+        $base = is_dir('/dev/shm') && is_writable('/dev/shm') ? '/dev/shm' : sys_get_temp_dir();
+
+        return $base.'/sablier-mldsa-'.bin2hex(random_bytes(6));
     }
 
     /** A private key written to disk leaves with the function that wrote it. */
