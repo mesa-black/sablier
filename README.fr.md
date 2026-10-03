@@ -710,6 +710,41 @@ titres sont des identifiants volés et des équipements non corrigés, et rien d
 cet outil n'en aurait arrêté une. Ce qu'il sait faire, c'est répondre à la
 question posée la semaine suivante : combien de temps le dommage dure.
 
+### Le document de la semaine suivante
+
+Le bandeau ci-dessus vit dans le rapport technique, qui se lit à côté d'un
+éditeur. La semaine qui suit une fuite, la question est posée dans une autre
+pièce — par un DPO, un service juridique, un comité — et la réponse doit être
+assez courte pour être lue d'un seul trait :
+
+```bash
+sablier scan . --breached=2026-07-29 --incident=incident.html
+```
+
+Six sections, une page ou deux : ce que le document est et n'est pas, ce qui a
+été déclaré sorti et par qui, combien de temps chaque domaine reste protégé, ce
+qui peut encore être fait, la méthode et ses limites, l'empreinte. Il ne
+ressemble pas au rapport d'audit — sans serif, pas de sommaire — parce que deux
+documents issus de la même analyse qui se ressemblent, c'est ainsi qu'on classe
+le mauvais. [`examples/incident.html`](examples/incident.html) en est un, avec
+son [PDF](examples/incident.pdf).
+
+Trois refus :
+
+- **ce n'est pas une notification.** L'article 33 demande les catégories et le
+  nombre approximatif de personnes et d'enregistrements concernés. Ce document
+  n'en contient aucun, le dit en section 1, et nomme à qui cette obligation
+  appartient ;
+- **il refuse d'être écrit sans date.** Pas de fuite déclarée, pas de document —
+  un rapport post-fuite produit par un outil qui a décidé tout seul qu'il y avait
+  une fuite est pire que pas de rapport ;
+- **il classe les mesures par ce qu'elles atteignent.** Renouveler les clés,
+  rechiffrer ce qui est encore détenu et notifier sont tous nécessaires, et aucun
+  ne touche aux données déjà sorties. Une mesure le fait — réduire la
+  conservation là où la durée est un choix et non un plancher légal — et le
+  document dit laquelle, au lieu d'aligner quatre mesures qui se lisent comme
+  équivalentes.
+
 ## Dans une chaîne d'intégration
 
 Un rapport que personne ne compare est un verdict sur lequel personne n'agit, et tout

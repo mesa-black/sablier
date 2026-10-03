@@ -1298,6 +1298,101 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- the post-breach document --------------------------------------------------
+# The third document, read the week after by people who have to say how long
+# this keeps costing. It is built on a date only the organisation can give, so
+# the first thing to hold is the refusal.
+inc=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$inc/"
+if ./bin/sablier scan "$inc" --incident="$inc/none.html" --no-probe --quiet >/dev/null 2>&1; then
+	echo "✗ incident: a post-breach document was written with no breach declared"
+	rm -rf "$inc"; exit 1
+fi
+if [ -e "$inc/none.html" ]; then
+	echo "✗ incident: the refusal still left a file behind"
+	rm -rf "$inc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "incident" "no date" "refuses, and invents nothing"
+
+./bin/sablier scan "$inc" --incident="$inc/i.html" --breached=2026-07-29 --no-probe --quiet >/dev/null 2>&1 || true
+said=$(php -r '
+	echo html_entity_decode(strip_tags(str_replace(["</td>", "</p>"], [" | ", "\n"], file_get_contents($argv[1]))), \ENT_QUOTES);
+' "$inc/i.html")
+
+# Article 33 asks for records and people. This document asks for neither, and
+# has to say so where a reader cannot miss it, or somebody files it as the
+# notification.
+case "$said" in
+	*"33"*"n'en contient aucun"*) ;;
+	*) echo "✗ incident: the document does not refuse to be read as a notification"; rm -rf "$inc"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "incident" "not a notice" "says so in section 1"
+
+# One measure reaches what already left; the other three protect the next copy.
+# A list that reads as four equivalent remedies is the failure mode here.
+# One long line of HTML: count occurrences, not lines.
+reaches=$(printf '%s' "$said" | grep -o "atteint ce qui est sorti" | wc -l | tr -d ' ')
+ahead=$(printf '%s' "$said" | grep -o "ne change rien à ce qui est sorti" | wc -l | tr -d ' ')
+if [ "$reaches" != "1" ] || [ "$ahead" != "3" ]; then
+	echo "✗ incident: the remedies are not graded by what they reach ($reaches / $ahead)"
+	rm -rf "$inc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "incident" "remedies" "one reaches, three do not"
+
+# The expiry year is an answer only where the algorithm is what ends the
+# protection. Printed next to a domain quantum does not reach, it reads as a
+# deadline that domain does not have.
+case "$said" in
+	*"session tokens | 2027 | au-delà"*) ;;
+	*) echo "✗ incident: a sound domain was given an expiry it does not have"; rm -rf "$inc"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "incident" "protection" "an expiry only where one applies"
+
+# Three documents, three languages, and the PDF of the one most likely to be
+# printed and carried into a meeting.
+for lang in en es; do
+	./bin/sablier scan "$inc" --incident="$inc/$lang.html" --breached=2026-07-29 \
+		--lang="$lang" --no-probe --quiet >/dev/null 2>&1 || true
+	[ -s "$inc/$lang.html" ] || { echo "✗ incident: no document in $lang"; rm -rf "$inc"; exit 1; }
+done
+./bin/sablier scan "$inc" --out="$inc/r.html" --incident="$inc/p.html" --pdf="$inc/r.pdf" \
+	--breached=2026-07-29 --no-probe --quiet >/dev/null 2>&1 || true
+if [ ! -s "$inc/p.pdf" ]; then
+	echo "✗ incident: asking for a PDF did not typeset the post-breach document"
+	rm -rf "$inc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "incident" "fr en es" "three languages, and a PDF"
+rm -rf "$inc"
+
+# --- one catalogue per language, and the same one ------------------------------
+# A missing key falls back silently and a format specifier that does not survive
+# the quoting throws in front of a user. Both are invisible until somebody runs
+# the tool in that language, which is exactly the kind of defect this suite is
+# for. The third check caught a real one: "%2$d" inside a double-quoted PHP
+# string interpolates $d.
+php -r '
+	$catalogues = [];
+	foreach (["fr", "en", "es"] as $lang) { $catalogues[$lang] = require "translations/$lang.php"; }
+	$all = array_keys($catalogues["fr"] + $catalogues["en"] + $catalogues["es"]);
+	$errors = [];
+	foreach ($catalogues as $lang => $messages) {
+		foreach (array_diff($all, array_keys($messages)) as $key) { $errors[] = "$lang is missing $key"; }
+		foreach ($messages as $key => $message) {
+			if (str_contains($message, "\\$")) { $errors[] = "$lang:$key carries a literal backslash before a positional specifier"; }
+		}
+	}
+	$count = static fn (string $m): int => preg_match_all("/%(?:\d+\\$)?[bcdeEfFgGosuxX]/", $m);
+	foreach ($catalogues["fr"] as $key => $message) {
+		foreach (["en", "es"] as $lang) {
+			if (isset($catalogues[$lang][$key]) && $count($message) !== $count($catalogues[$lang][$key])) {
+				$errors[] = "$key takes ".$count($message)." argument(s) in fr and ".$count($catalogues[$lang][$key])." in $lang";
+			}
+		}
+	}
+	if ($errors !== []) { fwrite(STDERR, "✗ translations: ".implode("; ", array_slice($errors, 0, 5))."\n"); exit(1); }
+	printf("  ✓ %-24s %-10s %d keys, same arguments\n", "translations", "fr en es", count($all));
+' || exit 1
+
 # --- what --quiet writes, and what it does not -------------------------------
 # A pipeline asking for the verdict in the exit code must not find an
 # unrequested 27 kB page at the root of the repository afterwards. It is still

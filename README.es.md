@@ -696,6 +696,39 @@ son credenciales robadas y equipos sin parchear, y nada en esta herramienta
 habría detenido una. Lo que sabe hacer es responder a la pregunta de la semana
 siguiente: cuánto dura el daño.
 
+### El documento de la semana siguiente
+
+El bloque anterior vive en el informe técnico, que se lee junto a un editor. La
+semana que sigue a una fuga, la pregunta se plantea en otra sala — un DPD, un
+departamento jurídico, un comité — y la respuesta debe ser lo bastante corta para
+leerse de una vez:
+
+```bash
+sablier scan . --breached=2026-07-29 --incident=incident.html
+```
+
+Seis secciones, una página o dos: lo que el documento es y no es, lo que se
+declaró afectado y por quién, cuánto tiempo queda protegido cada dominio, lo que
+aún puede hacerse, el método y sus límites, la huella. No se parece al informe de
+auditoría — sans serif, sin índice — porque dos documentos del mismo análisis que
+se parecen es como se archiva el equivocado.
+[`examples/incident.html`](examples/incident.html) es uno, con su
+[PDF](examples/incident.pdf).
+
+Tres negativas:
+
+- **no es una notificación.** El artículo 33 pide las categorías y el número
+  aproximado de personas y registros afectados. Este documento no contiene
+  ninguno, lo dice en la sección 1, y nombra a quién pertenece esa obligación;
+- **se niega a escribirse sin fecha.** Sin fuga declarada, no hay documento: un
+  informe posfuga producido por una herramienta que decidió por sí misma que
+  había una fuga es peor que no tener informe;
+- **clasifica las medidas por lo que alcanzan.** Renovar las claves, volver a
+  cifrar lo que aún se conserva y notificar son todas necesarias, y ninguna toca
+  los datos que ya salieron. Una medida sí lo hace — reducir la conservación allí
+  donde la duración es una elección y no un mínimo legal — y el documento dice
+  cuál, en lugar de alinear cuatro medidas que se leen como equivalentes.
+
 ## En una cadena de integración
 
 Un informe que nadie compara es un veredicto sobre el que nadie actúa, y todo el

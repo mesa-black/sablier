@@ -693,6 +693,40 @@ stolen credentials and unpatched edges, and nothing in this tool would have
 stopped one. What it can do is answer the question asked the week after, which is
 how long the damage lasts.
 
+### The document for the week after
+
+The breach block above sits inside the technical report, which is read next to an
+editor. The week after a breach, the question is asked in a different room — by a
+DPO, a legal team, a committee — and the answer has to be short enough to be read
+in one sitting:
+
+```bash
+sablier scan . --breached=2026-07-29 --incident=incident.html
+```
+
+Six sections, one page or two: what the document is and is not, what was declared
+breached and by whom, how long each domain stays protected, what can still be
+done, the method and its limits, the digest. It does not look like the audit
+report — sans-serif, no table of contents — because two documents from the same
+run that look alike is how somebody files the wrong one.
+[`examples/incident.html`](examples/incident.html) is one, with its
+[PDF](examples/incident.pdf).
+
+Three things it refuses:
+
+- **it is not a notification.** Article 33 asks for the categories and the
+  approximate number of data subjects and records concerned. This document
+  contains none of them, says so in section 1, and names who that obligation
+  belongs to;
+- **it refuses to be written without a date.** No breach declared, no document —
+  a post-breach report produced by a tool that decided on its own that there was
+  a breach is worse than no report;
+- **it grades the remedies by what they reach.** Rotating keys, re-encrypting
+  what is still held and notifying are all necessary and none of them touches the
+  data that already left. One measure does — shortening the retention where the
+  duration is a choice rather than a legal floor — and the document marks which
+  is which rather than listing four measures that read as equivalent.
+
 ## In a pipeline
 
 A report nobody compares is a verdict nobody acts on, and this tool's whole

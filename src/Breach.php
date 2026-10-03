@@ -35,7 +35,7 @@ final class Breach
     /**
      * One line per breached domain: what was asked, and what is still owed.
      *
-     * @return list<array{domain:string, taken:string, lifetime:int, until:int, readable:int, plaintext:bool, harvestable:bool}>
+     * @return list<array{domain:string, taken:string, lifetime:int, until:int, readable:int, from:int, plaintext:bool, harvestable:bool}>
      */
     public static function lines(Analysis $analysis): array
     {
@@ -79,6 +79,10 @@ final class Breach
                 'readable' => $domain['plaintext']
                     ? $domain['lifetime']
                     : ($domain['harvestable'] ? max(0, $until - $expiry) : 0),
+                // The first year of the readable window: nothing protects
+                // plaintext today, and an algorithm covers its data until the
+                // year it stops being credible.
+                'from' => $domain['plaintext'] ? $takenYear : $expiry + 1,
                 'plaintext' => $domain['plaintext'],
                 'harvestable' => $domain['harvestable'],
             ];

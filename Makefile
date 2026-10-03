@@ -53,6 +53,18 @@ examples: ## Regenerate the documents the README links to, from the one fixture
 		--audit=examples/audit.html --pdf=examples/report.pdf \
 		--cbom=examples/cbom.json --calendar=examples/crossings.ics \
 		--no-probe --quiet || true
+	@# The post-breach document needs a date somebody declared, which the
+	@# fixture does not carry: the example supplies one on the command line. The
+	@# technical report of that second run is thrown away — only the document
+	@# the README links to comes out of it.
+	@# Inside the repository rather than in a temporary directory: the document
+	@# prints the command that produced it, and an absolute path from this
+	@# machine has no business in a file the README links to.
+	@mkdir -p examples/.tmp
+	@./sablier scan tests/fixtures/sample --breached=2026-07-29 \
+		--incident=examples/incident.html --out=examples/.tmp/report.html \
+		--pdf=examples/.tmp/report.pdf --no-probe --quiet >/dev/null 2>&1 || true
+	@rm -rf examples/.tmp
 	@./sablier worksheet tests/fixtures/sample --out=examples/worksheet.html
 	@printf '  %s\n' "examples/ regenerated from tests/fixtures/sample"
 

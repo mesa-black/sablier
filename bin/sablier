@@ -36,6 +36,7 @@ use Sablier\Airgap;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\Baseline;
+use Sablier\Breach;
 use Sablier\Catalogue;
 use Sablier\Crossings;
 use Sablier\Cbom;
@@ -61,6 +62,7 @@ use Sablier\Probe;
 use Sablier\Worksheet;
 use Sablier\Reporter\AuditReporter;
 use Sablier\Reporter\CbomReporter;
+use Sablier\Reporter\IncidentReporter;
 use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
 use Sablier\Scanner;
@@ -842,11 +844,11 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
+$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'incident' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|cbom|audit|calendar|pdf|year|sign|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|audit|incident|calendar|pdf|year|sign|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -1070,6 +1072,18 @@ if ($options['audit'] !== null) {
     file_put_contents($options['audit'], (new AuditReporter())->render($analysis));
 }
 
+// The third document: the week after, for the room where somebody has to say
+// how long this keeps costing. It is built on a date the organisation gives,
+// and it refuses rather than invent one — a post-breach document produced by a
+// tool that decided on its own that there was a breach is worse than none.
+if ($options['incident'] !== null) {
+    if (Breach::lines($analysis) === []) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.incident_none')."\n");
+        exit(1);
+    }
+    file_put_contents($options['incident'], (new IncidentReporter())->render($analysis));
+}
+
 // The crossings as appointments. A date in a report is read once; a date in a
 // calendar interrupts somebody in 2029, which is the only version that works.
 if ($options['calendar'] !== null) {
@@ -1086,6 +1100,11 @@ if ($options['pdf'] !== null && $reportPath !== null) {
     if ($options['audit'] !== null) {
         $auditPdf = preg_replace('/\.html?$/i', '', $options['audit']).'.pdf';
         [, $auditPdfMessage] = Pdf::render($options['audit'], $auditPdf);
+    }
+    // Same rule for the post-breach document, which is the one of the three
+    // most likely to be printed and carried into a meeting.
+    if ($options['incident'] !== null) {
+        Pdf::render($options['incident'], preg_replace('/\.html?$/i', '', $options['incident']).'.pdf');
     }
 }
 
