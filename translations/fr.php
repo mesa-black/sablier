@@ -475,6 +475,7 @@ Première action : %s',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Dates de bascule',
     'crossing.intro' => "Une donnée chiffrée l'année Y reste sensible jusqu'à Y + sa durée. L'année de bascule est donc celle à partir de laquelle tout ce qui est chiffré survit à la péremption de %d : avant, le domaine tient ; à partir d'elle, ce qui est émis est déjà perdu le jour où l'algorithme tombe.",
+    'crossing.intro.graded' => "Une donnée chiffrée l'année Y reste sensible jusqu'à Y + sa durée. L'année de bascule est donc celle à partir de laquelle tout ce qui est chiffré survit à la péremption de l'algorithme qui le protège — une date propre à chaque domaine sous ce régime : avant, le domaine tient ; à partir d'elle, ce qui est émis est déjà perdu le jour où l'algorithme tombe.",
     'crossing.row' => '%s — %d ans — bascule le 1er janvier %d',
     'crossing.row.past' => '%s — %d ans — bascule franchie depuis %d',
     'crossing.none' => "Aucun domaine ne bascule : soit les durées déclarées sont plus courtes que la fenêtre, soit rien d'exposé à la récolte n'y est protégé par un algorithme que le quantique casse.",

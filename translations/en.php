@@ -466,6 +466,7 @@ First action: %s',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Crossing dates',
     'crossing.intro' => 'Data encrypted in year Y stays sensitive until Y plus its lifetime. The crossing year is therefore the one from which everything encrypted outlives the %d expiry: before it the domain holds; from it, what is emitted is already lost by the day the algorithm goes.',
+    'crossing.intro.graded' => 'Data encrypted in year Y stays sensitive until Y plus its lifetime. The crossing year is therefore the one from which everything encrypted outlives the expiry of the algorithm protecting it — a date of its own per domain under this regime: before it the domain holds; from it, what is written is already lost the day the algorithm falls.',
     'crossing.row' => '%s — %d years — crosses on 1 January %d',
     'crossing.row.past' => '%s — %d years — crossed back in %d',
     'crossing.none' => 'No domain crosses: either the declared lifetimes are shorter than the window, or nothing exposed to harvesting is protected there by an algorithm a quantum computer breaks.',

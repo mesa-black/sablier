@@ -466,6 +466,7 @@ Primera acción: %s',
     // --- the date a domain crosses the line ---
     'crossing.title' => 'Fechas de cruce',
     'crossing.intro' => 'Un dato cifrado en el año Y sigue siendo sensible hasta Y más su duración. El año de cruce es, pues, aquel a partir del cual todo lo cifrado sobrevive a la caducidad de %d: antes, el dominio aguanta; a partir de él, lo que se emite ya está perdido el día en que caiga el algoritmo.',
+    'crossing.intro.graded' => 'Un dato cifrado en el año Y sigue siendo sensible hasta Y más su duración. El año de cruce es por tanto aquel a partir del cual todo lo cifrado sobrevive a la caducidad del algoritmo que lo protege — una fecha propia por dominio bajo este régimen: antes, el dominio aguanta; a partir de él, lo que se emite ya está perdido el día en que el algoritmo cae.',
     'crossing.row' => '%s — %d años — cruza el 1 de enero de %d',
     'crossing.row.past' => '%s — %d años — cruzó ya en %d',
     'crossing.none' => 'Ningún dominio cruza: o las duraciones declaradas son más cortas que la ventana, o nada expuesto a la cosecha está protegido allí por un algoritmo que lo cuántico rompa.',

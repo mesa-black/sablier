@@ -51,7 +51,11 @@ final class Timeline
         }
 
         return '<div class="crossings"><h3>'.htmlspecialchars(Lang::t('crossing.title')).'</h3><ul>'.$items.'</ul>'
-            .'<p class="legend">'.htmlspecialchars(Lang::t('crossing.intro', $analysis->declaration->expiryYear)).'</p></div>';
+            // Under a graded regime there is no single expiry to name here, and
+            // naming one anyway contradicts the dates in the list above it.
+            .'<p class="legend">'.htmlspecialchars($analysis->declaration->graded()
+                ? Lang::t('crossing.intro.graded')
+                : Lang::t('crossing.intro', $analysis->declaration->expiryYear)).'</p></div>';
     }
 
     /**

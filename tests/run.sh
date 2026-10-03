@@ -1467,6 +1467,14 @@ if ! grep -q "2021" "$eu/r.html"; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "eu regime" "crossing" "2021, counted back from 2030"
 
+# …and the legend under those dates must not name a single expiry the domains do
+# not share. It said 2035 next to a list computed from 2030.
+if grep -q "péremption de 2035" "$eu/r.html"; then
+	echo "✗ eu: the crossing legend names one expiry under a graded regime"
+	rm -rf "$eu"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "eu regime" "legend" "no single expiry named"
+
 # The document has to carry the framework it borrows: the roadmap by date, both
 # deadlines rather than one retained year, and the level beside each domain.
 for needle in "23 juin 2025" "31/12/2026" "haut risque"; do
