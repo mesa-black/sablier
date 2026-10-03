@@ -436,6 +436,37 @@ l'empreinte ne doit pas partir par la même voie.
 enregistré, le navigateur refuse le lien : le résumé qu'il aurait porté est donc
 imprimé dans un dépliant sous le bouton, sélectionnable d'un clic.
 
+## Le troisième facteur, compté et non estimé
+
+Le risque quantique de la feuille de route européenne repose sur trois choses : la
+faiblesse de la cryptographie, l'impact d'une rupture, et *« the estimated time
+and effort required to migrate »*. Cet outil mesurait les deux premières et ne
+disait rien de la troisième — celle sur laquelle une équipe planifie réellement,
+et celle à laquelle chaque éditeur répond par un chiffre invérifiable.
+
+Le rapport compte donc ce qu'il y a à changer, par algorithme : appels, fichiers,
+domaines, combien d'entrées sont déclarées plutôt qu'observées à un appel, et
+combien nomment l'algorithme dans une variable ou une configuration au lieu de
+l'appel lui-même. Ce dernier compte est la définition que la feuille de route
+donne de l'agilité cryptographique — *« a modular way that enables replacing the
+cryptographic components »* — observée au lieu d'être affirmée, et il désigne les
+appels les moins coûteux à reprendre.
+
+Chaque chiffre est déjà dans l'inventaire ; aucun n'est une inférence. Deux
+entrées du catalogue qui partagent un libellé sont distinguées par leur usage,
+parce que deux lignes qui affichent « RSA » sont la façon dont un lecteur cesse de
+croire un tableau. Un algorithme sain, ou une empreinte utilisée comme clé de
+cache, n'est pas du travail et n'est pas listé. Sans rien à changer, le bloc ne
+s'affiche pas.
+
+**Ce qu'il ne fera pas, c'est en tirer une durée.** Huit appels dans un fichier
+derrière une même fonction sont une après-midi ; huit répartis sur six services
+avec un protocole entre eux sont un trimestre, et rien dans un dépôt ne distingue
+les deux. Un outil qui imprimerait « trois semaines » inventerait le seul chiffre
+du rapport qu'on ne peut pas vérifier — et serait cru, précisément parce que c'est
+le chiffre dont quelqu'un avait besoin. Le compte est de nous ; l'estimation est
+du lecteur, et le bloc le dit à l'endroit où sont les chiffres.
+
 ## Constats erronés
 
 Deux choses différentes s'appellent un faux positif, et elles ne vont pas au même

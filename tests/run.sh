@@ -1298,6 +1298,60 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- the third factor, counted rather than estimated ----------------------------
+# The EU roadmap's quantum risk rests on three factors, and the one a team plans
+# against is the migration effort. This counts places; it must never print a
+# duration, and it must not count one finding twice.
+eff=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --out="$eff/r.html" --no-probe --quiet >/dev/null 2>&1 || true
+said=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<section class=\"effort\">.*?</section>#s", $h, $m);
+	echo html_entity_decode(strip_tags(str_replace(["</td>", "</tr>"], [" | ", "\n"], $m[0] ?? "")), \ENT_QUOTES);
+' "$eff/r.html")
+# Two catalogue keys share the label RSA — one encrypts, one signs — and two rows
+# reading "RSA" is how a reader stops believing the table.
+case "$said" in
+	*"RSA · signature"*"RSA · chiffrement"*) ;;
+	*) echo "✗ effort: two algorithms with one label were not told apart"; rm -rf "$eff"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "effort" "labels" "encryption and signing told apart"
+
+# AES-256 is sound and md5-as-a-cache-key is noise: neither is work.
+case "$said" in
+	*AES*) echo "✗ effort: a sound algorithm was listed as work to do"; rm -rf "$eff"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "effort" "scope" "only what has to change"
+
+# The refusal, in the document: no duration, and the reason.
+case "$said" in
+	*"pas une durée"*"vous appartient"*) ;;
+	*) echo "✗ effort: the block does not refuse to estimate a duration"; rm -rf "$eff"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "effort" "refusal" "counts places, never weeks"
+
+# Nothing to change, nothing printed: a section that renders empty teaches a
+# reader to skip it.
+clean=$(mktemp -d)
+mkdir -p "$clean/src"
+cat >"$clean/src/Safe.php" <<'SAFE'
+<?php
+final class Safe
+{
+    public function tag(string $payload): string
+    {
+        return hash('sha256', $payload);
+    }
+}
+SAFE
+./bin/sablier scan "$clean" --out="$clean/r.html" --no-probe --quiet >/dev/null 2>&1 || true
+if grep -q 'class="effort"' "$clean/r.html"; then
+	echo "✗ effort: the block was printed with nothing to change"
+	rm -rf "$eff" "$clean"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "effort" "nothing" "silent when there is no work"
+rm -rf "$eff" "$clean"
+
 # --- the input, signed by whoever committed to it ------------------------------
 # Every verdict rests on durations a human declared, and `declared_by` is a string
 # anybody can type. An endorsement signs the decisions rather than the bytes: a

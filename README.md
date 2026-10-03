@@ -427,6 +427,36 @@ by e-mail, the fingerprint must not go the same way.
 browser refuses the link, so the summary it would have carried is printed in a
 disclosure under the button, selectable in one click.
 
+## The third factor, counted rather than estimated
+
+The EU roadmap's quantum risk rests on three things: the weakness of the
+cryptography, the impact of a break, and *"the estimated time and effort required
+to migrate"*. This tool measured the first two and said nothing about the third —
+which is the one a team actually plans against, and the one every vendor answers
+with a number nobody can check.
+
+So the report now counts what there is to change, per algorithm: call sites,
+files, domains, how many entries are declared rather than observed at a call
+site, and how many name the algorithm in a variable or a configuration instead of
+at the call site. That last count is the roadmap's own definition of
+crypto-agility — *"a modular way that enables replacing the cryptographic
+components"* — observed instead of asserted, and it marks the cheapest kind of
+call site to change.
+
+Every figure is already in the inventory; none of them is an inference. Two
+catalogue entries that share a label are told apart by purpose, because two rows
+both reading "RSA" is how a reader stops believing a table. An algorithm that is
+sound, or a digest used as a cache key, is not work and is not listed. With
+nothing to change the block does not render at all.
+
+**What it will not do is turn that into a duration.** Eight call sites in one file
+behind one function are an afternoon; eight across six services with a protocol
+between them are a quarter, and nothing in a repository distinguishes the two. A
+tool that printed "three weeks" would be inventing the only number in the report
+that cannot be checked — and would be believed, precisely because it is the number
+somebody needed. The count is ours; the estimate is the reader's, and the block
+says so where the figures are.
+
 ## Wrong findings
 
 Two different things get called a false positive, and they do not go to the same

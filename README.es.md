@@ -428,6 +428,36 @@ huella no debe ir por el mismo camino.
 navegador rechaza el enlace, así que el resumen que habría llevado se imprime en un
 desplegable bajo el botón, seleccionable con un clic.
 
+## El tercer factor, contado y no estimado
+
+El riesgo cuántico de la hoja de ruta europea se apoya en tres cosas: la debilidad
+de la criptografía, el impacto de una ruptura, y *"the estimated time and effort
+required to migrate"*. Esta herramienta medía las dos primeras y no decía nada de
+la tercera — la única con la que un equipo planifica de verdad, y la que cada
+proveedor responde con una cifra que nadie puede comprobar.
+
+El informe cuenta ahora lo que hay que cambiar, por algoritmo: llamadas, archivos,
+dominios, cuántas entradas están declaradas en lugar de observadas en una llamada,
+y cuántas nombran el algoritmo en una variable o una configuración en vez de en la
+llamada misma. Ese último recuento es la definición que la hoja de ruta da de la
+agilidad criptográfica — *"a modular way that enables replacing the cryptographic
+components"* — observada en lugar de afirmada, y señala las llamadas más baratas
+de cambiar.
+
+Cada cifra está ya en el inventario; ninguna es una inferencia. Dos entradas del
+catálogo que comparten etiqueta se distinguen por su uso, porque dos filas que
+dicen «RSA» son la forma en que un lector deja de creer una tabla. Un algoritmo
+sano, o una huella usada como clave de caché, no es trabajo y no se lista. Sin
+nada que cambiar, el bloque no se muestra.
+
+**Lo que no hará es convertir eso en una duración.** Ocho llamadas en un archivo
+detrás de una misma función son una tarde; ocho repartidas en seis servicios con
+un protocolo entre ellos son un trimestre, y nada en un repositorio distingue
+ambos casos. Una herramienta que imprimiera «tres semanas» inventaría la única
+cifra del informe que no se puede comprobar — y sería creída, precisamente porque
+es la cifra que alguien necesitaba. El recuento es nuestro; la estimación es del
+lector, y el bloque lo dice donde están las cifras.
+
 ## Hallazgos erróneos
 
 Dos cosas distintas se llaman falso positivo, y no van al mismo sitio. El informe lo

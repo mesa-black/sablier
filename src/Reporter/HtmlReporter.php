@@ -10,6 +10,7 @@ use Sablier\Assessor;
 use Sablier\BlindSpots;
 use Sablier\Breach;
 use Sablier\Catalogue;
+use Sablier\Effort;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Signature;
@@ -83,6 +84,11 @@ final class HtmlReporter implements ReporterInterface
         $fpLegend = $this->analysis->findings === [] ? '' : $this->falsePositiveLegend();
         $probeBlock = $this->probeBlock();
         $timeline = Breach::render($this->analysis).Timeline::render($this->analysis);
+        // Deliberately in this document only. The audit report's sections are
+        // numbered and get cited by number; adding one would renumber a
+        // document somebody has already quoted. This is also the half of the
+        // analysis a team plans with rather than argues over.
+        $effort = Effort::render($this->analysis);
         $blind = $this->blind();
         $css = $this->css();
         $target = htmlspecialchars($this->analysis->target);
@@ -128,6 +134,7 @@ final class HtmlReporter implements ReporterInterface
             $probeBlock
             $rows
             $blind
+            $effort
             $plan
             $fpLegend
 
