@@ -163,6 +163,7 @@ return [
     --calendar=FILE     crossing dates as iCalendar (.ics)
     --advisories=FILE   collected published vulnerabilities (see the advisories command)
     --baseline=FILE     compare against a reference JSON inventory (exit 2 when a decision is due)
+    --breached=DATE     a breach was declared on YYYY-MM-DD: count what stays readable
     --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
     --quiet             no terminal summary',
@@ -603,4 +604,12 @@ First action: %s',
     'reason.hybrid' => 'Paired with a post-quantum algorithm, per the declaration: this is the hybridation the references ask for during the transition, not something to migrate.',
     'blind.hybrid' => '%d domain(s) declared hybrid: the pairing is asserted in the declaration, not observed in the code. Two calls in one file are no proof that they cover the same bytes.',
     'seal.fingerprint' => 'key fingerprint',
+    'breach.title' => 'After the breach of %s',
+    'breach.lead' => 'What left is already in somebody\'s hands. The only protection still standing is the algorithm, and it has an end date.',
+    'breach.readable' => '%s — confidentiality asked for: %d years, so until %d. The algorithm protecting it expires in %d. %d years of what was taken will become readable, and no migration reaches them.',
+    'breach.readable.one' => '%s — confidentiality asked for: %d years, so until %d. The algorithm protecting it expires in %d. %d year of what was taken will become readable, and no migration reaches it.',
+    'breach.plaintext' => '%s — taken in the clear. The %d years of confidentiality asked for, until %d, are lost entirely: nothing had to fall.',
+    'breach.held' => '%s — protected by an algorithm that holds at least until %d: what was taken stays unreadable unless the key left with it.',
+    'breach.sound' => '%s — protected by cryptography a quantum computer does not reach. Nothing becomes readable on that side.',
+    'breach.limit' => 'This tool does not know what actually left, whether it left encrypted, or whether the keys left with it. It reasons on the domains you declared breached and the lifetimes you declared. Counting records belongs to the incident team; counting years is here.',
 ];

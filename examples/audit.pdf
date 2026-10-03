@@ -9,7 +9,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R >> >> /Contents 4 0 R >>
 endobj
 4 0 obj
-<< /Length 4535 >>
+<< /Length 4537 >>
 stream
 BT 0 g /F2 15.0 Tf 56.00 769.89 Td (Rapport d'audit — Fixture) Tj ET
 0.85 G 0.4 w 56.00 745.19 m 539.28 745.19 l S
@@ -58,20 +58,21 @@ BT 0 g /F2 9.5 Tf 56.00 328.38 Td (Outil) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 328.38 Td (Sablier 0.5.0) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 313.27 Td (Commande exécutée) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 313.27 Td (./bin/sablier scan tests/fixtures/sample --out=examples/report.html) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 300.16 Td (--audit=examples/audit.html --pdf=examples/report.pdf --no-probe --quiet) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 281.05 Td (Ce document est produit par un outil d'analyse. Il rapporte des faits vérifiables et l'avis qui en découle ; il n'emporte) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 267.94 Td (aucune qualification juridique, et l'auditeur signataire en demeure l'auteur.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 238.83 Td (2. Méthode) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 218.96 Td (Lecture statique du dépôt : appels cryptographiques dont l'algorithme est écrit en clair, matériel de clé et certificats) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 205.85 Td (présents dans l'arborescence, configuration de serveur et de cadriciel, scripts de déploiement, dépendances) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 192.74 Td (déclarées.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 174.63 Td (Sonde réseau : une poignée de main TLS ordinaire, identique à celle d'un navigateur, sur les hôtes déclarés. Elle) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 161.52 Td (établit ce qui est réellement négocié, que le dépôt peut contredire dans les deux sens.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 143.41 Td (L'inventaire est ensuite croisé avec la durée pendant laquelle chaque catégorie de donnée doit rester) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 130.30 Td (confidentielle. Le raisonnement est celui de l'inégalité de Mosca \(2015\), simplifié :) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 112.19 Td (année de l'analyse + durée de confidentialité déclarée > péremption de l'algorithme  =>  la donnée déjà émise est) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 99.08 Td (exposée, et migrer ne la répare pas) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 80.97 Td (L'analyse est reproductible : la même commande sur le même état du dépôt produit la même empreinte de) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 300.16 Td (--audit=examples/audit.html --pdf=examples/report.pdf) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 287.05 Td (--cbom=examples/cbom.json --calendar=examples/crossings.ics --no-probe) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 273.94 Td (--quiet) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 254.83 Td (Ce document est produit par un outil d'analyse. Il rapporte des faits vérifiables et l'avis qui en découle ; il n'emporte) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 241.72 Td (aucune qualification juridique, et l'auditeur signataire en demeure l'auteur.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 212.61 Td (2. Méthode) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 192.74 Td (Lecture statique du dépôt : appels cryptographiques dont l'algorithme est écrit en clair, matériel de clé et certificats) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 179.63 Td (présents dans l'arborescence, configuration de serveur et de cadriciel, scripts de déploiement, dépendances) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 166.52 Td (déclarées.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 148.41 Td (Sonde réseau : une poignée de main TLS ordinaire, identique à celle d'un navigateur, sur les hôtes déclarés. Elle) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 135.30 Td (établit ce qui est réellement négocié, que le dépôt peut contredire dans les deux sens.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 117.19 Td (L'inventaire est ensuite croisé avec la durée pendant laquelle chaque catégorie de donnée doit rester) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 104.08 Td (confidentielle. Le raisonnement est celui de l'inégalité de Mosca \(2015\), simplifié :) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 85.97 Td (année de l'analyse + durée de confidentialité déclarée > péremption de l'algorithme  =>  la donnée déjà émise est) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 72.86 Td (exposée, et migrer ne la répare pas) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.5.0 · 1/5) Tj ET
 
 endstream
@@ -80,72 +81,70 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 6080 >>
+<< /Length 5937 >>
 stream
-BT 0 g /F1 9.5 Tf 56.00 785.89 Td (constatations. L'outil ne prédit pas l'arrivée d'un calculateur quantique ; il utilise l'échéance réglementaire comme) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 772.78 Td (date de planification.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 743.67 Td (3. Limites de l'analyse) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 723.80 Td (Ces limites figurent dans le corps du rapport et non en note de bas de page : un inventaire qui ne dit pas ce qu'il) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 710.69 Td (n'a pas regardé n'est pas un inventaire.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 692.58 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 692.58 Td (la cryptographie de vos services gérés — base de données, stockage objet, terminaison TLS chez un) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 679.47 Td (intermédiaire — n'apparaît dans aucun fichier de ce dépôt) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 663.36 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 663.36 Td (ce qui est réellement négocié à l'exécution, pour tout hôte non déclaré dans la section « sonde ») Tj ET
-BT 0 g /F1 9.5 Tf 56.00 647.25 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 647.25 Td (les clés détenues dans un HSM ou chez un fournisseur) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 631.14 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 631.14 Td (la durée de vie réelle des données : elle vient de votre déclaration, pas du code — un domaine non déclaré est) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 618.03 Td (calculé avec une durée par défaut de 3 ans) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 601.92 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 601.92 Td (L'horizon d'exploitation du système n'est pas déclaré : le calcul suppose qu'il cesse d'écrire des données) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 588.81 Td (aujourd'hui. C'est l'hypothèse optimiste — un service encore en production dans dix ans produira dix ans de) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 575.70 Td (données de plus à protéger. Ajoutez `service_until` à la déclaration.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 559.59 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 559.59 Td (Échéance retenue : 2035, d'après NIST IR 8547. Un autre cadre — institutionnel, défense — donne une autre) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 546.48 Td (date : voir `regime` dans la déclaration.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 530.37 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 530.37 Td (Les fichiers binaires \(images, polices, archives\) ne sont lus que sur leurs premiers méga-octets, et seulement) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 517.26 Td (pour trois signes vérifiables : un bloc de clé, des octets après la fin de l'image, une extension qui ment sur le) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 504.15 Td (contenu. Un message dissimulé dans les bits d'une image n'est pas détecté ici, et ne prétend pas l'être.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 488.04 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 488.04 Td (Les vulnérabilités publiées des dépendances n'ont pas été vérifiées : lancez `sablier advisories <chemin>` puis) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 474.93 Td (`--advisories=<fichier>`. Sans cela, une bibliothèque trouée aujourd'hui est présentée comme un simple) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 461.82 Td (inventaire.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 445.71 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 445.71 Td (Les constatations de confiance moyenne sont signalées comme telles : l'algorithme y provient d'une variable ou) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 432.60 Td (d'une configuration, et n'a pas pu être établi par la seule lecture.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 405.49 Td (4. Références normatives) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 385.62 Td (La date de péremption retenue est une échéance réglementaire, pas une prédiction de rupture cryptographique.) Tj ET
-BT 0 g /F2 8.5 Tf 56.00 361.51 Td (FIPS 203 / 204 / 205 \(2024\)) Tj ET
-BT 0 g /F2 8.5 Tf 297.64 361.51 Td (ML-KEM, ML-DSA et SLH-DSA normalisés \(août 2024\).) Tj ET
-0.85 G 0.4 w 56.00 346.78 m 539.28 346.78 l S
-BT 0 g /F1 8.5 Tf 56.00 340.78 Td (NIST IR 8547 ipd \(2024\)) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 340.78 Td (Brouillon public initial, novembre 2024. Table 2 : RSA et) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 329.05 Td (ECDSA à 112 bits de sécurité sont dépréciés après 2030 ;) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 317.32 Td (RSA, ECDSA et EdDSA sont interdits après 2035, quel que) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 305.59 Td (soit le niveau.) Tj ET
-0.85 G 0.4 w 56.00 290.86 m 539.28 290.86 l S
-BT 0 g /F1 8.5 Tf 56.00 284.86 Td (CNSA 2.0 \(NSA\)) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 284.86 Td (Échéances par usage : signature de logiciels et de) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 273.13 Td (micrologiciels et équipements réseau en 2030, navigateurs,) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 261.40 Td (services en nuage et systèmes d'exploitation en 2033.) Tj ET
-0.85 G 0.4 w 56.00 246.67 m 539.28 246.67 l S
-BT 0 g /F1 8.5 Tf 56.00 240.67 Td (Recommandation \(UE\) 2024/1101) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 240.67 Td (Recommandation du 11 avril 2024 : feuilles de route) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 228.94 Td (nationales coordonnées, publiées sous deux ans, et schémas) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 217.21 Td (hybrides.) Tj ET
-0.85 G 0.4 w 56.00 202.48 m 539.28 202.48 l S
-BT 0 g /F1 8.5 Tf 56.00 196.48 Td (ANSSI — avis sur la migration post-quantique) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 196.48 Td (Hybridation jugée essentielle partout où le post-quantique est) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 184.75 Td (déployé, et exigée pour les visas de sécurité français. Après) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 173.02 Td (2030, l'ANSSI estime qu'il ne sera plus raisonnable d'acquérir) Tj ET
-BT 0 g /F1 8.5 Tf 297.64 161.29 Td (un produit sans post-quantique.) Tj ET
-0.85 G 0.4 w 56.00 146.56 m 539.28 146.56 l S
-BT 0 g /F1 9.5 Tf 56.00 134.56 Td (Échéance retenue pour ce rapport : 2035. Échéances vérifiées auprès de leurs sources le 30/09/2026.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 105.45 Td (5. Constatations de fait) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 85.58 Td (Chaque ligne est une observation directe, numérotée pour pouvoir être citée. Elle n'emporte aucun jugement :) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 72.47 Td (l'avis figure en section 7.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 785.89 Td (L'analyse est reproductible : la même commande sur le même état du dépôt produit la même empreinte de) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 772.78 Td (constatations. L'outil ne prédit pas l'arrivée d'un calculateur quantique ; il utilise l'échéance réglementaire comme) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 759.67 Td (date de planification.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 730.56 Td (3. Limites de l'analyse) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 710.69 Td (Ces limites figurent dans le corps du rapport et non en note de bas de page : un inventaire qui ne dit pas ce qu'il) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 697.58 Td (n'a pas regardé n'est pas un inventaire.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 679.47 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 679.47 Td (la cryptographie de vos services gérés — base de données, stockage objet, terminaison TLS chez un) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 666.36 Td (intermédiaire — n'apparaît dans aucun fichier de ce dépôt) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 650.25 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 650.25 Td (ce qui est réellement négocié à l'exécution, pour tout hôte non déclaré dans la section « sonde ») Tj ET
+BT 0 g /F1 9.5 Tf 56.00 634.14 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 634.14 Td (les clés détenues dans un HSM ou chez un fournisseur) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 618.03 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 618.03 Td (la durée de vie réelle des données : elle vient de votre déclaration, pas du code — un domaine non déclaré est) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 604.92 Td (calculé avec une durée par défaut de 3 ans) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 588.81 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 588.81 Td (L'horizon d'exploitation du système n'est pas déclaré : le calcul suppose qu'il cesse d'écrire des données) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 575.70 Td (aujourd'hui. C'est l'hypothèse optimiste — un service encore en production dans dix ans produira dix ans de) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 562.59 Td (données de plus à protéger. Ajoutez `service_until` à la déclaration.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 546.48 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 546.48 Td (Échéance retenue : 2035, d'après NIST IR 8547. Un autre cadre — institutionnel, défense — donne une autre) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 533.37 Td (date : voir `regime` dans la déclaration.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 517.26 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 517.26 Td (Les fichiers binaires \(images, polices, archives\) ne sont lus que sur leurs premiers méga-octets, et seulement) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 504.15 Td (pour trois signes vérifiables : un bloc de clé, des octets après la fin de l'image, une extension qui ment sur le) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 491.04 Td (contenu. Un message dissimulé dans les bits d'une image n'est pas détecté ici, et ne prétend pas l'être.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 474.93 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 474.93 Td (Les vulnérabilités publiées des dépendances n'ont pas été vérifiées : lancez `sablier advisories <chemin>` puis) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 461.82 Td (`--advisories=<fichier>`. Sans cela, une bibliothèque trouée aujourd'hui est présentée comme un simple) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 448.71 Td (inventaire.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 432.60 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 432.60 Td (Les constatations de confiance moyenne sont signalées comme telles : l'algorithme y provient d'une variable ou) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 419.49 Td (d'une configuration, et n'a pas pu être établi par la seule lecture.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 392.38 Td (4. Références normatives) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 372.51 Td (La date de péremption retenue est une échéance réglementaire, pas une prédiction de rupture cryptographique.) Tj ET
+BT 0 g /F2 8.5 Tf 56.00 348.40 Td (FIPS 203 / 204 / 205 \(2024\)) Tj ET
+BT 0 g /F2 8.5 Tf 297.64 348.40 Td (ML-KEM, ML-DSA et SLH-DSA normalisés \(août 2024\).) Tj ET
+0.85 G 0.4 w 56.00 333.67 m 539.28 333.67 l S
+BT 0 g /F1 8.5 Tf 56.00 327.67 Td (NIST IR 8547 ipd \(2024\)) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 327.67 Td (Brouillon public initial, novembre 2024. Table 2 : RSA et) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 315.94 Td (ECDSA à 112 bits de sécurité sont dépréciés après 2030 ;) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 304.21 Td (RSA, ECDSA et EdDSA sont interdits après 2035, quel que) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 292.48 Td (soit le niveau.) Tj ET
+0.85 G 0.4 w 56.00 277.75 m 539.28 277.75 l S
+BT 0 g /F1 8.5 Tf 56.00 271.75 Td (CNSA 2.0 \(NSA\)) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 271.75 Td (Échéances par usage : signature de logiciels et de) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 260.02 Td (micrologiciels et équipements réseau en 2030, navigateurs,) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 248.29 Td (services en nuage et systèmes d'exploitation en 2033.) Tj ET
+0.85 G 0.4 w 56.00 233.56 m 539.28 233.56 l S
+BT 0 g /F1 8.5 Tf 56.00 227.56 Td (Recommandation \(UE\) 2024/1101) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 227.56 Td (Recommandation du 11 avril 2024 : feuilles de route) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 215.83 Td (nationales coordonnées, publiées sous deux ans, et schémas) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 204.10 Td (hybrides.) Tj ET
+0.85 G 0.4 w 56.00 189.37 m 539.28 189.37 l S
+BT 0 g /F1 8.5 Tf 56.00 183.37 Td (ANSSI — avis sur la migration post-quantique) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 183.37 Td (Hybridation jugée essentielle partout où le post-quantique est) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 171.64 Td (déployé, et exigée pour les visas de sécurité français. Après) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 159.91 Td (2030, l'ANSSI estime qu'il ne sera plus raisonnable d'acquérir) Tj ET
+BT 0 g /F1 8.5 Tf 297.64 148.18 Td (un produit sans post-quantique.) Tj ET
+0.85 G 0.4 w 56.00 133.45 m 539.28 133.45 l S
+BT 0 g /F1 9.5 Tf 56.00 121.45 Td (Échéance retenue pour ce rapport : 2035. Échéances vérifiées auprès de leurs sources le 30/09/2026.) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.5.0 · 2/5) Tj ET
 
 endstream
@@ -154,118 +153,118 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R >> >> /Contents 8 0 R >>
 endobj
 8 0 obj
-<< /Length 6627 >>
+<< /Length 6721 >>
 stream
-BT 0 g /F2 8.5 Tf 56.00 785.89 Td (N°) Tj ET
-BT 0 g /F2 8.5 Tf 152.66 785.89 Td (Élément relevé) Tj ET
-BT 0 g /F2 8.5 Tf 249.31 785.89 Td (Emplacement) Tj ET
-BT 0 g /F2 8.5 Tf 345.97 785.89 Td (Élément observé) Tj ET
-BT 0 g /F2 8.5 Tf 442.62 785.89 Td (Confiance) Tj ET
-0.85 G 0.4 w 56.00 771.16 m 539.28 771.16 l S
-BT 0 g /F1 8.5 Tf 56.00 765.16 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 765.16 Td (AES-256) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 765.16 Td (deploy/backup.sh:4) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 765.16 Td (pg_dump -Fc app |) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 753.43 Td (openssl enc) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 741.70 Td (-aes-256-cbc -pbkdf2) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 729.97 Td (-pass) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 718.24 Td (env:BACKUP_KEY >) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 706.51 Td (dump.enc) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 765.16 Td (haute) Tj ET
-0.85 G 0.4 w 56.00 691.78 m 539.28 691.78 l S
-BT 0 g /F1 8.5 Tf 56.00 685.78 Td (2) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 685.78 Td (RSA) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 685.78 Td (deploy/backup.sh:3) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 685.78 Td (openssl genrsa -out) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 674.05 Td (/etc/backup/key.pem) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 662.32 Td (2048) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 685.78 Td (haute) Tj ET
-0.85 G 0.4 w 56.00 647.59 m 539.28 647.59 l S
-BT 0 g /F1 8.5 Tf 56.00 641.59 Td (3) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 641.59 Td (RSA) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 641.59 Td (deploy/backup.sh:5) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 641.59 Td (ssh-keygen -t rsa -b) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 629.86 Td (4096 -f /root/.ssh/offsite) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 641.59 Td (haute) Tj ET
-0.85 G 0.4 w 56.00 615.13 m 539.28 615.13 l S
-BT 0 g /F1 8.5 Tf 56.00 609.13 Td (4) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 609.13 Td (AES-256) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 609.13 Td (src/Tokens.php:22) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 609.13 Td (return) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 597.40 Td (openssl_encrypt\($plain,) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 585.67 Td ('aes-256-gcm', $key, 0,) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 573.94 Td (random_bytes\(12\)\);) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 609.13 Td (haute) Tj ET
-0.85 G 0.4 w 56.00 559.21 m 539.28 559.21 l S
-BT 0 g /F1 8.5 Tf 56.00 553.21 Td (5) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 553.21 Td (MD5) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 553.21 Td (src/Tokens.php:12) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 553.21 Td (return md5\($url\); //) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 541.48 Td (cache key: not a) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 529.75 Td (security control) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 553.21 Td (haute) Tj ET
-0.85 G 0.4 w 56.00 515.02 m 539.28 515.02 l S
-BT 0 g /F1 8.5 Tf 56.00 509.02 Td (6) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 509.02 Td (SHA-1) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 509.02 Td (src/Tokens.php:17) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 509.02 Td (return sha1\($payload\);) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 509.02 Td (haute) Tj ET
-0.85 G 0.4 w 56.00 494.29 m 539.28 494.29 l S
-BT 0 g /F1 8.5 Tf 56.00 488.29 Td (7) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 488.29 Td (RSA) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 488.29 Td (src/Tokens.php:7) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 488.29 Td (return) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 476.56 Td (jwt_encode\($claims,) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 464.83 Td ($this->key, 'RS256'\);) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 488.29 Td (haute) Tj ET
-0.85 G 0.4 w 56.00 450.10 m 539.28 450.10 l S
-BT 0 g /F2 11.5 Tf 56.00 427.10 Td (6. Durées de confidentialité déclarées) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 407.23 Td (Ces durées sont une donnée d'entrée fournie par le commanditaire. L'outil ne peut ni les vérifier ni les déduire du) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 394.12 Td (code : tout l'avis de la section 7 en dépend, et une durée corrigée change le verdict.) Tj ET
-BT 0 g /F2 8.5 Tf 56.00 370.01 Td (Domaine) Tj ET
-BT 0 g /F2 8.5 Tf 152.66 370.01 Td (Durée) Tj ET
-BT 0 g /F2 8.5 Tf 249.31 370.01 Td (Chemins) Tj ET
-BT 0 g /F2 8.5 Tf 345.97 370.01 Td (Justification fournie) Tj ET
-BT 0 g /F2 8.5 Tf 442.62 370.01 Td (Déclarée par) Tj ET
-0.85 G 0.4 w 56.00 355.28 m 539.28 355.28 l S
-BT 0 g /F1 8.5 Tf 56.00 349.28 Td (backups) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 349.28 Td (10) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 349.28 Td (deploy/backup.sh,) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 337.55 Td (deploy/*backup*) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 349.28 Td (Holds the whole) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 337.55 Td (database, including ten) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 325.82 Td (years of accounting) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 314.09 Td (records.) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 349.28 Td (auteur et date inconnus) Tj ET
-0.85 G 0.4 w 56.00 299.36 m 539.28 299.36 l S
-BT 0 g /F1 8.5 Tf 56.00 293.36 Td (session tokens) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 293.36 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 293.36 Td (src/Tokens.php) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 293.36 Td () Tj ET
-BT 0 g /F1 8.5 Tf 442.62 293.36 Td (auteur et date inconnus) Tj ET
-0.85 G 0.4 w 56.00 278.63 m 539.28 278.63 l S
-BT 0 g /F1 9.5 Tf 56.00 266.63 Td (Durée appliquée aux domaines non déclarés : 3 ans.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 237.52 Td (Durée de confidentialité des données, face à la péremption des algorithmes) Tj ET
-0.72 G 0.5 w [2 2] 0 d 236.26 209.65 m 236.26 173.65 l S [] 0 d
-BT 0.45 g /F1 7.0 Tf 227.26 213.65 Td (2030) Tj ET
-BT 0.45 g /F1 6.5 Tf 227.26 164.65 Td (dépréciation) Tj ET
-0.72 G 0.5 w [2 2] 0 d 314.08 209.65 m 314.08 173.65 l S [] 0 d
-BT 0.45 g /F1 7.0 Tf 305.08 213.65 Td (2035) Tj ET
-BT 0.45 g /F1 6.5 Tf 305.08 164.65 Td (péremption) Tj ET
-BT 0 g /F1 8.0 Tf 56.00 199.65 Td (backups) Tj ET
-0.90 g 174.00 198.65 311.28 6.00 re f
-0.56 0.14 0.11 rg 174.00 198.65 155.64 6.00 re f
-BT 0.35 g /F1 8.0 Tf 493.28 199.65 Td (10 ans) Tj ET
-BT 0 g /F1 8.0 Tf 56.00 184.65 Td (session tokens) Tj ET
-0.90 g 174.00 183.65 311.28 6.00 re f
-0.17 0.30 0.49 rg 174.00 183.65 15.56 6.00 re f
-BT 0.35 g /F1 8.0 Tf 493.28 184.65 Td (1 an) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 155.65 Td (Chaque barre est la durée pendant laquelle la donnée doit rester confidentielle. Elle passe en rouge quand un) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 142.54 Td (algorithme récoltable la protège au-delà du trait de péremption — dépasser le trait sans être rouge signifie que la) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 129.43 Td (donnée dure longtemps, mais qu'elle est protégée par de la cryptographie qui tiendra.) Tj ET
-BT 0 g /F2 10.0 Tf 56.00 100.32 Td (Dates de bascule) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 82.52 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 82.52 Td (backups — 10 ans — bascule franchie depuis 2026) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 785.89 Td (5. Constatations de fait) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 766.02 Td (Chaque ligne est une observation directe, numérotée pour pouvoir être citée. Elle n'emporte aucun jugement :) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 752.91 Td (l'avis figure en section 7.) Tj ET
+BT 0 g /F2 8.5 Tf 56.00 728.80 Td (N°) Tj ET
+BT 0 g /F2 8.5 Tf 152.66 728.80 Td (Élément relevé) Tj ET
+BT 0 g /F2 8.5 Tf 249.31 728.80 Td (Emplacement) Tj ET
+BT 0 g /F2 8.5 Tf 345.97 728.80 Td (Élément observé) Tj ET
+BT 0 g /F2 8.5 Tf 442.62 728.80 Td (Confiance) Tj ET
+0.85 G 0.4 w 56.00 714.07 m 539.28 714.07 l S
+BT 0 g /F1 8.5 Tf 56.00 708.07 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 708.07 Td (AES-256) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 708.07 Td (deploy/backup.sh:4) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 708.07 Td (pg_dump -Fc app |) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 696.34 Td (openssl enc) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 684.61 Td (-aes-256-cbc -pbkdf2) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 672.88 Td (-pass) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 661.15 Td (env:BACKUP_KEY >) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 649.42 Td (dump.enc) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 708.07 Td (haute) Tj ET
+0.85 G 0.4 w 56.00 634.69 m 539.28 634.69 l S
+BT 0 g /F1 8.5 Tf 56.00 628.69 Td (2) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 628.69 Td (RSA) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 628.69 Td (deploy/backup.sh:3) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 628.69 Td (openssl genrsa -out) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 616.96 Td (/etc/backup/key.pem) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 605.23 Td (2048) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 628.69 Td (haute) Tj ET
+0.85 G 0.4 w 56.00 590.50 m 539.28 590.50 l S
+BT 0 g /F1 8.5 Tf 56.00 584.50 Td (3) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 584.50 Td (RSA) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 584.50 Td (deploy/backup.sh:5) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 584.50 Td (ssh-keygen -t rsa -b) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 572.77 Td (4096 -f /root/.ssh/offsite) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 584.50 Td (haute) Tj ET
+0.85 G 0.4 w 56.00 558.04 m 539.28 558.04 l S
+BT 0 g /F1 8.5 Tf 56.00 552.04 Td (4) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 552.04 Td (AES-256) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 552.04 Td (src/Tokens.php:22) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 552.04 Td (return) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 540.31 Td (openssl_encrypt\($plain,) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 528.58 Td ('aes-256-gcm', $key, 0,) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 516.85 Td (random_bytes\(12\)\);) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 552.04 Td (haute) Tj ET
+0.85 G 0.4 w 56.00 502.12 m 539.28 502.12 l S
+BT 0 g /F1 8.5 Tf 56.00 496.12 Td (5) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 496.12 Td (MD5) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 496.12 Td (src/Tokens.php:12) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 496.12 Td (return md5\($url\); //) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 484.39 Td (cache key: not a) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 472.66 Td (security control) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 496.12 Td (haute) Tj ET
+0.85 G 0.4 w 56.00 457.93 m 539.28 457.93 l S
+BT 0 g /F1 8.5 Tf 56.00 451.93 Td (6) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 451.93 Td (SHA-1) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 451.93 Td (src/Tokens.php:17) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 451.93 Td (return sha1\($payload\);) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 451.93 Td (haute) Tj ET
+0.85 G 0.4 w 56.00 437.20 m 539.28 437.20 l S
+BT 0 g /F1 8.5 Tf 56.00 431.20 Td (7) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 431.20 Td (RSA) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 431.20 Td (src/Tokens.php:7) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 431.20 Td (return) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 419.47 Td (jwt_encode\($claims,) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 407.74 Td ($this->key, 'RS256'\);) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 431.20 Td (haute) Tj ET
+0.85 G 0.4 w 56.00 393.01 m 539.28 393.01 l S
+BT 0 g /F2 11.5 Tf 56.00 370.01 Td (6. Durées de confidentialité déclarées) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 350.14 Td (Ces durées sont une donnée d'entrée fournie par le commanditaire. L'outil ne peut ni les vérifier ni les déduire du) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 337.03 Td (code : tout l'avis de la section 7 en dépend, et une durée corrigée change le verdict.) Tj ET
+BT 0 g /F2 8.5 Tf 56.00 312.92 Td (Domaine) Tj ET
+BT 0 g /F2 8.5 Tf 152.66 312.92 Td (Durée) Tj ET
+BT 0 g /F2 8.5 Tf 249.31 312.92 Td (Chemins) Tj ET
+BT 0 g /F2 8.5 Tf 345.97 312.92 Td (Justification fournie) Tj ET
+BT 0 g /F2 8.5 Tf 442.62 312.92 Td (Déclarée par) Tj ET
+0.85 G 0.4 w 56.00 298.19 m 539.28 298.19 l S
+BT 0 g /F1 8.5 Tf 56.00 292.19 Td (backups) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 292.19 Td (10) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 292.19 Td (deploy/backup.sh,) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 280.46 Td (deploy/*backup*) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 292.19 Td (Holds the whole) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 280.46 Td (database, including ten) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 268.73 Td (years of accounting) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 257.00 Td (records.) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 292.19 Td (auteur et date inconnus) Tj ET
+0.85 G 0.4 w 56.00 242.27 m 539.28 242.27 l S
+BT 0 g /F1 8.5 Tf 56.00 236.27 Td (session tokens) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 236.27 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 236.27 Td (src/Tokens.php) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 236.27 Td () Tj ET
+BT 0 g /F1 8.5 Tf 442.62 236.27 Td (auteur et date inconnus) Tj ET
+0.85 G 0.4 w 56.00 221.54 m 539.28 221.54 l S
+BT 0 g /F1 9.5 Tf 56.00 209.54 Td (Durée appliquée aux domaines non déclarés : 3 ans.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 180.43 Td (Durée de confidentialité des données, face à la péremption des algorithmes) Tj ET
+0.72 G 0.5 w [2 2] 0 d 236.26 152.56 m 236.26 116.56 l S [] 0 d
+BT 0.45 g /F1 7.0 Tf 227.26 156.56 Td (2030) Tj ET
+BT 0.45 g /F1 6.5 Tf 227.26 107.56 Td (dépréciation) Tj ET
+0.72 G 0.5 w [2 2] 0 d 314.08 152.56 m 314.08 116.56 l S [] 0 d
+BT 0.45 g /F1 7.0 Tf 305.08 156.56 Td (2035) Tj ET
+BT 0.45 g /F1 6.5 Tf 305.08 107.56 Td (péremption) Tj ET
+BT 0 g /F1 8.0 Tf 56.00 142.56 Td (backups) Tj ET
+0.90 g 174.00 141.56 311.28 6.00 re f
+0.56 0.14 0.11 rg 174.00 141.56 155.64 6.00 re f
+BT 0.35 g /F1 8.0 Tf 493.28 142.56 Td (10 ans) Tj ET
+BT 0 g /F1 8.0 Tf 56.00 127.56 Td (session tokens) Tj ET
+0.90 g 174.00 126.56 311.28 6.00 re f
+0.17 0.30 0.49 rg 174.00 126.56 15.56 6.00 re f
+BT 0.35 g /F1 8.0 Tf 493.28 127.56 Td (1 an) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 98.56 Td (Chaque barre est la durée pendant laquelle la donnée doit rester confidentielle. Elle passe en rouge quand un) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 85.45 Td (algorithme récoltable la protège au-delà du trait de péremption — dépasser le trait sans être rouge signifie que la) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 72.34 Td (donnée dure longtemps, mais qu'elle est protégée par de la cryptographie qui tiendra.) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.5.0 · 3/5) Tj ET
 
 endstream
@@ -274,51 +273,51 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R >> >> /Contents 10 0 R >>
 endobj
 10 0 obj
-<< /Length 4519 >>
+<< /Length 4469 >>
 stream
-BT 0 g /F1 9.5 Tf 56.00 785.89 Td (Une donnée chiffrée l'année Y reste sensible jusqu'à Y + sa durée. L'année de bascule est donc celle à partir de) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 772.78 Td (laquelle tout ce qui est chiffré survit à la péremption de 2035 : avant, le domaine tient ; à partir d'elle, ce qui est) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 759.67 Td (émis est déjà perdu le jour où l'algorithme tombe.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 730.56 Td (7. Avis) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 710.69 Td (L'avis découle des constatations de la section 5 et des durées de la section 6. Il distingue ce qui se récolte — le) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 697.58 Td (chiffrement, qu'un adversaire peut capturer aujourd'hui pour le déchiffrer plus tard — de ce qui ne se récolte pas,) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 684.47 Td (les signatures.) Tj ET
-BT 0 g /F2 10.0 Tf 56.00 655.36 Td (COMPROMIS) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 637.56 Td (Chiffré aujourd'hui, à garder confidentiel jusqu'en 2036 — soit 1 an après la péremption de RSA. Une capture faite) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 624.45 Td (maintenant sera lisible.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 606.34 Td (Constatations concernées : n°2) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 588.23 Td (Remplacement ML-KEM \(chiffrement\) ou ML-DSA \(signature\), en hybride pendant la transition) Tj ET
-BT 0 g /F2 10.0 Tf 56.00 559.12 Td (CASSÉ AUJOURD'HUI) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 541.32 Td (Cassé classiquement, indépendamment du quantique. L'échéance était hier.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 523.21 Td (Constatations concernées : n°6) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 505.10 Td (Défauts publiés, vérifiables auprès du NIST : CVE-2005-4900) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 486.99 Td (Remplacement SHA-256) Tj ET
-BT 0 g /F2 10.0 Tf 56.00 457.88 Td (SURVEILLER) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 440.08 Td (Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 421.97 Td (Constatations concernées : n°3, n°7) Tj ET
-BT 0 g /F2 10.0 Tf 56.00 392.86 Td (CONFORME) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 375.06 Td (Tient face à Grover. Rien à faire.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 356.95 Td (Constatations concernées : n°1, n°4) Tj ET
-BT 0 g /F2 10.0 Tf 56.00 327.84 Td (PROBABLEMENT HORS SUJET) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 310.04 Td (Ressemble à un identifiant \(clé de cache, empreinte\) plutôt qu'à un contrôle de sécurité. À confirmer, pas à) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 296.93 Td (corriger.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 278.82 Td (Constatations concernées : n°5) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 249.71 Td (8. Conclusion et recommandations) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 229.84 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 229.84 Td (Décider du sort des données déjà émisesC'est la décision que personne ne prend, et elle vient avant la) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 216.73 Td (migration. Les domaines concernés \(backups\) sont protégés par un algorithme qui ne tiendra pas jusqu'au bout) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 203.62 Td (de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d'un correctif. Trois) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 190.51 Td (issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 177.40 Td (tourner les clés et réémettre ce qui peut l'être, ou acter par écrit qu'on accepte le risque sur les données) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 164.29 Td (antérieures à 2035. Migrer sans trancher cette question protège les données futures et laisse les anciennes) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 151.18 Td (exposées sans que personne ne l'ait décidé.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 135.07 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 135.07 Td (Remplacer ce qui est déjà casséUn usage repose sur un algorithme cassé classiquement. Aucun raisonnement) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 121.96 Td (quantique n'est nécessaire : l'échéance était il y a dix ans, le remplacement est connu et ne demande pas un) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 108.85 Td (projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c'est moins cher et déjà) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 95.74 Td (exploitable.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 79.63 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 79.63 Td (Remettre ce rapport au calendrierLa fenêtre se referme d'elle-même : la date de péremption ne bouge pas) Tj ET
+BT 0 g /F2 10.0 Tf 56.00 785.89 Td (Dates de bascule) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 768.09 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 768.09 Td (backups — 10 ans — bascule franchie depuis 2026) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 751.98 Td (Une donnée chiffrée l'année Y reste sensible jusqu'à Y + sa durée. L'année de bascule est donc celle à partir de) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 738.87 Td (laquelle tout ce qui est chiffré survit à la péremption de 2035 : avant, le domaine tient ; à partir d'elle, ce qui est) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 725.76 Td (émis est déjà perdu le jour où l'algorithme tombe.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 696.65 Td (7. Avis) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 676.78 Td (L'avis découle des constatations de la section 5 et des durées de la section 6. Il distingue ce qui se récolte — le) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 663.67 Td (chiffrement, qu'un adversaire peut capturer aujourd'hui pour le déchiffrer plus tard — de ce qui ne se récolte pas,) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 650.56 Td (les signatures.) Tj ET
+BT 0 g /F2 10.0 Tf 56.00 621.45 Td (COMPROMIS) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 603.65 Td (Chiffré aujourd'hui, à garder confidentiel jusqu'en 2036 — soit 1 an après la péremption de RSA. Une capture faite) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 590.54 Td (maintenant sera lisible.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 572.43 Td (Constatations concernées : n°2) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 554.32 Td (Remplacement ML-KEM \(chiffrement\) ou ML-DSA \(signature\), en hybride pendant la transition) Tj ET
+BT 0 g /F2 10.0 Tf 56.00 525.21 Td (CASSÉ AUJOURD'HUI) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 507.41 Td (Cassé classiquement, indépendamment du quantique. L'échéance était hier.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 489.30 Td (Constatations concernées : n°6) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 471.19 Td (Défauts publiés, vérifiables auprès du NIST : CVE-2005-4900) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 453.08 Td (Remplacement SHA-256) Tj ET
+BT 0 g /F2 10.0 Tf 56.00 423.97 Td (SURVEILLER) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 406.17 Td (Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 388.06 Td (Constatations concernées : n°3, n°7) Tj ET
+BT 0 g /F2 10.0 Tf 56.00 358.95 Td (CONFORME) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 341.15 Td (Tient face à Grover. Rien à faire.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 323.04 Td (Constatations concernées : n°1, n°4) Tj ET
+BT 0 g /F2 10.0 Tf 56.00 293.93 Td (PROBABLEMENT HORS SUJET) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 276.13 Td (Ressemble à un identifiant \(clé de cache, empreinte\) plutôt qu'à un contrôle de sécurité. À confirmer, pas à) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 263.02 Td (corriger.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 244.91 Td (Constatations concernées : n°5) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 215.80 Td (8. Conclusion et recommandations) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 195.93 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 195.93 Td (Décider du sort des données déjà émisesC'est la décision que personne ne prend, et elle vient avant la) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 182.82 Td (migration. Les domaines concernés \(backups\) sont protégés par un algorithme qui ne tiendra pas jusqu'au bout) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 169.71 Td (de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d'un correctif. Trois) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 156.60 Td (issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 143.49 Td (tourner les clés et réémettre ce qui peut l'être, ou acter par écrit qu'on accepte le risque sur les données) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 130.38 Td (antérieures à 2035. Migrer sans trancher cette question protège les données futures et laisse les anciennes) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 117.27 Td (exposées sans que personne ne l'ait décidé.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 101.16 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 101.16 Td (Remplacer ce qui est déjà casséUn usage repose sur un algorithme cassé classiquement. Aucun raisonnement) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 88.05 Td (quantique n'est nécessaire : l'échéance était il y a dix ans, le remplacement est connu et ne demande pas un) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 74.94 Td (projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c'est moins cher et déjà) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.5.0 · 4/5) Tj ET
 
 endstream
@@ -327,49 +326,52 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R >> >> /Contents 12 0 R >>
 endobj
 12 0 obj
-<< /Length 4080 >>
+<< /Length 4325 >>
 stream
-BT 0 g /F1 9.5 Tf 70.00 785.89 Td (\(2035\), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd'hui) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 772.78 Td (avec une durée de neuf ans ne le sera plus l'an prochain. Rejouer l'analyse une fois par an suffit — et vérifier à) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 759.67 Td (cette occasion que l'échéance réglementaire n'a pas bougé.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 732.56 Td (9. Glossaire) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 712.69 Td (Les sept termes nécessaires à la lecture du présent rapport.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 694.58 Td (Récolte différée) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 694.58 Td (Capturer aujourd'hui des données chiffrées pour les déchiffrer lorsque la) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 681.47 Td (machine capable de le faire existera. Pour ces données, la date de) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 668.36 Td (compromission est le jour du chiffrement, pas celui de l'attaque.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 653.25 Td (Confidentialité) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 653.25 Td (Ce que protège le chiffrement : la donnée reste illisible. C'est la seule propriété) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 640.14 Td (exposée à la récolte différée.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 625.03 Td (Authenticité) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 625.03 Td (Ce que protège une signature : l'origine est établie. Une signature ne se) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 611.92 Td (capture pas pour être forgée plus tard ; l'urgence ne porte que sur les ancres) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 598.81 Td (de confiance à longue durée.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 583.70 Td (Durée de confidentialité) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 583.70 Td (Nombre d'années pendant lesquelles une catégorie de donnée doit rester) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 570.59 Td (secrète. Elle est déclarée par le commanditaire ; aucun outil ne peut la déduire) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 557.48 Td (du code.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 542.37 Td (Péremption) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 542.37 Td (Année à partir de laquelle un algorithme ne doit plus protéger de donnée) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 529.26 Td (confidentielle. Retenue ici d'après les textes cités en section 4.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 514.15 Td (Symétrique / asymétrique) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 514.15 Td (La cryptographie symétrique \(AES, ChaCha20\) n'est pas le sujet : un) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 501.04 Td (calculateur quantique en réduit la marge sans la casser. Le problème porte sur) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 487.93 Td (l'asymétrique : RSA, courbes elliptiques, échange de clés.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 472.82 Td (Hybridation) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 472.82 Td (Combiner un algorithme classique et un algorithme post-quantique, de sorte) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 459.71 Td (que la protection tienne si l'un des deux tombe. C'est la position des autorités) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 446.60 Td (pendant la transition.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 416.49 Td (10. Intégrité du document) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 396.62 Td (L'empreinte porte sur les constatations et non sur ce fichier : deux rendus du même inventaire, dans deux langues,) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 383.51 Td (donnent la même valeur.) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 365.40 Td (empreinte des constats) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 365.40 Td (92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 346.29 Td (Ce rapport n'est pas signé. Pour qu'un tiers puisse établir qu'il n'a pas été modifié depuis son émission, relancer) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 333.18 Td (l'analyse avec l'option de signature.) Tj ET
-BT 0 g /F2 10.0 Tf 56.00 304.07 Td (Déclaration de l'auditeur) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 286.27 Td (Aucune déclaration de l'auditeur n'a été fournie. Elle doit être rédigée, datée et signée avant que ce document soit) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 273.16 Td (produit devant un tiers.) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 785.89 Td (exploitable.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 769.78 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 769.78 Td (Remettre ce rapport au calendrierLa fenêtre se referme d'elle-même : la date de péremption ne bouge pas) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 756.67 Td (\(2035\), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd'hui) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 743.56 Td (avec une durée de neuf ans ne le sera plus l'an prochain. Rejouer l'analyse une fois par an suffit — et vérifier à) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 730.45 Td (cette occasion que l'échéance réglementaire n'a pas bougé.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 703.34 Td (9. Glossaire) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 683.47 Td (Les sept termes nécessaires à la lecture du présent rapport.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 665.36 Td (Récolte différée) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 665.36 Td (Capturer aujourd'hui des données chiffrées pour les déchiffrer lorsque la) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 652.25 Td (machine capable de le faire existera. Pour ces données, la date de) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 639.14 Td (compromission est le jour du chiffrement, pas celui de l'attaque.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 624.03 Td (Confidentialité) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 624.03 Td (Ce que protège le chiffrement : la donnée reste illisible. C'est la seule propriété) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 610.92 Td (exposée à la récolte différée.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 595.81 Td (Authenticité) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 595.81 Td (Ce que protège une signature : l'origine est établie. Une signature ne se) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 582.70 Td (capture pas pour être forgée plus tard ; l'urgence ne porte que sur les ancres) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 569.59 Td (de confiance à longue durée.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 554.48 Td (Durée de confidentialité) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 554.48 Td (Nombre d'années pendant lesquelles une catégorie de donnée doit rester) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 541.37 Td (secrète. Elle est déclarée par le commanditaire ; aucun outil ne peut la déduire) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 528.26 Td (du code.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 513.15 Td (Péremption) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 513.15 Td (Année à partir de laquelle un algorithme ne doit plus protéger de donnée) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 500.04 Td (confidentielle. Retenue ici d'après les textes cités en section 4.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 484.93 Td (Symétrique / asymétrique) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 484.93 Td (La cryptographie symétrique \(AES, ChaCha20\) n'est pas le sujet : un) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 471.82 Td (calculateur quantique en réduit la marge sans la casser. Le problème porte sur) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 458.71 Td (l'asymétrique : RSA, courbes elliptiques, échange de clés.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 443.60 Td (Hybridation) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 443.60 Td (Combiner un algorithme classique et un algorithme post-quantique, de sorte) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 430.49 Td (que la protection tienne si l'un des deux tombe. C'est la position des autorités) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 417.38 Td (pendant la transition.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 387.27 Td (10. Intégrité du document) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 367.40 Td (L'empreinte porte sur les constatations et non sur ce fichier : deux rendus du même inventaire, dans deux langues,) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 354.29 Td (donnent la même valeur.) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 336.18 Td (empreinte des constats) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 336.18 Td (92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 317.07 Td (Ce rapport n'est pas signé. Pour qu'un tiers puisse établir qu'il n'a pas été modifié depuis son émission, relancer) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 303.96 Td (l'analyse avec l'option de signature.) Tj ET
+BT 0 g /F2 10.0 Tf 56.00 274.85 Td (Déclaration de l'auditeur) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 257.05 Td (Aucune déclaration de l'auditeur n'a été fournie. Elle doit être rédigée, datée et signée avant que ce document soit) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 243.94 Td (produit devant un tiers.) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.5.0 · 5/5) Tj ET
 
 endstream
@@ -384,7 +386,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 16 0 obj
-<< /Title (Rapport d'audit — Fixture) /Producer (Sablier 0.5.0) /CreationDate (D:20261003133704) >>
+<< /Title (Rapport d'audit — Fixture) /Producer (Sablier 0.5.0) /CreationDate (D:20261003140907) >>
 endobj
 xref
 0 17
@@ -393,20 +395,20 @@ xref
 0000000058 00000 n 
 0000000140 00000 n 
 0000000295 00000 n 
-0000004881 00000 n 
-0000005036 00000 n 
-0000011167 00000 n 
-0000011322 00000 n 
-0000018000 00000 n 
-0000018156 00000 n 
-0000022727 00000 n 
-0000022884 00000 n 
-0000027016 00000 n 
-0000027114 00000 n 
-0000027217 00000 n 
-0000027313 00000 n 
+0000004883 00000 n 
+0000005038 00000 n 
+0000011026 00000 n 
+0000011181 00000 n 
+0000017953 00000 n 
+0000018109 00000 n 
+0000022630 00000 n 
+0000022787 00000 n 
+0000027164 00000 n 
+0000027262 00000 n 
+0000027365 00000 n 
+0000027461 00000 n 
 trailer
 << /Size 17 /Root 1 0 R /Info 16 0 R >>
 startxref
-27429
+27577
 %%EOF

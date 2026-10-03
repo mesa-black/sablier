@@ -7,7 +7,7 @@
 PHP_IMAGE ?= php:8.4-cli-alpine
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
 TRIVY_IMAGE ?= aquasec/trivy:0.75.0
-.PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import
+.PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
@@ -44,6 +44,17 @@ cve: ## Prove the containers we ask you to run carry no known high or critical C
 			printf '  ✓ no known high or critical vulnerability\n'; \
 		done; \
 	done
+
+examples: ## Regenerate the documents the README links to, from the one fixture
+	@# Linked from the README and read by people who will never run the tool, so
+	@# they have to be the current output rather than the output of some past
+	@# version. One fixture, one command, no hand editing.
+	@./sablier scan tests/fixtures/sample --out=examples/report.html \
+		--audit=examples/audit.html --pdf=examples/report.pdf \
+		--cbom=examples/cbom.json --calendar=examples/crossings.ics \
+		--no-probe --quiet || true
+	@./sablier worksheet tests/fixtures/sample --out=examples/worksheet.html
+	@printf '  %s\n' "examples/ regenerated from tests/fixtures/sample"
 
 demo: ## Scan the fixture project and open the report
 	@./sablier scan tests/fixtures/sample --out=report.html || true

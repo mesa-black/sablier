@@ -8,6 +8,7 @@ use Sablier\ActionPlan;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\BlindSpots;
+use Sablier\Breach;
 use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
@@ -81,7 +82,7 @@ final class HtmlReporter implements ReporterInterface
         $plan = $this->actionPlan($headline, $actionable);
         $fpLegend = $this->analysis->findings === [] ? '' : $this->falsePositiveLegend();
         $probeBlock = $this->probeBlock();
-        $timeline = Timeline::render($this->analysis);
+        $timeline = Breach::render($this->analysis).Timeline::render($this->analysis);
         $blind = $this->blind();
         $css = $this->css();
         $target = htmlspecialchars($this->analysis->target);

@@ -47,6 +47,7 @@ final class Assessor
             $finding->lifetime = $domain['lifetime'];
             $finding->trustAnchor = $domain['trust_anchor'];
             $finding->hybrid = $domain['hybrid'];
+            $finding->breachedOn = $domain['breached'];
 
             [$finding->verdict, $finding->because] = $this->verdict($finding);
             $this->applyAdvisories($finding);

@@ -73,6 +73,16 @@ final class Declaration
 
     public string $regime = 'general';
 
+    /**
+     * The day data left, when somebody already took it.
+     *
+     * The rest of this tool reasons forward: harvest now, decrypt later. A
+     * breach turns that around — the adversary is not waiting, they hold the
+     * data — and the only question left is how much of the confidentiality you
+     * asked for the algorithm can still deliver.
+     */
+    public string $breachedOn = '';
+
     /** Overridable per project: a team that checked more recently should say so. */
     public string $deadlinesCheckedOn = self::DEADLINES_CHECKED_ON;
 
@@ -97,7 +107,7 @@ final class Declaration
 
     public string $project = '';
 
-    /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, hybrid:bool, note:string, declared_by:string, declared_on:string}> */
+    /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, hybrid:bool, breached:string, note:string, declared_by:string, declared_on:string}> */
     public array $domains = [];
 
     /** Applied when nothing matches — flagged in the report as undeclared. */
@@ -155,6 +165,7 @@ final class Declaration
         // nobody declared is the general one, which is also what every report
         // printed before this setting existed.
         $regime = strtolower(Value::string($raw['regime'] ?? null, 'general'));
+        $self->breachedOn = Value::string($raw['breached'] ?? null);
         $self->regime = isset(self::REGIMES[$regime]) ? $regime : 'general';
         $self->deprecationYear = self::REGIMES[$self->regime]['deprecation'];
         $self->expiryYear = self::REGIMES[$self->regime]['expiry'];
@@ -201,6 +212,10 @@ final class Declaration
                 // pairing we cannot see would be the invention this tool
                 // refuses everywhere else.
                 'hybrid' => Value::bool($domain['hybrid'] ?? null),
+                // Per domain, because a breach reaches some data and not
+                // others, and a tool that assumed otherwise would turn one
+                // stolen table into a report about the whole system.
+                'breached' => Value::string($domain['breached'] ?? null, Value::string($raw['breached'] ?? null)),
                 'note' => Value::string($domain['note'] ?? null),
                 // Who said so, and when. Acceptances expire and regulatory
                 // dates carry a verification date; a lifetime had neither, so
@@ -292,7 +307,7 @@ final class Declaration
      * First domain whose globs match. Order matters, so the file reads like a
      * list of rules rather than a set.
      *
-     * @return array{name:string, lifetime:int, trust_anchor:bool, hybrid:bool, declared:bool}
+     * @return array{name:string, lifetime:int, trust_anchor:bool, hybrid:bool, breached:string, declared:bool}
      */
     public function resolve(string $relativePath): array
     {
@@ -304,6 +319,7 @@ final class Declaration
                         'lifetime' => $domain['lifetime'],
                         'trust_anchor' => $domain['trust_anchor'],
                         'hybrid' => $domain['hybrid'],
+                        'breached' => $domain['breached'],
                         'declared' => true,
                     ];
                 }
@@ -311,6 +327,6 @@ final class Declaration
         }
 
         // The label is translated: a hardcoded one printed French in every report.
-        return ['name' => Lang::t('domain.undeclared'), 'lifetime' => $this->defaultLifetime, 'trust_anchor' => false, 'hybrid' => false, 'declared' => false];
+        return ['name' => Lang::t('domain.undeclared'), 'lifetime' => $this->defaultLifetime, 'trust_anchor' => false, 'hybrid' => false, 'breached' => $this->breachedOn, 'declared' => false];
     }
 }

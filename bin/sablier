@@ -842,11 +842,11 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false];
+$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|cbom|audit|calendar|pdf|year|sign|baseline|advisories)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|audit|calendar|pdf|year|sign|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -877,6 +877,15 @@ $declarationPath = $options['declare'] ?? match (true) {
     default => null,
 };
 $declaration = Declaration::load($declarationPath);
+// A date on the command line is the worst case: every declared domain is
+// treated as breached. Putting it in the declaration instead names the domains
+// that actually lost data, which is the version somebody reviews.
+if ($options['breached'] !== null) {
+    $declaration->breachedOn = $options['breached'];
+    foreach ($declaration->domains as $index => $domain) {
+        $declaration->domains[$index]['breached'] = $options['breached'];
+    }
+}
 // --year projects the same codebase into a future year. The expiry date does
 // not move — it is a regulatory deadline — but the other side of the comparison
 // does: every year that passes pushes more data over the line. Worth being able
@@ -1011,6 +1020,7 @@ if ($options['sign'] !== null) {
     file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
 }
 
+$cwd = getcwd();
 $analysis = new Analysis(
     findings: $findings,
     declaration: $declaration,
@@ -1024,9 +1034,17 @@ $analysis = new Analysis(
     signature: $signature,
     importedFrom: $importedFrom,
     // Printed in the audit report: a document that cannot be reproduced is an
-    // assertion, not a finding.
+    // assertion, not a finding. The binary is named relative to where it was
+    // run from — an absolute path says more about the machine that produced the
+    // document than about the command a reader is meant to repeat.
     commandLine: implode(' ', array_map(
-        static fn (string $argument): string => str_contains($argument, ' ') ? '"'.$argument.'"' : $argument,
+        static function (string $argument) use ($cwd): string {
+            if ($cwd !== false && str_starts_with($argument, $cwd.'/')) {
+                $argument = './'.substr($argument, \strlen($cwd) + 1);
+            }
+
+            return str_contains($argument, ' ') ? '"'.$argument.'"' : $argument;
+        },
         $argv,
     )),
 );

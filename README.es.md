@@ -647,6 +647,55 @@ Los números viajan con el inventario: `references` en la salida JSON, y
 `externalReferences` de tipo `advisories` en el CBOM, donde todo consumidor ya sabe
 leerlos.
 
+## Cuando el agujero ya se usó
+
+Un aviso de seguridad dice que alguien encontró una entrada. Una fuga dice que
+alguien pasó por ella, y toda la aritmética de esta herramienta se lee entonces
+al revés.
+
+```bash
+sablier scan . --breached=2026-07-29
+```
+
+En todo lo demás aquí el razonamiento va hacia adelante: un adversario captura
+hoy lo que leerá cuando el algoritmo caiga. Después de una fuga ya no espera —
+lo tiene — y la única pregunta que queda es cuánta de la confidencialidad pedida
+puede todavía sostener la criptografía. Datos salidos en el año F deben seguir
+secretos hasta F + duración; el algoritmo que los protege deja de ser creíble al
+caducar el régimen; lo que queda entre ambos es la parte que pasa a ser legible,
+y migrar después no la alcanza.
+
+La fecha se pone en el dominio, porque una tabla robada no es una afirmación
+sobre todo el sistema:
+
+```json
+{ "name": "backups", "lifetime_years": 10, "breached": "2026-07-29" }
+```
+
+En la línea de comandos se aplica a todos los dominios a la vez, que es el peor
+caso y debe leerse como tal. Cada dominio afectado recibe entonces una línea:
+
+- **el texto en claro pierde toda la duración.** Nada tiene que caer para que
+  esos datos sean legibles, porque nada los protegía;
+- **un algoritmo al que el cuántico alcanza pierde la cola.** Diez años pedidos,
+  una salida en 2026, un algoritmo creíble hasta 2035: un año de lo robado pasa
+  a ser legible, y ninguna migración lo alcanza;
+- **un algoritmo al que el cuántico no alcanza no pierde nada**, y la línea lo
+  dice en lugar de callarse.
+
+Tres negativas evitan que esto se convierta en un generador de notificaciones de
+brecha. La herramienta **cuenta años, nunca personas** — cuántos registros
+salieron es asunto del equipo de incidentes, cuánto tiempo siguen haciendo daño
+es la pregunta que nadie más hace. Solo habla de los **dominios que alguien
+declaró afectados**. Y **dice lo que no puede saber**: ignora qué salió
+realmente, si salió cifrado, y si las claves se fueron con ello, y esa frase se
+imprime junto a la cifra.
+
+Tampoco es una pretensión de prevención. Las fugas que llegan a los titulares
+son credenciales robadas y equipos sin parchear, y nada en esta herramienta
+habría detenido una. Lo que sabe hacer es responder a la pregunta de la semana
+siguiente: cuánto dura el daño.
+
 ## En una cadena de integración
 
 Un informe que nadie compara es un veredicto sobre el que nadie actúa, y todo el

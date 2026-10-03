@@ -172,6 +172,7 @@ return [
     --calendar=FICHIER  dates de bascule au format iCalendar (.ics)
     --advisories=FICHIER  vulnérabilités publiées collectées (voir la commande advisories)
     --baseline=FICHIER  comparer à un inventaire JSON de référence (sortie 2 s\'il faut décider)
+    --breached=DATE     une fuite constatée le AAAA-MM-JJ : compter ce qui reste lisible
     --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
     --quiet             pas de résumé au terminal',
@@ -612,4 +613,12 @@ Première action : %s',
     'reason.hybrid' => "Associé à un algorithme post-quantique, d'après la déclaration : c'est l'hybridation demandée pendant la transition, pas quelque chose à migrer.",
     'blind.hybrid' => "%d domaine(s) déclaré(s) hybrides : la paire est affirmée dans la déclaration, pas observée dans le code. Deux appels dans un fichier ne prouvent pas qu'ils couvrent les mêmes octets.",
     'seal.fingerprint' => 'empreinte des clés',
+    'breach.title' => "Après la fuite du %s",
+    'breach.lead' => "Ce qui est sorti est déjà entre les mains de quelqu'un. La seule protection qui reste est l'algorithme, et elle a une date de fin.",
+    'breach.readable' => "%s — confidentialité demandée : %d ans, soit jusqu'en %d. L'algorithme qui protège ces données périme en %d. %d années de ce qui a été volé deviendront lisibles, et aucune migration ne les rattrape.",
+    'breach.readable.one' => "%s — confidentialité demandée : %d ans, soit jusqu'en %d. L'algorithme qui protège ces données périme en %d. %d année de ce qui a été volé deviendra lisible, et aucune migration ne la rattrape.",
+    'breach.plaintext' => "%s — sorti en clair. Les %d ans de confidentialité demandés, jusqu'en %d, sont perdus en totalité : rien n'avait à tomber.",
+    'breach.held' => "%s — protégé par un algorithme qui tient jusqu'en %d au moins : ce qui a été volé reste illisible tant que la clé n'a pas fuité avec.",
+    'breach.sound' => "%s — protégé par de la cryptographie que le quantique n'atteint pas. Rien ne devient lisible de ce côté.",
+    'breach.limit' => "Cet outil ne sait pas ce qui est réellement sorti, ni si c'est sorti chiffré, ni si les clés sont parties avec. Il calcule sur les domaines que vous avez déclarés touchés et sur les durées que vous avez déclarées. Le compte des enregistrements appartient à l'équipe incident ; le compte des années est ici.",
 ];

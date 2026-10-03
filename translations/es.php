@@ -163,6 +163,7 @@ return [
     --calendar=ARCHIVO  fechas de cruce en formato iCalendar (.ics)
     --advisories=ARCHIVO  vulnerabilidades publicadas recopiladas (ver el comando advisories)
     --baseline=ARCHIVO  comparar con un inventario JSON de referencia (salida 2 si hay que decidir)
+    --breached=FECHA    una fuga constatada el AAAA-MM-DD: contar lo que queda legible
     --lang=fr|en|es     idioma del informe
     --no-probe          no sondear los hosts declarados
     --quiet             sin resumen en el terminal',
@@ -603,4 +604,12 @@ Primera acción: %s',
     'reason.hybrid' => 'Emparejado con un algoritmo post-cuántico, según la declaración: es la hibridación que piden las referencias durante la transición, no algo que migrar.',
     'blind.hybrid' => '%d dominio(s) declarado(s) híbridos: el emparejamiento se afirma en la declaración, no se observa en el código. Dos llamadas en un archivo no prueban que cubran los mismos bytes.',
     'seal.fingerprint' => 'huella de las claves',
+    'breach.title' => 'Después de la filtración del %s',
+    'breach.lead' => 'Lo que salió ya está en manos de alguien. La única protección que queda es el algoritmo, y tiene fecha de caducidad.',
+    'breach.readable' => '%s — confidencialidad pedida: %d años, es decir hasta %d. El algoritmo que la protege caduca en %d. %d años de lo robado pasarán a ser legibles, y ninguna migración los alcanza.',
+    'breach.readable.one' => '%s — confidencialidad pedida: %d años, es decir hasta %d. El algoritmo que la protege caduca en %d. %d año de lo robado pasará a ser legible, y ninguna migración lo alcanza.',
+    'breach.plaintext' => '%s — salió en claro. Los %d años de confidencialidad pedidos, hasta %d, se pierden por completo: nada tenía que caer.',
+    'breach.held' => '%s — protegido por un algoritmo que aguanta al menos hasta %d: lo robado sigue siendo ilegible mientras la clave no haya salido con ello.',
+    'breach.sound' => '%s — protegido por criptografía que un ordenador cuántico no alcanza. Nada se vuelve legible por ese lado.',
+    'breach.limit' => 'Esta herramienta no sabe qué salió realmente, ni si salió cifrado, ni si las claves salieron con ello. Razona sobre los dominios que usted declaró afectados y las duraciones que declaró. Contar registros corresponde al equipo de incidentes; contar años es de aquí.',
 ];

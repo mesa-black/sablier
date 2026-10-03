@@ -658,6 +658,58 @@ Les numéros voyagent avec l'inventaire : `references` dans la sortie JSON, et
 `externalReferences` de type `advisories` dans le CBOM, là où tout consommateur sait
 déjà les lire.
 
+## Quand le trou a déjà servi
+
+Un avis de sécurité dit que quelqu'un a trouvé une entrée. Une fuite dit que
+quelqu'un est passé par là, et toute l'arithmétique de cet outil se lit alors à
+l'envers.
+
+```bash
+sablier scan . --breached=2026-07-29
+```
+
+Partout ailleurs ici le raisonnement va vers l'avant : un adversaire capture
+aujourd'hui ce qu'il lira quand l'algorithme tombera. Après une fuite il
+n'attend plus — il l'a — et la seule question qui reste est la part de la
+confidentialité demandée que la cryptographie peut encore tenir. Des données
+sorties en année F doivent rester secrètes jusqu'en F + durée ; l'algorithme qui
+les protège cesse d'être crédible à la péremption du régime ; ce qui se trouve
+entre les deux est la part qui devient lisible, et migrer après ne la rattrape
+pas.
+
+La date se pose sur le domaine, parce qu'une table volée n'est pas une
+affirmation sur tout le système :
+
+```json
+{ "name": "backups", "lifetime_years": 10, "breached": "2026-07-29" }
+```
+
+En ligne de commande elle s'applique à tous les domaines d'un coup, ce qui est
+le pire cas et doit se lire comme tel. Chaque domaine touché reçoit alors une
+ligne :
+
+- **le clair perd toute la durée.** Rien n'a besoin de tomber pour que ces
+  données soient lisibles, puisque rien ne les protégeait ;
+- **un algorithme que le quantique atteint perd la fin.** Dix ans demandés, une
+  sortie en 2026, un algorithme crédible jusqu'en 2035 : une année de ce qui a
+  été volé devient lisible, et aucune migration ne la rattrape ;
+- **un algorithme que le quantique n'atteint pas ne perd rien**, et la ligne le
+  dit au lieu de se taire.
+
+Trois refus empêchent cela de devenir un générateur de notifications de
+violation. L'outil **compte des années, jamais des personnes** — combien
+d'enregistrements sont sortis est une affaire pour l'équipe d'incident, combien
+de temps ils continuent de nuire est la question que personne d'autre ne pose.
+Il ne parle que des **domaines que quelqu'un a déclarés touchés**. Et il **dit ce
+qu'il ne peut pas savoir** : il ignore ce qui est réellement sorti, si c'est
+sorti chiffré, et si les clefs sont parties avec, et cette phrase est imprimée à
+côté du chiffre.
+
+Ce n'est pas non plus une prétention de prévention. Les fuites qui font les
+titres sont des identifiants volés et des équipements non corrigés, et rien dans
+cet outil n'en aurait arrêté une. Ce qu'il sait faire, c'est répondre à la
+question posée la semaine suivante : combien de temps le dommage dure.
+
 ## Dans une chaîne d'intégration
 
 Un rapport que personne ne compare est un verdict sur lequel personne n'agit, et tout

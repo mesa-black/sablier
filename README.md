@@ -646,6 +646,53 @@ The numbers travel with the inventory: `references` in the JSON output, and
 `externalReferences` of type `advisories` in the CBOM, where every consumer
 already knows how to read them.
 
+## When the hole was already used
+
+An advisory says somebody found a way in. A breach says somebody went through
+it, and the arithmetic of this whole tool then has to be read backwards.
+
+```bash
+sablier scan . --breached=2026-07-29
+```
+
+Everything else here reasons forward: an adversary captures today what they will
+read when the algorithm falls. After a breach they are not waiting any more —
+they hold it — and the only question left is how much of the confidentiality you
+asked for the cryptography can still deliver. Data taken in year B has to stay
+secret until B + lifetime; the algorithm protecting it stops being credible at
+the regime's expiry; whatever lies between the two is the part that becomes
+readable, and migrating afterwards does not reach it.
+
+The date belongs on the domain, because a stolen table is not a statement about
+the whole system:
+
+```json
+{ "name": "backups", "lifetime_years": 10, "breached": "2026-07-29" }
+```
+
+On the command line it applies to every domain at once, which is the worst case
+and is meant to be read as one. Each breached domain then gets one line:
+
+- **plaintext loses the whole duration.** Nothing has to fall for that data to
+  be readable, because nothing was protecting it;
+- **an algorithm quantum reaches loses the tail.** Ten years asked for, taken in
+  2026, an algorithm credible until 2035: one year of what was taken becomes
+  readable, and no migration reaches it;
+- **an algorithm quantum does not reach loses nothing**, and the line says so
+  rather than staying silent.
+
+Three refusals keep this from becoming a breach-notification generator. It
+**counts years, never people** — how many records left is a fact for the incident
+team, how long they keep hurting is the question nobody else asks. It only speaks
+about **domains somebody declared breached**. And it **says what it cannot
+know**: the tool has no idea what actually left, whether it left encrypted, or
+whether the keys left with it, and that sentence is printed next to the figure.
+
+This is not a prevention claim either. The breaches that make the news are
+stolen credentials and unpatched edges, and nothing in this tool would have
+stopped one. What it can do is answer the question asked the week after, which is
+how long the damage lasts.
+
 ## In a pipeline
 
 A report nobody compares is a verdict nobody acts on, and this tool's whole

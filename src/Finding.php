@@ -16,6 +16,9 @@ final class Finding
 
     /** The domain pairs this algorithm with a post-quantum one, by declaration. */
     public bool $hybrid = false;
+
+    /** The day this domain's data left, when somebody declared one. */
+    public string $breachedOn = '';
     public string $verdict = '';
     public string $because = '';
 

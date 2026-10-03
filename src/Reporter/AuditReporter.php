@@ -8,6 +8,7 @@ use Sablier\ActionPlan;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\BlindSpots;
+use Sablier\Breach;
 use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
@@ -283,7 +284,7 @@ final class AuditReporter implements ReporterInterface
         // The same chart as the technical report, in the section whose numbers
         // it draws: a jury reads a bar against a line long before it reads a
         // table of years.
-        $body .= Timeline::render($this->analysis);
+        $body .= Breach::render($this->analysis).Timeline::render($this->analysis);
 
         return $this->section(6, $body);
     }

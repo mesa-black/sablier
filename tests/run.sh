@@ -571,6 +571,16 @@ if [ "$facts" != "$findings" ]; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "audit" "facts" "$facts numbered"
 
+# The command is printed so a third party can repeat it, which means it has to
+# be repeatable: the path of the machine that produced the document is neither
+# useful to a reader nor ours to publish.
+if grep -q "<code>$PWD/bin/sablier" "$aud/a.html"; then
+	echo "✗ audit: the reproduction command carries an absolute path"
+	rm -rf "$aud"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "audit" "command" "relative, and repeatable"
+
 # An absent auditor prints as a field to complete, never as a plausible name.
 if ! grep -q 'class="todo"' "$aud/a.html"; then
 	echo "✗ audit: an unsupplied identity was not flagged as missing"
@@ -1229,6 +1239,64 @@ if [ -n "$airgap" ]; then
 else
 	printf '  · %-24s %-10s %s\n' "airgap" "no network" "skipped: no namespaces on this machine"
 fi
+
+# --- a breach read backwards --------------------------------------------------
+# Everywhere else the tool reasons forward: captured today, read when the
+# algorithm falls. A declared breach removes the waiting, and what is left to
+# count is the part of the promised confidentiality the cryptography cannot
+# cover. Ten years asked for, taken in 2026, an algorithm credible to 2035: one
+# year, and the sentence has to say "année" rather than "années".
+br=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$br/"
+./bin/sablier scan "$br" --out="$br/clean.html" --no-probe --quiet >/dev/null 2>&1 || true
+if grep -q 'class="breach"' "$br/clean.html"; then
+	echo "✗ breach: a scan with no declared breach printed the block anyway"
+	rm -rf "$br"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "breach" "undeclared" "silent, as it should be"
+
+./bin/sablier scan "$br" --out="$br/one.html" --breached=2026-07-29 --no-probe --quiet >/dev/null 2>&1 || true
+said=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<section class=\"breach\">.*?</section>#s", $h, $m);
+	echo html_entity_decode(strip_tags($m[0] ?? ""), \ENT_QUOTES);
+' "$br/one.html")
+case "$said" in
+	*"29/07/2026"*) ;;
+	*) echo "✗ breach: the date is not written the way every other date is ($said)"; rm -rf "$br"; exit 1 ;;
+esac
+case "$said" in
+	*"1 année de ce qui a été volé"*) ;;
+	*) echo "✗ breach: expected one readable year, singular — got: $said"; rm -rf "$br"; exit 1 ;;
+esac
+case "$said" in
+	*"session tokens"*"quantique n'atteint pas"*) ;;
+	*) echo "✗ breach: a domain nothing can read is not said to be sound"; rm -rf "$br"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "breach" "one year" "2036 − 2035, and no migration reaches it"
+
+# Twenty years asked for, and the plural follows the arithmetic rather than the
+# other way round.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$d["domains"]["backups"]["lifetime_years"] = 20;
+	file_put_contents($argv[1], json_encode($d));
+' "$br/sablier.json"
+./bin/sablier scan "$br" --out="$br/many.html" --breached=2026-07-29 --no-probe --quiet >/dev/null 2>&1 || true
+if ! grep -q "11 années de ce qui a été volé" "$br/many.html"; then
+	echo "✗ breach: twenty years taken in 2026 should leave eleven readable"
+	rm -rf "$br"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "breach" "eleven years" "the duration moves the figure"
+
+# What the tool cannot know is printed next to what it computed, or the figure
+# reads as a measurement of the incident.
+if ! grep -qi "ignore\|sorti" "$br/many.html"; then
+	echo "✗ breach: the block does not say what it cannot know"
+	rm -rf "$br"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
+rm -rf "$br"
 
 # --- what --quiet writes, and what it does not -------------------------------
 # A pipeline asking for the verdict in the exit code must not find an
