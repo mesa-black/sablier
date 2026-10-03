@@ -254,6 +254,16 @@ y no un archivo que rellenar: una docena de dominios habituales con sus duracion
 usuales y una nota que explica qué pesa en cada respuesta. Corregir una propuesta
 saca a la luz desacuerdos que un archivo vacío esconde, y es más rápido.
 
+Un dominio también puede declararse `"hybrid": true`, lo que significa que sus
+algoritmos clásicos están emparejados con uno post-cuántico. Un hallazgo trata de
+una línea, y la hibridación es una propiedad de la composición: nada en el código
+muestra que otra llamada firme los mismos bytes. Así que lo dice la declaración,
+el veredicto deja de pedirle que retire la mitad clásica —lo que equivaldría a
+deshacer la hibridación que piden las referencias— y los puntos ciegos registran
+que el emparejamiento se afirma y no se observa. Este repositorio declara así su
+propio dominio de firma, ya que la v0.5.0 firma cada informe con Ed25519 y
+ML-DSA-65 sobre los mismos bytes.
+
 Una de esas notas importa más que las demás: **la duración de una copia de seguridad
 es el máximo de todo lo que contiene.** Hereda el dominio más largo que usted haya
 declarado, sea cual sea. Esa única línea es el origen de la mayoría de los veredictos

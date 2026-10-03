@@ -608,4 +608,6 @@ Première action : %s',
     'seal.fingerprint.match' => "empreinte conforme à celle annoncée : %s",
     'seal.fingerprint.differs' => "✗ l'empreinte des clés de ce fichier est %s, ce n'est pas celle qu'on vous a annoncée",
     'seal.ephemeral' => "Signé avec une clé créée pour ce seul rapport puis détruite : elle ne signera jamais rien d'autre. Ce qui rattache ce document à son auteur est l'empreinte ci-dessous, transmise par un canal qui prouve son identité. Empreinte des clés : %s",
+    'reason.hybrid' => "Associé à un algorithme post-quantique, d'après la déclaration : c'est l'hybridation demandée pendant la transition, pas quelque chose à migrer.",
+    'blind.hybrid' => "%d domaine(s) déclaré(s) hybrides : la paire est affirmée dans la déclaration, pas observée dans le code. Deux appels dans un fichier ne prouvent pas qu'ils couvrent les mêmes octets.",
 ];

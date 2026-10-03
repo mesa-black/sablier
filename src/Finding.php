@@ -13,6 +13,9 @@ final class Finding
     public bool $domainDeclared = false;
     public int $lifetime = 0;
     public bool $trustAnchor = false;
+
+    /** The domain pairs this algorithm with a post-quantum one, by declaration. */
+    public bool $hybrid = false;
     public string $verdict = '';
     public string $because = '';
 

@@ -46,6 +46,7 @@ final class Assessor
             $finding->domainDeclared = $domain['declared'];
             $finding->lifetime = $domain['lifetime'];
             $finding->trustAnchor = $domain['trust_anchor'];
+            $finding->hybrid = $domain['hybrid'];
 
             [$finding->verdict, $finding->because] = $this->verdict($finding);
             $this->applyAdvisories($finding);
@@ -174,6 +175,15 @@ final class Assessor
             }
 
             return [self::URGENT, Lang::t('reason.broken')];
+        }
+
+        // A quantum-vulnerable algorithm kept beside a post-quantum one is the
+        // transition the references ask for, not a thing to migrate. Telling
+        // somebody to retire the classical half of a hybrid is telling them to
+        // undo it — and this verdict is the one the tool pointed at its own
+        // Ed25519 while signing every report with ML-DSA beside it.
+        if ($algo['quantum'] && $finding->hybrid) {
+            return [self::CLEAR, Lang::t('reason.hybrid')];
         }
 
         if (!$algo['quantum']) {

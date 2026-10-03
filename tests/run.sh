@@ -892,6 +892,42 @@ printf '  ✓ %-24s %-10s %s\n' "digests" "security" "tokens, fingerprints and K
 printf '  ✓ %-24s %-10s %s\n' "digests" "hmac" "a keyed digest is not its digest"
 printf '  ✓ %-24s %-10s %s\n' "digests" "tables" "a protocol's algorithm list is inventory"
 
+# --- the classical half of a hybrid is kept on purpose -----------------------
+# A finding is about one line; hybridation is a property of the composition. The
+# tool cannot see that another call signs the same bytes, so the declaration
+# says it — and a verdict telling somebody to retire the classical half of a
+# hybrid is telling them to undo it.
+hyb=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$hyb/"
+before=$(./bin/sablier scan "$hyb" --json="$hyb/a.json" --no-probe --quiet >/dev/null 2>&1 || true; php -r '
+	$f = json_decode(file_get_contents($argv[1]), true);
+	foreach ($f as $x) { if ($x["algorithm"] === "rsa-sign") { echo $x["verdict"]; return; } }
+' "$hyb/a.json")
+# On the domain that already owns the finding: resolve() keeps the first glob
+# that matches, so a domain appended at the end would never be reached.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$d["domains"]["backups"]["hybrid"] = true;
+	file_put_contents($argv[1], json_encode($d));
+' "$hyb/sablier.json"
+after=$(./bin/sablier scan "$hyb" --json="$hyb/b.json" --out="$hyb/b.html" --no-probe --quiet >/dev/null 2>&1 || true; php -r '
+	$f = json_decode(file_get_contents($argv[1]), true);
+	foreach ($f as $x) { if ($x["algorithm"] === "rsa-sign") { echo $x["verdict"]; return; } }
+' "$hyb/b.json")
+if [ "$before" != "watch" ] || [ "$after" != "clear" ]; then
+	echo "✗ hybrid: a declared pairing did not change the verdict ($before → $after)"
+	rm -rf "$hyb"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "hybrid domain" "verdict" "kept on purpose, not to migrate"
+
+# Declared, never observed — and the report has to say which.
+if ! grep -qi "déclaration\|declaration\|declarac" "$hyb/b.html"; then
+	echo "✗ hybrid: the report does not say the pairing is only declared"
+	rm -rf "$hyb"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "hybrid domain" "blind spot" "asserted, not observed"
+rm -rf "$hyb"
+
 # --- the signature this tool tells everybody else to migrate to --------------
 # Ed25519 always, ML-DSA-65 in addition where OpenSSL 3.5 can make one. Skipped
 # rather than failed on an older library, which is the behaviour being tested.

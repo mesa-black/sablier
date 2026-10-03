@@ -33,6 +33,16 @@ final class BlindSpots
             Lang::t('blind.lifetime', $analysis->declaration->defaultLifetime),
         ];
 
+        $hybrid = 0;
+        foreach ($analysis->declaration->domains as $domain) {
+            if ($domain['hybrid']) {
+                ++$hybrid;
+            }
+        }
+        if ($hybrid > 0) {
+            $lines[] = Lang::t('blind.hybrid', $hybrid);
+        }
+
         $stale = Interview::stale($analysis->declaration->domains);
         if ($stale > 0) {
             $lines[] = Lang::t('blind.stale_declaration', $stale, Interview::STALE_AFTER_YEARS);

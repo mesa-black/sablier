@@ -90,7 +90,7 @@ final class Declaration
 
     public string $project = '';
 
-    /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, note:string, declared_by:string, declared_on:string}> */
+    /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, hybrid:bool, note:string, declared_by:string, declared_on:string}> */
     public array $domains = [];
 
     /** Applied when nothing matches — flagged in the report as undeclared. */
@@ -188,6 +188,12 @@ final class Declaration
                 'paths' => Value::strings($domain['paths'] ?? null),
                 'lifetime' => Value::int($domain['lifetime_years'] ?? null, $self->defaultLifetime),
                 'trust_anchor' => Value::bool($domain['trust_anchor'] ?? null),
+                // The classical half of a hybrid is kept on purpose. Declared
+                // rather than observed: two call sites in one file are not
+                // evidence that they cover the same bytes, and asserting a
+                // pairing we cannot see would be the invention this tool
+                // refuses everywhere else.
+                'hybrid' => Value::bool($domain['hybrid'] ?? null),
                 'note' => Value::string($domain['note'] ?? null),
                 // Who said so, and when. Acceptances expire and regulatory
                 // dates carry a verification date; a lifetime had neither, so
@@ -279,7 +285,7 @@ final class Declaration
      * First domain whose globs match. Order matters, so the file reads like a
      * list of rules rather than a set.
      *
-     * @return array{name:string, lifetime:int, trust_anchor:bool, declared:bool}
+     * @return array{name:string, lifetime:int, trust_anchor:bool, hybrid:bool, declared:bool}
      */
     public function resolve(string $relativePath): array
     {
@@ -290,6 +296,7 @@ final class Declaration
                         'name' => $domain['name'],
                         'lifetime' => $domain['lifetime'],
                         'trust_anchor' => $domain['trust_anchor'],
+                        'hybrid' => $domain['hybrid'],
                         'declared' => true,
                     ];
                 }
@@ -297,6 +304,6 @@ final class Declaration
         }
 
         // The label is translated: a hardcoded one printed French in every report.
-        return ['name' => Lang::t('domain.undeclared'), 'lifetime' => $this->defaultLifetime, 'trust_anchor' => false, 'declared' => false];
+        return ['name' => Lang::t('domain.undeclared'), 'lifetime' => $this->defaultLifetime, 'trust_anchor' => false, 'hybrid' => false, 'declared' => false];
     }
 }

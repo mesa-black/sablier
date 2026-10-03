@@ -12,11 +12,14 @@
   ],
   "domains": {
     "report signatures": {
-      "paths": ["src/Signature.php"],
+      "paths": [
+        "src/Signature.php"
+      ],
       "lifetime_years": 1,
-      "note": "A report is presented within the quarter. Put 15 here if you archive for a regulator: the verdict changes, and that is the point.",
+      "note": "A report is presented within the quarter. Put 15 here if you archive for a regulator: the verdict changes, and that is the point. Signed Ed25519 and ML-DSA-65 over the same payload since v0.5.0, which is why this domain is declared hybrid.",
       "declared_by": "Jérôme Nadaud, author",
-      "declared_on": "2026-10-03"
+      "declared_on": "2026-10-03",
+      "hybrid": true
     }
   }
 }

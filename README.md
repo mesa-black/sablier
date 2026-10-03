@@ -256,6 +256,16 @@ rather than a file to fill: a dozen common domains with their usual lifetimes
 and a note explaining what drives each answer. Correcting a proposal surfaces
 disagreements that a blank file hides, and it is faster.
 
+A domain can also be declared `"hybrid": true`, meaning its classical
+algorithms are paired with a post-quantum one. A finding is about a line, and
+hybridation is a property of the composition: nothing in the code shows that
+another call signs the same bytes. So the declaration says it, the verdict stops
+telling you to retire the classical half — which would be telling you to undo
+the hybridation the references ask for — and the blind spots record that the
+pairing is asserted and not observed. This repository declares its own signing
+domain that way, since v0.5.0 signs every report with Ed25519 and ML-DSA-65 over
+the same payload.
+
 One of those notes matters more than the rest: **a backup's lifetime is the
 maximum of everything inside it.** It inherits the longest domain you declared,
 whatever that is. That single line is where most red verdicts come from.

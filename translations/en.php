@@ -599,4 +599,6 @@ First action: %s',
     'seal.fingerprint.match' => 'fingerprint matches the one you were given: %s',
     'seal.fingerprint.differs' => '✗ the keys in this file fingerprint as %s, which is not what you were given',
     'seal.ephemeral' => 'Signed with a key made for this report alone and then destroyed: it will never sign anything else. What ties this document to its author is the fingerprint below, carried by a channel that proves their identity. Key fingerprint: %s',
+    'reason.hybrid' => 'Paired with a post-quantum algorithm, per the declaration: this is the hybridation the references ask for during the transition, not something to migrate.',
+    'blind.hybrid' => '%d domain(s) declared hybrid: the pairing is asserted in the declaration, not observed in the code. Two calls in one file are no proof that they cover the same bytes.',
 ];

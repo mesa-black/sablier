@@ -261,6 +261,16 @@ habituelles et une note expliquant ce qui pèse sur chaque réponse. Corriger un
 proposition fait apparaître des désaccords qu'un fichier vide dissimule, et c'est
 plus rapide.
 
+Un domaine peut aussi être déclaré `"hybrid": true`, ce qui signifie que ses
+algorithmes classiques sont associés à un algorithme post-quantique. Un constat
+porte sur une ligne, et l'hybridation est une propriété de la composition : rien
+dans le code ne montre qu'un autre appel signe les mêmes octets. C'est donc la
+déclaration qui le dit, le verdict cesse de vous demander de retirer la moitié
+classique — ce qui reviendrait à défaire l'hybridation que les références
+exigent — et les angles morts enregistrent que la paire est affirmée et non
+observée. Ce dépôt déclare ainsi son propre domaine de signature, puisque la
+v0.5.0 signe chaque rapport en Ed25519 et ML-DSA-65 sur les mêmes octets.
+
 Une de ces notes compte plus que les autres : **la durée d'une sauvegarde est le
 maximum de tout ce qu'elle contient.** Elle hérite du domaine le plus long que vous
 avez déclaré, quel qu'il soit. Cette seule ligne est l'origine de la plupart des
