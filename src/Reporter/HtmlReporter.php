@@ -385,13 +385,32 @@ final class HtmlReporter implements ReporterInterface
         $caveat = '';
         if ($this->analysis->signature !== null) {
             $block = $this->analysis->signature;
+            $hybrid = $block['hybrid'] ?? null;
             $signedAt = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $block['signed_at']);
+            // Both algorithms, because this block is where a reader decides
+            // whether the signature outlives the curve. Naming only the
+            // classical half of a hybrid is the report contradicting itself.
+            $algorithms = $block['algorithm'].(\is_array($hybrid) ? ' + '.$hybrid['algorithm'] : '');
             $rows .= '<div><dt>'.htmlspecialchars(Lang::t('seal.signed')).'</dt><dd>'
-                .htmlspecialchars($block['algorithm'].' · '.($signedAt === false ? $block['signed_at'] : $signedAt->format('d/m/Y H:i'))).'</dd></div>'
+                .htmlspecialchars($algorithms.' · '.($signedAt === false ? $block['signed_at'] : $signedAt->format('d/m/Y H:i'))).'</dd></div>'
                 .'<div><dt>'.htmlspecialchars(Lang::t('seal.key')).'</dt><dd><code>'
                 .htmlspecialchars(substr($block['public_key'], 0, 16).'…').'</code></dd></div>';
-            $caveat = '<p class="seal-caveat">'
-                .htmlspecialchars(Lang::t('seal.caveat', $this->analysis->declaration->expiryYear)).'</p>';
+
+            // A key that signed once and was destroyed ties the document to
+            // nobody on its own: the fingerprint is what the reader was given
+            // by another road, so it is printed rather than assumed to be at
+            // hand.
+            if (($block['ephemeral'] ?? false) === true) {
+                $rows .= '<div><dt>'.htmlspecialchars(Lang::t('seal.fingerprint')).'</dt><dd><code>'
+                    .htmlspecialchars(Signature::fingerprint(
+                        $block['public_key'],
+                        \is_array($hybrid) ? $hybrid['public_key'] : '',
+                    )).'</code></dd></div>';
+            }
+
+            $caveat = '<p class="seal-caveat">'.htmlspecialchars(\is_array($hybrid)
+                ? Lang::t('seal.hybrid', $hybrid['algorithm'])
+                : Lang::t('seal.caveat', $this->analysis->declaration->expiryYear)).'</p>';
         }
 
         return '<section class="seal"><h2>'.htmlspecialchars(Lang::t('seal.title')).'</h2>'

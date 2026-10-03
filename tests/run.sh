@@ -1013,6 +1013,19 @@ if openssl list -signature-algorithms 2>/dev/null | grep -qi "ML-DSA-65"; then
 		rm -rf "$pq"; exit 1
 	fi
 	printf '  ✓ %-24s %-10s %s\n' "ephemeral" "fingerprint" "checked, and a wrong one refused"
+
+	# And the report says what it carries. A document signed twice whose own
+	# seal claims one signature is the report contradicting itself, which is
+	# the fault this block exists to catch.
+	if ! grep -q "Ed25519 + ML-DSA-65" "$pq/e.html"; then
+		echo "✗ ephemeral: the report does not name both of its signatures"
+		rm -rf "$pq"; exit 1
+	fi
+	if grep -q "seal-caveat.*vuln\|classe lui-même comme vulnérable" "$pq/e.html"; then
+		echo "✗ ephemeral: the report still warns its signature is quantum-vulnerable"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "ephemeral" "seal" "the report names both signatures"
 	rm -rf "$pq"
 else
 	printf '  · %-24s %-10s %s\n' "hybrid" "skipped" "no ML-DSA in this OpenSSL"

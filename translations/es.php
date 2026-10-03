@@ -601,4 +601,5 @@ Primera acción: %s',
     'seal.ephemeral' => 'Firmado con una clave creada solo para este informe y destruida después: nunca firmará nada más. Lo que une este documento a su autor es la huella de abajo, transmitida por un canal que prueba su identidad. Huella de las claves: %s',
     'reason.hybrid' => 'Emparejado con un algoritmo post-cuántico, según la declaración: es la hibridación que piden las referencias durante la transición, no algo que migrar.',
     'blind.hybrid' => '%d dominio(s) declarado(s) híbridos: el emparejamiento se afirma en la declaración, no se observa en el código. Dos llamadas en un archivo no prueban que cubran los mismos bytes.',
+    'seal.fingerprint' => 'huella de las claves',
 ];
