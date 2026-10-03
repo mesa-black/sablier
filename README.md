@@ -130,6 +130,26 @@ until the rules were made general rather than particular.
 Three false positives are left and are documented rather than hidden. Recall did
 not move: every real finding the first corpus contained is still reported.
 
+## The managed services, as far as a file can tell
+
+Every report carries the same admission: the cryptography of your database,
+your object storage and your TLS termination appears in no file of the
+repository. That is true of an application. It stops being true the moment the
+infrastructure sits beside it as code.
+
+`.tf` files are read for the decisions somebody wrote down — `storage_encrypted
+= false`, a `minimum_protocol_version` below what is still negotiated, the
+server-side encryption on a bucket and whose key it uses, the keys the
+infrastructure creates for itself, an asymmetric KMS key. A managed database
+holding ten years of accounting records with encryption switched off is the
+same finding as a backup script with no encryption: the provider does not
+change the arithmetic.
+
+What this reads is the **intent**, not the outcome, so the blind spot is
+reworded rather than removed: what the provider actually does with that
+declaration — its own keys, its own algorithms, its TLS termination — is still
+outside the report.
+
 ## Two sources, because a repository can be wrong
 
 The probe covers HTTPS, SMTP, IMAP, POP3, PostgreSQL, MySQL, LDAP, and the

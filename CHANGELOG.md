@@ -4,6 +4,32 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+### The managed services, as far as a file can tell
+
+`.tf` files are now read. Every report said the cryptography of your database,
+your object storage and your TLS termination appears in no file of the
+repository — true of an application, and false the moment the infrastructure
+sits beside it as code, which is most of the projects this tool is pointed at.
+
+What it reads is what somebody decided: encryption switched off at rest or in
+transit, a minimum TLS version below what is still negotiated, the server-side
+encryption on a bucket and whose key it uses, the keys the infrastructure makes
+for itself, an asymmetric KMS key. A managed database holding ten years of
+accounting records with `storage_encrypted = false` is the same finding as a
+backup script with no encryption.
+
+It reads the intent and not the outcome, so the blind spot is reworded rather
+than removed.
+
+### Smaller
+
+- a protocol's table of supported algorithms is inventory, not a use: an SSH
+  client carries `hmac-sha1` because the specification obliges it to. Three of
+  the six remaining false positives were this, and the measurement moves from
+  25 % to **14 %** on the same 31 repositories.
+
 ## v0.4.0 — 2026-10-03
 
 The release where the tool started applying its own standards to itself.

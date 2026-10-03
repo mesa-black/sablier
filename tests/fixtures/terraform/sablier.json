@@ -1,0 +1,14 @@
+{
+  "project": "Terraform fixture",
+  "expiry_year": 2035,
+  "default_lifetime_years": 3,
+  "domains": {
+    "accounting": {
+      "paths": ["main.tf"],
+      "lifetime_years": 10,
+      "note": "Ten years of accounting records, in a database declared without encryption at rest.",
+      "declared_by": "fixture",
+      "declared_on": "2026-10-03"
+    }
+  }
+}

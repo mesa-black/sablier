@@ -16,8 +16,18 @@ final class BlindSpots
     /** @return list<string> */
     public static function for(Analysis $analysis): array
     {
+        // The managed-services line is true of an application repository and
+        // false the moment the infrastructure is declared as code beside it.
+        $iac = false;
+        foreach ($analysis->findings as $finding) {
+            if (str_ends_with($finding->file, '.tf')) {
+                $iac = true;
+                break;
+            }
+        }
+
         $lines = [
-            Lang::t('blind.managed_services'),
+            Lang::t($iac ? 'blind.managed_services.iac' : 'blind.managed_services'),
             Lang::t('blind.runtime'),
             Lang::t('blind.hsm'),
             Lang::t('blind.lifetime', $analysis->declaration->defaultLifetime),

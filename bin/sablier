@@ -51,6 +51,7 @@ use Sablier\Detector\ServerConfigDetector;
 use Sablier\Detector\ShellDetector;
 use Sablier\Detector\SshConfigDetector;
 use Sablier\Detector\SymfonyVaultDetector;
+use Sablier\Detector\TerraformDetector;
 use Sablier\Finding;
 use Sablier\Interview;
 use Sablier\Lang;
@@ -111,6 +112,7 @@ function sablier_scanner(Declaration $declaration): Scanner
         new FrameworkConfigDetector(),
         new SymfonyVaultDetector(),
         new DependencyDetector(),
+        new TerraformDetector(),
     ], $declaration->exclude);
 }
 

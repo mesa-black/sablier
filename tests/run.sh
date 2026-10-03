@@ -785,6 +785,43 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
 rm -rf "$exp"
 
+# --- the managed services, as far as a file can tell --------------------------
+# Every report carries the line "the cryptography of your managed services
+# appears in no file of this repository". That is true of an application, and
+# false the moment the infrastructure sits beside it as code.
+tf=$(mktemp -d)
+./bin/sablier scan tests/fixtures/terraform --json="$tf/t.json" --out="$tf/t.html" \
+	--airgap --quiet >/dev/null 2>&1 || true
+found=$(php -r '
+	$f = json_decode(file_get_contents($argv[1]), true);
+	$v = [];
+	foreach ($f as $x) { $v[] = $x["verdict"]."/".$x["algorithm"]; }
+	sort($v);
+	echo implode(" ", $v);
+' "$tf/t.json")
+# Encryption switched off at rest, a TLS floor below what is negotiated, the
+# object encryption that is fine, and the two keys the infrastructure makes.
+want="clear/aes-256 urgent/plaintext urgent/tls-obsolete watch/ecdsa watch/rsa-sign"
+if [ "$found" != "$want" ]; then
+	echo "✗ terraform: expected [$want], got [$found]"
+	rm -rf "$tf"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "terraform" "decisions" "encryption off, TLS floor, keys"
+
+# The commented-out attribute at the end of the fixture must count for nothing.
+if [ "$(grep -c 'storage_encrypted' tests/fixtures/terraform/main.tf)" != "2" ]; then
+	echo "✗ terraform: the fixture lost its commented-out decision"
+	rm -rf "$tf"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "terraform" "comments" "a mention is still not a decision"
+
+if ! grep -q "fournisseur\|provider\|proveedor" "$tf/t.html"; then
+	echo "✗ terraform: the blind spot still claims nothing was read"
+	rm -rf "$tf"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "terraform" "blind spot" "reworded, not removed"
+rm -rf "$tf"
+
 # --- telling an identifier from a security control ---------------------------
 # Every line of this fixture was taken from a public repository during the
 # false-positive measurement: 31 projects, 959 findings, and 89 of the 92 reds
