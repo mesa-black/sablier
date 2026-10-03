@@ -44,13 +44,20 @@ do, given what it says about tools that hide what they did not look at.
 To be handled with care, and re-verified before any public communication: they
 have moved several times and will move again.
 
-| Reference | Content | Re-verify |
+Checked against the sources on 2026-10-03. Three of the five were imprecise,
+which is the point of writing "re-verify" in a table and then actually doing it.
+
+| Reference | What it says, checked | Was it right? |
 |---|---|---|
-| FIPS 203 / 204 / 205 (2024) | ML-KEM, ML-DSA, SLH-DSA standardised | no, this is settled |
-| NIST IR 8547 | deprecation trajectory: RSA/ECC deprecated ~2030, disallowed ~2035 | **yes**, status of the document |
-| CNSA 2.0 (NSA) | per-use timelines, more aggressive on code signing | yes |
-| EU Recommendation 2024/1101 | national roadmaps, first critical uses before 2030 | yes |
-| ANSSI | hybridisation required during transition, French position | yes |
+| FIPS 203 / 204 / 205 | ML-KEM, ML-DSA, SLH-DSA standardised, August 2024 | yes |
+| NIST IR 8547 **ipd** | Table 2: RSA and ECDSA at 112 bits deprecated after 2030; RSA, ECDSA, EdDSA disallowed after 2035 at every level | the dates, yes — but it is an **initial public draft** and we cited it as settled guidance |
+| CNSA 2.0 (NSA) | software and firmware signing and networking equipment 2030; browsers, cloud and operating systems 2033 | no: we printed a single 2030, which is only the earliest category |
+| Recommendation (EU) 2024/1101 | 11 April 2024, coordinated national roadmaps due within two years, hybrid schemes | no: "first critical uses before 2030" is not in it |
+| ANSSI | hybridation essential wherever PQC is deployed and required for French security visas; after 2030, buying without PQC held unreasonable | nearly: "required during the transition" overstated a recommendation |
+
+The lesson is worth more than the corrections: every one of these errors made
+the tool sound *more* certain than its sources. A document read in a room where
+somebody disagrees survives on the opposite habit.
 
 **A design decision follows from that uncertainty**: the tool does not predict
 the arrival of a quantum computer. It uses the **regulatory deadline** as the

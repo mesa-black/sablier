@@ -202,11 +202,15 @@ final class AuditReporter implements ReporterInterface
     {
         $declaration = $this->analysis->declaration;
         $rows = [
+            // Cited precisely enough to be checked, which is the only kind of
+            // citation worth printing in a document meant to be contested. The
+            // NIST reference is a draft and says so: presenting an initial
+            // public draft as settled guidance is how an audit loses a room.
             'FIPS 203 / 204 / 205 (2024)' => 'audit.ref.fips',
-            'NIST IR 8547' => 'audit.ref.nist8547',
+            'NIST IR 8547 ipd (2024)' => 'audit.ref.nist8547',
             'CNSA 2.0 (NSA)' => 'audit.ref.cnsa',
             'Recommandation (UE) 2024/1101' => 'audit.ref.eu',
-            'ANSSI' => 'audit.ref.anssi',
+            'ANSSI — avis sur la migration post-quantique' => 'audit.ref.anssi',
         ];
         $body = '<p>'.htmlspecialchars(Lang::t('audit.s4.intro')).'</p><table><tbody>';
         foreach ($rows as $label => $key) {

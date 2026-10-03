@@ -45,18 +45,18 @@ BT 0 g /F2 11.5 Tf 56.00 439.31 Td (COMPROMIS 1) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 408.44 Td (RSA backups) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 390.64 Td (Chiffré aujourd'hui, à garder confidentiel jusqu'en 2036 — soit 1 an après la péremption de RSA. Une capture faite) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 377.53 Td (maintenant sera lisible. Génération de clé RSA.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 359.42 Td (Accepter ce constat : sablier accept d45d9d61 --reason="…" --until=2027-04-02) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 359.42 Td (Accepter ce constat : sablier accept d45d9d61 --reason="…" --until=2027-04-03) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 341.31 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 312.20 Td (CASSÉ AUJOURD'HUI 1) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 281.33 Td (SHA-1 session tokens) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 263.53 Td (Cassé classiquement, indépendamment du quantique. L'échéance était hier.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 245.42 Td (Accepter ce constat : sablier accept d87d2d2b --reason="…" --until=2027-04-02) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 245.42 Td (Accepter ce constat : sablier accept d87d2d2b --reason="…" --until=2027-04-03) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 227.31 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 198.20 Td (SURVEILLER 2) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 167.33 Td (RSA backups) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 149.53 Td (Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 136.42 Td (Génération de clé SSH.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 118.31 Td (Accepter ce constat : sablier accept e51683bf --reason="…" --until=2027-04-02) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 118.31 Td (Accepter ce constat : sablier accept e51683bf --reason="…" --until=2027-04-03) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 100.20 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Sablier — Fixture · 1/3) Tj ET
 
@@ -71,7 +71,7 @@ stream
 BT 0 g /F2 10.0 Tf 56.00 785.89 Td (RSA session tokens) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 768.09 Td (Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 754.98 Td (Algorithme JWT.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 736.87 Td (Accepter ce constat : sablier accept a994f9c6 --reason="…" --until=2027-04-02) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 736.87 Td (Accepter ce constat : sablier accept a994f9c6 --reason="…" --until=2027-04-03) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 718.76 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 689.65 Td (CONFORME 2) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 669.78 Td (-) Tj ET
@@ -145,7 +145,7 @@ BT 0 g /F2 11.5 Tf 56.00 709.45 Td (Faux positif ?) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 689.58 Td (Deux choses s'appellent « faux positif », et elles ne vont pas au même endroit.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 671.47 Td (1. L'outil a raison, mais ce constat est accepté ici. C'est une décision de projet : ajoutez ce bloc à votre déclaration,) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 658.36 Td (elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d'expiration sont obligatoires.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 640.25 Td (En ligne de commande : sablier accept <empreinte> --reason="…" --until=2027-04-02) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 640.25 Td (En ligne de commande : sablier accept <empreinte> --reason="…" --until=2027-04-03) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 622.14 Td (2. L'outil a tort. C'est une règle à corriger, et sa place est dans le dépôt de Sablier : github.com/mesa-black/sablier) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 604.03 Td (L'empreinte imprimée à côté de chaque constat le désigne, et c'est elle qu'on cite dans les deux cas. Elle est) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 590.92 Td (calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code, et change le jour où la) Tj ET
@@ -169,7 +169,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 12 0 obj
-<< /Title (Sablier — Fixture) /Producer (Sablier 0.3.0) /CreationDate (D:20261002233850) >>
+<< /Title (Sablier — Fixture) /Producer (Sablier 0.3.0) /CreationDate (D:20261003000056) >>
 endobj
 xref
 0 13
