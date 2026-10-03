@@ -389,9 +389,18 @@ final class AuditReporter implements ReporterInterface
                     Lang::t('audit.s10.previous') => '<code>'.htmlspecialchars((string) $block['previous']).'</code>',
                 ]);
             }
+            // Which signatures the file carries. A report whose own signature
+            // is quantum-vulnerable has no business advising anybody about
+            // theirs without saying so in the same paragraph.
+            $hybrid = $block['hybrid'] ?? null;
+            $body .= '<p>'.htmlspecialchars(\is_array($hybrid)
+                ? Lang::t('seal.hybrid', $hybrid['algorithm'])
+                : Lang::t('seal.single')).'</p>';
             $body .= '<p>'.htmlspecialchars(Lang::t('audit.s10.verify')).' <code>sablier verify &lt;'
-                .htmlspecialchars(Lang::t('audit.doc_title')).'&gt;.sig --declare=&lt;declaration&gt;</code></p>'
-                .'<p class="flag">'.htmlspecialchars(Lang::t('seal.caveat', $declaration->expiryYear)).'</p>';
+                .htmlspecialchars(Lang::t('audit.doc_title')).'&gt;.sig --declare=&lt;declaration&gt;</code></p>';
+            if (!\is_array($hybrid)) {
+                $body .= '<p class="flag">'.htmlspecialchars(Lang::t('seal.caveat', $declaration->expiryYear)).'</p>';
+            }
         } else {
             $body .= '<p class="flag">'.htmlspecialchars(Lang::t('audit.s10.unsigned')).'</p>';
         }

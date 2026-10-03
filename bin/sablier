@@ -55,6 +55,7 @@ use Sablier\Detector\TerraformDetector;
 use Sablier\Finding;
 use Sablier\Interview;
 use Sablier\Lang;
+use Sablier\MlDsa;
 use Sablier\Pdf;
 use Sablier\Probe;
 use Sablier\Worksheet;
@@ -134,6 +135,19 @@ if ($command === 'keygen') {
     chmod($out, 0600);
 
     printf("  %s\n\n    \"signing_public_key\": \"%s\"\n\n  %s\n", Lang::t('cli.key_written', $out), $pair['public'], Lang::t('cli.key_next'));
+
+    // The post-quantum half, beside the other one, when this machine can make
+    // it. Written here rather than asked for: a second flag to remember is a
+    // second flag nobody passes.
+    $hybrid = MlDsa::keypair();
+    if ($hybrid !== null) {
+        $hybridPath = Signature::hybridKeyPath($out);
+        file_put_contents($hybridPath, $hybrid['secret']);
+        chmod($hybridPath, 0600);
+        printf("\n  %s\n", Lang::t('cli.key_hybrid', MlDsa::ALGORITHM, $hybridPath));
+    } else {
+        printf("\n  %s\n", Lang::t('cli.key_hybrid.absent', MlDsa::ALGORITHM));
+    }
     exit(0);
 }
 
@@ -153,6 +167,8 @@ if ($command === 'verify') {
     $block = Value::map(json_decode((string) file_get_contents($signaturePath), true));
     $expectedKey = $declarePath !== null ? Declaration::load($declarePath)->signingPublicKey : null;
     $previous = Value::string($block['previous'] ?? null);
+    /** @var array<string, mixed> $hybridClaim */
+    $hybridClaim = Value::map($block['hybrid'] ?? null);
     $result = Signature::verify([
         'algorithm' => Value::string($block['algorithm'] ?? null),
         'digest' => Value::string($block['digest'] ?? null),
@@ -160,9 +176,22 @@ if ($command === 'verify') {
         'public_key' => Value::string($block['public_key'] ?? null),
         'signature' => Value::string($block['signature'] ?? null),
         'previous' => $previous,
+        'hybrid' => $hybridClaim,
     ], null, $expectedKey);
 
     printf("  %s\n", Lang::t($result['reason']));
+
+    // Which signatures the file carries, and which of them this machine could
+    // check. A reader who cannot run ML-DSA must know that, not guess it.
+    if ($hybridClaim !== []) {
+        printf("  %s\n", Lang::t(match ($result['hybrid'] ?? '') {
+            'valid' => 'verify.hybrid.valid',
+            'invalid' => 'verify.hybrid.invalid',
+            default => 'verify.hybrid.unavailable',
+        }, Value::string($hybridClaim['algorithm'] ?? null)));
+    } else {
+        printf("  %s\n", Lang::t('verify.hybrid.none'));
+    }
 
     // The link, when the block claims one. Given the earlier signature, it is
     // checked; given nothing, it is still printed, because a reader holding
@@ -920,6 +949,7 @@ if ($options['sign'] !== null) {
         exit(1);
     }
     $preliminary = new Analysis($findings, $declaration, $label, $filesRead, $blind, $currentYear);
+    $hybridKey = Signature::hybridKeyPath($options['sign']);
     $signature = Signature::sign(
         Signature::digest($preliminary),
         trim((string) file_get_contents($options['sign'])),
@@ -927,6 +957,7 @@ if ($options['sign'] !== null) {
         // the same output succeeds the first, and a chain nobody has to ask
         // for is a chain that exists.
         Signature::previousDigest($reportPath.'.sig'),
+        is_file($hybridKey) ? (string) file_get_contents($hybridKey) : '',
     );
     file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
 }

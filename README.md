@@ -750,6 +750,36 @@ whether it *can*. There is no telemetry, no update check, no dependency to
 fetch: four lines of autoloader, PHP 8.4, and a repository somebody can read in
 an afternoon before carrying it in.
 
+## Signing a report, with the signature we tell you to use
+
+```bash
+sablier keygen                                   # two keys, Ed25519 and ML-DSA-65
+sablier scan /path --sign=sablier.key --out=report.html
+sablier verify report.html.sig --declare=sablier.json
+```
+
+For three versions this tool told people to migrate their signatures before
+2030 and signed its own reports with Ed25519 alone — and said so, in its own
+findings. The reason was not laziness: **PHP cannot do it.** libsodium exposes
+no post-quantum signature, and ext-openssl reads an ML-DSA key but refuses to
+sign with it, because its API takes a digest and ML-DSA is a pure scheme with
+nothing to pre-hash. `openssl_sign` answers `invalid digest`.
+
+The openssl **binary** can, from 3.5, and that is the one the probe already
+borrows. So a report now carries two signatures: Ed25519, verifiable anywhere
+PHP runs, and ML-DSA-65 in addition. Three rules keep that honest:
+
+- **in addition, never instead** — replacing one with the other would make
+  reports unverifiable for whoever has the older library, which is most people.
+  It is also what ANSSI asks for and what this tool cites: hybridation;
+- **borrowed, never implemented** — a hand-written lattice signature in a tool
+  whose credit rests on not inventing cryptography would be the worst thing it
+  could ship;
+- **said out loud when absent** — on an older OpenSSL the report states that it
+  carries one signature and why, and `verify` distinguishes *did not match*
+  from *could not be checked here*. Collapsing those two would turn a missing
+  library into a forgery accusation.
+
 ## Signing a report
 
 ```bash

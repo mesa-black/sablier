@@ -13,19 +13,18 @@ namespace Sablier;
  * findings themselves: same inventory, same digest, whatever the language the
  * report was rendered in.
  *
- * The uncomfortable part, stated in the report rather than buried here: PHP
- * offers no post-quantum signature at all. RSA and ECDSA come with ext-openssl,
- * Ed25519 with ext-sodium, and all three fall to Shor — so the choice was never
- * "Ed25519 or nothing" but "Ed25519 or equally exposed". Ed25519 is the
- * soundest of the three: modern, compact, no parameter to get wrong. It stays
- * quantum-vulnerable, which this tool's own catalogue says. That is defensible
- * for a report
- * whose authenticity matters for months — a signature cannot be harvested, and
- * breaking the curve in 2035 does not forge a 2026 signature anyone still
- * cares about. It is not defensible for a report you must still prove genuine
- * after the expiry year. Sablier says which of the two you are in and lets you
- * decide; pretending the question does not exist would be exactly the silence
- * this project was built to end.
+ * PHP offers no post-quantum signature: libsodium has none, and ext-openssl
+ * reads an ML-DSA key but refuses to sign with it. So for three versions this
+ * tool told people to migrate their signatures before 2030 while signing its
+ * own reports with Ed25519 alone, and its own report said so in the findings.
+ *
+ * It signs both now, when the machine can. Ed25519 always, because it works
+ * everywhere PHP runs and a report nobody can verify is worth nothing; ML-DSA-65
+ * in addition, through the openssl binary, from OpenSSL 3.5. That is
+ * hybridation, which is what ANSSI asks for and what this tool's own references
+ * say — and the one shape that adds a guarantee without removing one. A machine
+ * with an older library produces a single signature and the report states it,
+ * rather than carrying less than it claims.
  */
 final class Signature
 {
@@ -62,6 +61,12 @@ final class Signature
         return hash('sha256', $canonical);
     }
 
+    /** Where the post-quantum half of a key pair lives, beside the other half. */
+    public static function hybridKeyPath(string $keyPath): string
+    {
+        return $keyPath.'.ml-dsa.pem';
+    }
+
     /** @return array{public:string, secret:string} base64 */
     public static function keypair(): array
     {
@@ -84,9 +89,9 @@ final class Signature
     /**
      * @param string $previous the digest of the report this one succeeds, when there is one
      *
-     * @return array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string, previous?:string}
+     * @return array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string, previous?:string, hybrid?:array{algorithm:string, public_key:string, signature:string}}
      */
-    public static function sign(string $digest, string $secretKeyBase64, string $previous = ''): array
+    public static function sign(string $digest, string $secretKeyBase64, string $previous = '', string $hybridSecretPem = ''): array
     {
         $secret = base64_decode($secretKeyBase64, true);
         if ($secret === false || \strlen($secret) !== \SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
@@ -111,6 +116,18 @@ final class Signature
             $block['previous'] = $previous;
         }
 
+        // The same bytes, signed again by a scheme Shor does not touch. Added
+        // rather than substituted: whoever cannot run ML-DSA still verifies the
+        // report, and whoever can gets a signature that outlives the curve.
+        $hybrid = $hybridSecretPem !== '' ? MlDsa::sign($payload, $hybridSecretPem) : null;
+        if ($hybrid !== null) {
+            $block['hybrid'] = [
+                'algorithm' => MlDsa::ALGORITHM,
+                'public_key' => MlDsa::publicFrom($hybridSecretPem),
+                'signature' => $hybrid,
+            ];
+        }
+
         return $block;
     }
 
@@ -133,15 +150,15 @@ final class Signature
     }
 
     /**
-     * @param array{algorithm?:string, digest?:string, signed_at?:string, public_key?:string, signature?:string, previous?:string} $block
+     * @param array{algorithm?:string, digest?:string, signed_at?:string, public_key?:string, signature?:string, previous?:string, hybrid?:array<string, mixed>} $block
      *
-     * @return array{valid:bool, reason:string}
+     * @return array{valid:bool, reason:string, hybrid?:string}
      */
     public static function verify(array $block, ?string $expectedDigest = null, ?string $expectedPublicKey = null): array
     {
         foreach (['algorithm', 'digest', 'signed_at', 'public_key', 'signature'] as $field) {
             if (!isset($block[$field]) || $block[$field] === '') {
-                return ['valid' => false, 'reason' => 'verify.incomplete'];
+                return ['valid' => false, 'reason' => 'verify.incomplete', 'hybrid' => 'absent'];
             }
         }
 
@@ -170,13 +187,31 @@ final class Signature
             return ['valid' => false, 'reason' => 'verify.malformed'];
         }
 
-        $ok = sodium_crypto_sign_verify_detached(
-            $signature,
-            self::payload($block['digest'], $block['signed_at'], $block['previous'] ?? ''),
-            $key,
+        $payload = self::payload($block['digest'], $block['signed_at'], $block['previous'] ?? '');
+        $ok = sodium_crypto_sign_verify_detached($signature, $payload, $key);
+        if (!$ok) {
+            return ['valid' => false, 'reason' => 'verify.invalid', 'hybrid' => 'absent'];
+        }
+
+        // The second half, when the file carries one. Three answers rather than
+        // two: an old OpenSSL means "cannot tell", and collapsing that into
+        // "invalid" would turn a missing library into a forgery accusation.
+        $hybrid = Value::map($block['hybrid'] ?? null);
+        if ($hybrid === []) {
+            return ['valid' => true, 'reason' => 'verify.valid', 'hybrid' => 'absent'];
+        }
+
+        $held = MlDsa::verify(
+            $payload,
+            Value::string($hybrid['signature'] ?? null),
+            Value::string($hybrid['public_key'] ?? null),
         );
 
-        return ['valid' => $ok, 'reason' => $ok ? 'verify.valid' : 'verify.invalid'];
+        return match ($held) {
+            true => ['valid' => true, 'reason' => 'verify.valid.hybrid', 'hybrid' => 'valid'],
+            false => ['valid' => false, 'reason' => 'verify.invalid.hybrid', 'hybrid' => 'invalid'],
+            default => ['valid' => true, 'reason' => 'verify.valid.unchecked', 'hybrid' => 'unavailable'],
+        };
     }
 
     /**

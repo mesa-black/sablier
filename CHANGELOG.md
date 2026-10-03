@@ -23,6 +23,22 @@ backup script with no encryption.
 It reads the intent and not the outcome, so the blind spot is reworded rather
 than removed.
 
+### The signature it tells everybody else to migrate to
+
+A report carries two signatures now: Ed25519, verifiable anywhere PHP runs, and
+**ML-DSA-65** in addition, through the openssl binary, from OpenSSL 3.5.
+
+For three versions this tool told people to migrate before 2030 while signing
+its own reports with Ed25519 alone, and its own report said so in the findings.
+PHP cannot do it: libsodium has no post-quantum signature, and ext-openssl
+reads an ML-DSA key but refuses to sign with it — `openssl_sign` takes a digest,
+and ML-DSA is pure.
+
+In addition rather than instead, which is hybridation and what ANSSI asks for;
+borrowed rather than implemented, because a hand-written lattice signature here
+would be indefensible; and stated when absent, with `verify` distinguishing
+*did not match* from *could not be checked on this machine*.
+
 ### Smaller
 
 - a protocol's table of supported algorithms is inventory, not a use: an SSH

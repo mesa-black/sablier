@@ -876,6 +876,55 @@ printf '  ✓ %-24s %-10s %s\n' "digests" "security" "tokens, fingerprints and K
 printf '  ✓ %-24s %-10s %s\n' "digests" "hmac" "a keyed digest is not its digest"
 printf '  ✓ %-24s %-10s %s\n' "digests" "tables" "a protocol's algorithm list is inventory"
 
+# --- the signature this tool tells everybody else to migrate to --------------
+# Ed25519 always, ML-DSA-65 in addition where OpenSSL 3.5 can make one. Skipped
+# rather than failed on an older library, which is the behaviour being tested.
+if openssl list -signature-algorithms 2>/dev/null | grep -qi "ML-DSA-65"; then
+	pq=$(mktemp -d)
+	cp -R tests/fixtures/sample/. "$pq/"
+	./bin/sablier keygen --out="$pq/k.key" >/dev/null 2>&1
+	if [ ! -s "$pq/k.key.ml-dsa.pem" ]; then
+		echo "✗ hybrid: keygen made no post-quantum key"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "hybrid" "keygen" "two keys, beside each other"
+
+	./bin/sablier scan "$pq" --out="$pq/r.html" --sign="$pq/k.key" --no-probe --quiet >/dev/null 2>&1 || true
+	both=$(php -r '
+		$b = json_decode(file_get_contents($argv[1]), true);
+		echo ($b["algorithm"] ?? "?"), "+", ($b["hybrid"]["algorithm"] ?? "none");
+	' "$pq/r.html.sig")
+	if [ "$both" != "Ed25519+ML-DSA-65" ]; then
+		echo "✗ hybrid: the report carries [$both]"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "hybrid" "sign" "both signatures on one report"
+
+	if ! ./bin/sablier verify "$pq/r.html.sig" 2>&1 | grep -q "ML-DSA-65"; then
+		echo "✗ hybrid: verify says nothing about the second signature"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "hybrid" "verify" "both checked, both named"
+
+	# A post-quantum signature that does not match must fail the whole file,
+	# even though the Ed25519 half still holds.
+	php -r '
+		$b = json_decode(file_get_contents($argv[1]), true);
+		$sig = base64_decode($b["hybrid"]["signature"]);
+		$sig[10] = $sig[10] === "A" ? "B" : "A";
+		$b["hybrid"]["signature"] = base64_encode($sig);
+		file_put_contents($argv[1], json_encode($b));
+	' "$pq/r.html.sig"
+	if ./bin/sablier verify "$pq/r.html.sig" 2>&1 | grep -q "valide, Ed25519 et post-quantique\|valid, Ed25519 and post-quantum"; then
+		echo "✗ hybrid: a forged post-quantum signature passed"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "hybrid" "tamper" "a forged second half fails the file"
+	rm -rf "$pq"
+else
+	printf '  · %-24s %-10s %s\n' "hybrid" "skipped" "no ML-DSA in this OpenSSL"
+fi
+
 # --- a closed site: refuse, and print anyway ---------------------------------
 # --airgap is not --no-probe with a different name. One skips a step, the other
 # refuses the commands that would reach out — and still produces a PDF, because
