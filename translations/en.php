@@ -593,4 +593,5 @@ First action: %s',
     'verify.hybrid.none' => '  no post-quantum signature in this file',
     'seal.hybrid' => 'This report carries two signatures: Ed25519, verifiable anywhere, and %s, which resists the known quantum algorithms. Neither replaces the other — it is the hybridation ANSSI asks for, applied to the document itself.',
     'seal.single' => 'This report carries an Ed25519 signature only: the machine that produced it could not make a post-quantum one (OpenSSL 3.5 or newer is needed).',
+    'verify.wrong_key_pq' => 'the post-quantum key in this file is not the one the declaration vouches for',
 ];

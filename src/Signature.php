@@ -154,7 +154,7 @@ final class Signature
      *
      * @return array{valid:bool, reason:string, hybrid?:string}
      */
-    public static function verify(array $block, ?string $expectedDigest = null, ?string $expectedPublicKey = null): array
+    public static function verify(array $block, ?string $expectedDigest = null, ?string $expectedPublicKey = null, ?string $expectedPqKey = null): array
     {
         foreach (['algorithm', 'digest', 'signed_at', 'public_key', 'signature'] as $field) {
             if (!isset($block[$field]) || $block[$field] === '') {
@@ -201,11 +201,17 @@ final class Signature
             return ['valid' => true, 'reason' => 'verify.valid', 'hybrid' => 'absent'];
         }
 
-        $held = MlDsa::verify(
-            $payload,
-            Value::string($hybrid['signature'] ?? null),
-            Value::string($hybrid['public_key'] ?? null),
-        );
+        // The second key is checked against the declaration too. Skipping that
+        // would leave it asserted by the very file it signs, which is worth
+        // nothing to anybody who can already forge the Ed25519 half — and that
+        // is the only reader this signature was added for.
+        $pqKey = Value::string($hybrid['public_key'] ?? null);
+        if ($expectedPqKey !== null && $expectedPqKey !== ''
+            && !hash_equals(self::canonicalPem($expectedPqKey), self::canonicalPem($pqKey))) {
+            return ['valid' => false, 'reason' => 'verify.wrong_key_pq', 'hybrid' => 'invalid'];
+        }
+
+        $held = MlDsa::verify($payload, Value::string($hybrid['signature'] ?? null), $pqKey);
 
         return match ($held) {
             true => ['valid' => true, 'reason' => 'verify.valid.hybrid', 'hybrid' => 'valid'],
@@ -221,6 +227,12 @@ final class Signature
      * one produces the same bytes as before this existed: signatures made by
      * older versions still verify.
      */
+    /** A PEM compared on its content, not on how its lines were wrapped. */
+    private static function canonicalPem(string $pem): string
+    {
+        return (string) preg_replace('/\s+/', '', $pem);
+    }
+
     private static function payload(string $digest, string $signedAt, string $previous = ''): string
     {
         return "sablier-report/1\n".$digest."\n".$signedAt.($previous !== '' ? "\n".$previous : '');

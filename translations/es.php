@@ -593,4 +593,5 @@ Primera acción: %s',
     'verify.hybrid.none' => '  sin firma post-cuántica en este archivo',
     'seal.hybrid' => 'Este informe lleva dos firmas: Ed25519, verificable en cualquier parte, y %s, que resiste a los algoritmos cuánticos conocidos. Ninguna sustituye a la otra: es la hibridación que pide la ANSSI, aplicada al propio documento.',
     'seal.single' => 'Este informe solo lleva una firma Ed25519: la máquina que lo produjo no sabía hacer una firma post-cuántica (se necesita OpenSSL 3.5 o posterior).',
+    'verify.wrong_key_pq' => 'la clave post-cuántica de este archivo no es la que la declaración reconoce',
 ];

@@ -78,6 +78,16 @@ final class Declaration
      */
     public string $signingPublicKey = '';
 
+    /**
+     * The post-quantum half, vouched for in the same versioned file.
+     *
+     * Without it the ML-DSA key travels inside the signature it is meant to
+     * authenticate, which proves nothing to anybody who can forge the other
+     * half — and forging the other half is precisely the future this signature
+     * exists for. A hybrid whose second key is self-asserted is decoration.
+     */
+    public string $signingPublicKeyPq = '';
+
     public string $project = '';
 
     /** @var list<array{name:string, paths:list<string>, lifetime:int, trust_anchor:bool, note:string, declared_by:string, declared_on:string}> */
@@ -149,6 +159,7 @@ final class Declaration
         $self->exclude = Value::strings($raw['exclude'] ?? null);
         $self->deadlinesCheckedOn = Value::string($raw['deadlines_checked_on'] ?? null, $self->deadlinesCheckedOn);
         $self->signingPublicKey = Value::string($raw['signing_public_key'] ?? null);
+        $self->signingPublicKeyPq = Value::string($raw['signing_public_key_pq'] ?? null);
 
         foreach (Value::map($raw['accepted'] ?? null) as $fingerprint => $entry) {
             $entry = Value::map($entry);

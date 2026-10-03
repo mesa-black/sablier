@@ -920,6 +920,22 @@ if openssl list -signature-algorithms 2>/dev/null | grep -qi "ML-DSA-65"; then
 		rm -rf "$pq"; exit 1
 	fi
 	printf '  ✓ %-24s %-10s %s\n' "hybrid" "tamper" "a forged second half fails the file"
+
+	# The post-quantum key is vouched for by the declaration, like the other
+	# one. Without that it would be asserted by the very file it signs, which
+	# is worth nothing to whoever can already forge the Ed25519 half — and that
+	# reader is the only reason this signature exists.
+	./bin/sablier keygen --out="$pq/other.key" >/dev/null 2>&1
+	php -r '
+		$d = json_decode(file_get_contents($argv[1]), true);
+		$d["signing_public_key_pq"] = shell_exec("openssl pkey -in ".escapeshellarg($argv[2])." -pubout 2>/dev/null");
+		file_put_contents($argv[1], json_encode($d));
+	' "$pq/sablier.json" "$pq/other.key.ml-dsa.pem"
+	if ! ./bin/sablier verify "$pq/r.html.sig" --declare="$pq/sablier.json" 2>&1 | grep -qi "reconna\|vouches\|reconoce"; then
+		echo "✗ hybrid: a post-quantum key nobody vouched for was accepted"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "hybrid" "key" "the declaration vouches for both"
 	rm -rf "$pq"
 else
 	printf '  · %-24s %-10s %s\n' "hybrid" "skipped" "no ML-DSA in this OpenSSL"

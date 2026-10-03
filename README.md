@@ -780,6 +780,11 @@ PHP runs, and ML-DSA-65 in addition. Three rules keep that honest:
   from *could not be checked here*. Collapsing those two would turn a missing
   library into a forgery accusation.
 
+Both keys are vouched for by the versioned declaration, `signing_public_key`
+and `signing_public_key_pq`. A post-quantum key asserted only by the file it
+signs would be worth nothing to the one reader this signature exists for: the
+one who can already forge the Ed25519 half.
+
 ## Signing a report
 
 ```bash

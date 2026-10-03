@@ -144,7 +144,7 @@ if ($command === 'keygen') {
         $hybridPath = Signature::hybridKeyPath($out);
         file_put_contents($hybridPath, $hybrid['secret']);
         chmod($hybridPath, 0600);
-        printf("\n  %s\n", Lang::t('cli.key_hybrid', MlDsa::ALGORITHM, $hybridPath));
+        printf("\n  %s\n\n    \"signing_public_key_pq\": %s\n", Lang::t('cli.key_hybrid', MlDsa::ALGORITHM, $hybridPath), json_encode($hybrid['public'], \JSON_UNESCAPED_SLASHES));
     } else {
         printf("\n  %s\n", Lang::t('cli.key_hybrid.absent', MlDsa::ALGORITHM));
     }
@@ -165,7 +165,9 @@ if ($command === 'verify') {
     }
 
     $block = Value::map(json_decode((string) file_get_contents($signaturePath), true));
-    $expectedKey = $declarePath !== null ? Declaration::load($declarePath)->signingPublicKey : null;
+    $declaration = $declarePath !== null ? Declaration::load($declarePath) : null;
+    $expectedKey = $declaration?->signingPublicKey;
+    $expectedPqKey = $declaration?->signingPublicKeyPq;
     $previous = Value::string($block['previous'] ?? null);
     /** @var array<string, mixed> $hybridClaim */
     $hybridClaim = Value::map($block['hybrid'] ?? null);
@@ -177,7 +179,7 @@ if ($command === 'verify') {
         'signature' => Value::string($block['signature'] ?? null),
         'previous' => $previous,
         'hybrid' => $hybridClaim,
-    ], null, $expectedKey);
+    ], null, $expectedKey, $expectedPqKey);
 
     printf("  %s\n", Lang::t($result['reason']));
 

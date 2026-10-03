@@ -602,4 +602,5 @@ Première action : %s',
     'verify.hybrid.none' => '  pas de signature post-quantique dans ce fichier',
     'seal.hybrid' => "Ce rapport porte deux signatures : Ed25519, vérifiable partout, et %s, qui résiste aux algorithmes quantiques connus. Aucune ne remplace l'autre — c'est l'hybridation que l'ANSSI demande, appliquée ici au document lui-même.",
     'seal.single' => "Ce rapport ne porte qu'une signature Ed25519 : la machine qui l'a produit ne savait pas faire de signature post-quantique (OpenSSL 3.5 ou plus récent est nécessaire).",
+    'verify.wrong_key_pq' => "la clé post-quantique de ce fichier n'est pas celle que la déclaration reconnaît",
 ];
