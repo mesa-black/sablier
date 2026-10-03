@@ -174,7 +174,7 @@ CDN; a project that configured everything correctly can be terminated by an
 intermediary that undoes it.
 
 ```
-$ make probe HOST=showmetherex.com
+$ make probe HOST=example.org
 
   negotiated protocol          TLSv1.3
   cipher suite                 TLS_AES_256_GCM_SHA384 (256 bits)
@@ -235,7 +235,7 @@ Each one links to a one-page crib sheet for the session itself:
 
 
 Without a declaration the tool applies a default lifetime and says so. With one,
-it becomes useful. See [`examples/showmetherex.json`](examples/showmetherex.json).
+it becomes useful. See [`examples/declaration.json`](examples/declaration.json).
 
 ```json
 {

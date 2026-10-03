@@ -1,19 +1,17 @@
 {
-  "project": "Show me the REX",
-
+  "project": "Example SAS",
   "_audit": "The engagement, filled in per mission. The auditor's own name, organisation and statement come from ~/.config/sablier/identity.json so they are not retyped into every client repository — see examples/identity.json.",
   "audit": {
     "client": "",
     "reference": "",
     "mandate": ""
   },
-
   "expiry_year": 2035,
   "default_lifetime_years": 3,
   "domains": {
     "public content": {
       "paths": [
-        "src/Entity/Feedback*",
+        "src/Entity/Article*",
         "templates/*",
         "src/Controller/Public*"
       ],
@@ -24,7 +22,7 @@
       "paths": [
         "src/Billing/*",
         "src/Entity/Invoice*",
-        "src/Entity/Subscription*"
+        "src/Entity/Order*"
       ],
       "lifetime_years": 10,
       "note": "Accounting records: ten years of legal retention."
@@ -58,6 +56,6 @@
     }
   },
   "probe": [
-    "showmetherex.com"
+    "example.org"
   ]
 }

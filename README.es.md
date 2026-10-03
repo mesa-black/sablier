@@ -173,7 +173,7 @@ protegido por su CDN; un proyecto que lo configuró todo bien puede terminar en 
 de un intermediario que lo deshace.
 
 ```
-$ make probe HOST=showmetherex.com
+$ make probe HOST=example.org
 
   protocolo negociado          TLSv1.3
   suite criptográfica          TLS_AES_256_GCM_SHA384 (256 bits)
@@ -233,7 +233,7 @@ Cada uno enlaza con una chuleta de una página para la sesión en sí: [qué pre
 qué responder cuando se atasca](docs/session-script.es.md).
 
 Sin declaración, la herramienta aplica una duración por defecto y lo dice. Con una,
-se vuelve útil. Véase [`examples/showmetherex.json`](examples/showmetherex.json).
+se vuelve útil. Véase [`examples/declaration.json`](examples/declaration.json).
 
 ```json
 {

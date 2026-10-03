@@ -175,7 +175,7 @@ protégé par son CDN ; un projet qui a tout configuré correctement peut être 
 par un intermédiaire qui défait ce travail.
 
 ```
-$ make probe HOST=showmetherex.com
+$ make probe HOST=example.org
 
   protocole négocié            TLSv1.3
   suite cryptographique        TLS_AES_256_GCM_SHA384 (256 bits)
@@ -239,7 +239,7 @@ bloque](docs/session-script.fr.md).
 
 Sans déclaration, l'outil applique une durée par défaut et le dit. Avec une
 déclaration, il devient utile. Voir
-[`examples/showmetherex.json`](examples/showmetherex.json).
+[`examples/declaration.json`](examples/declaration.json).
 
 ```json
 {
