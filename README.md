@@ -270,6 +270,47 @@ One of those notes matters more than the rest: **a backup's lifetime is the
 maximum of everything inside it.** It inherits the longest domain you declared,
 whatever that is. That single line is where most red verdicts come from.
 
+## Health data, where the lifetime is written in law
+
+```bash
+cp examples/health.json /path/to/project/sablier.json   # correct, then have the DPO sign it
+sablier scan /path/to/project --out=report.html
+```
+
+The input this tool normally has to go and ask for — how long must this stay
+confidential — is, in health, set by the Code de la santé publique. A patient
+record is kept **twenty years** from the last stay or consultation (R1112-7),
+ten years from death if the patient dies within ten years of their last visit,
+and the period runs to the holder's 28th birthday if it would end before. A
+vaccine dispensation in the pharmaceutical record is **twenty-one years**
+(R1111-20-12). A shared medical record is ten years from closure (L1111-18).
+Pharmacovigilance, absent any other rule, is **seventy years** from the day the
+product left the market.
+
+`"regime": "hds"` sets the other side of the inequality to 2030 — ANSSI's date,
+because this is sensitive data. The arithmetic is then not close:
+
+```
+DATES DE BASCULE
+  · sauvegardes — 70 ans — bascule franchie depuis 1961
+  · dossier patient — 20 ans — bascule franchie depuis 2011
+```
+
+A patient record encrypted today with RSA, and required to stay confidential for
+twenty years, is already past its crossing by fifteen years. That is a
+subtraction between a legal text and a regulatory deadline, not a prediction.
+
+[`examples/health.json`](examples/health.json) is a declaration to **correct**:
+every duration carries the article that sets it, and `declared_by` is left empty
+on purpose — the audit report prints who signed each number and when, and in
+this setting that person is the data protection officer.
+
+**What this does not do: it does not audit HDS certification.** That framework
+covers hosting — physical security, personnel, continuity, incident management,
+on an ISO 27001 / 20000-1 / 27018 base — and cryptography is a narrow slice of
+it. Sablier answers one question the HDS file raises, and documents it in a
+shape that survives an auditor; it certifies nothing.
+
 ## How it is put together
 
 Two extension points, because the scoping study names two axes that will

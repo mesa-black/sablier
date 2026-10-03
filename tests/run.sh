@@ -892,6 +892,35 @@ printf '  ✓ %-24s %-10s %s\n' "digests" "security" "tokens, fingerprints and K
 printf '  ✓ %-24s %-10s %s\n' "digests" "hmac" "a keyed digest is not its digest"
 printf '  ✓ %-24s %-10s %s\n' "digests" "tables" "a protocol's algorithm list is inventory"
 
+# --- health data, where the lifetime is written in law -----------------------
+# The input this tool normally has to go and ask for is, in health, set by the
+# Code de la santé publique: twenty years for a patient record, up to seventy
+# for pharmacovigilance. Against a 2030 deadline the arithmetic is not close,
+# and the fixture exists so that stops being a claim.
+hd=$(mktemp -d)
+./bin/sablier scan tests/fixtures/health --json="$hd/h.json" --out="$hd/h.html" \
+	--airgap --quiet >/dev/null 2>&1 || true
+verdicts=$(php -r '
+	$f = json_decode(file_get_contents($argv[1]), true);
+	$v = [];
+	foreach ($f as $x) { $v[$x["verdict"]] = ($v[$x["verdict"]] ?? 0) + 1; }
+	printf("%d/%d", $v["compromised"] ?? 0, \count($f));
+' "$hd/h.json")
+if [ "$verdicts" != "2/2" ]; then
+	echo "✗ health: expected both findings compromised, got $verdicts"
+	rm -rf "$hd"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "health" "verdicts" "twenty and seventy years, both lost"
+
+# The crossing dates are the readable half of that arithmetic, and both are
+# decades in the past: 2030 − 70 + 1 and 2030 − 20 + 1.
+if ! grep -q "1961" "$hd/h.html" || ! grep -q "2011" "$hd/h.html"; then
+	echo "✗ health: the crossing dates are not what the retention implies"
+	rm -rf "$hd"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "health" "crossing" "1961 and 2011, both long past"
+rm -rf "$hd"
+
 # --- the classical half of a hybrid is kept on purpose -----------------------
 # A finding is about one line; hybridation is a property of the composition. The
 # tool cannot see that another call signs the same bytes, so the declaration

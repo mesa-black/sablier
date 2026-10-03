@@ -269,6 +269,49 @@ es el máximo de todo lo que contiene.** Hereda el dominio más largo que usted 
 declarado, sea cual sea. Esa única línea es el origen de la mayoría de los veredictos
 rojos.
 
+## Los datos de salud, donde la duración está escrita en la ley
+
+```bash
+cp examples/health.json /ruta/del/proyecto/sablier.json   # corregir, y hacerlo firmar por el DPD
+sablier scan /ruta/del/proyecto --out=informe.html
+```
+
+El dato que esta herramienta normalmente tiene que ir a buscar —cuánto tiempo
+debe permanecer confidencial— está, en salud, fijado por el Código de la salud
+pública francés. Un historial clínico se conserva **veinte años** desde la última
+estancia o consulta externa (R1112-7), diez años desde el fallecimiento si el
+paciente muere menos de diez años después de su última visita, y el plazo corre
+hasta el 28º cumpleaños del titular si fuera a terminar antes. Una dispensación
+de vacuna en el historial farmacéutico son **veintiún años** (R1111-20-12). Un
+historial médico compartido, diez años desde su cierre (L1111-18). Las vigilancias
+sanitarias, a falta de otra regla, **setenta años** desde la retirada del producto
+del mercado.
+
+`"regime": "hds"` sitúa el otro lado de la desigualdad en 2030 —la fecha de la
+ANSSI, puesto que son datos sensibles. La aritmética no está entonces reñida:
+
+```
+FECHAS DE CRUCE
+  · copias — 70 años — cruce superado desde 1961
+  · historial clínico — 20 años — cruce superado desde 2011
+```
+
+Un historial clínico cifrado hoy con RSA, y que debe seguir siendo confidencial
+veinte años, superó su cruce hace quince años. Es una resta entre un texto legal
+y un plazo reglamentario, no una predicción.
+
+[`examples/health.json`](examples/health.json) es una declaración que
+**corregir**: cada duración lleva el artículo que la fundamenta, y `declared_by`
+se deja vacío a propósito — el informe de auditoría imprime quién firmó cada
+cifra y cuándo, y en este contexto esa persona es el delegado de protección de
+datos.
+
+**Lo que esto no hace: auditar una certificación HDS.** Ese marco cubre el
+alojamiento —seguridad física, personal, continuidad, gestión de incidentes,
+sobre una base ISO 27001 / 20000-1 / 27018— y la criptografía es solo una franja
+estrecha. Sablier responde a una pregunta que plantea el expediente HDS, y la
+documenta en una forma que resiste ante un auditor; no certifica nada.
+
 ## Cómo está montado
 
 Dos puntos de extensión, porque el estudio de alcance nombra dos ejes que de verdad

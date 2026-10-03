@@ -108,7 +108,7 @@ final class Interview
         $this->session->set('served_at', microtime(true));
 
         $regimes = '';
-        foreach (['general' => '1', 'anssi' => '2', 'nss' => '3'] as $key => $value) {
+        foreach (['general' => '1', 'anssi' => '2', 'nss' => '3', 'hds' => '4'] as $key => $value) {
             $regimes .= \sprintf(
                 '<label class="choice"><input type="radio" name="regime" value="%s"%s> %s</label>',
                 htmlspecialchars($key),

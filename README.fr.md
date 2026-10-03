@@ -276,6 +276,49 @@ maximum de tout ce qu'elle contient.** Elle hérite du domaine le plus long que 
 avez déclaré, quel qu'il soit. Cette seule ligne est l'origine de la plupart des
 verdicts rouges.
 
+## Les données de santé, où la durée est écrite dans la loi
+
+```bash
+cp examples/health.json /chemin/du/projet/sablier.json   # à corriger, puis à faire signer par le DPO
+sablier scan /chemin/du/projet --out=rapport.html
+```
+
+L'information que cet outil doit habituellement aller chercher — combien de temps
+ça doit rester confidentiel — est, en santé, fixée par le Code de la santé
+publique. Un dossier patient est conservé **vingt ans** à compter du dernier
+séjour ou de la dernière consultation externe (R1112-7), dix ans à compter du
+décès si le patient meurt moins de dix ans après son dernier passage, et le délai
+court jusqu'au 28e anniversaire du titulaire s'il devait s'achever avant. Une
+dispensation de vaccin au dossier pharmaceutique, c'est **vingt et un ans**
+(R1111-20-12). Un dossier médical partagé, dix ans à compter de sa clôture
+(L1111-18). Les vigilances sanitaires, à défaut d'autre règle, **soixante-dix
+ans** à compter du retrait du produit du marché.
+
+`"regime": "hds"` place l'autre côté de l'inégalité à 2030 — la date de l'ANSSI,
+puisqu'il s'agit de données sensibles. L'arithmétique n'est alors pas serrée :
+
+```
+DATES DE BASCULE
+  · sauvegardes — 70 ans — bascule franchie depuis 1961
+  · dossier patient — 20 ans — bascule franchie depuis 2011
+```
+
+Un dossier patient chiffré aujourd'hui avec RSA, et qui doit rester confidentiel
+vingt ans, a franchi sa bascule il y a quinze ans. C'est une soustraction entre un
+texte de loi et une échéance réglementaire, pas une prédiction.
+
+[`examples/health.json`](examples/health.json) est une déclaration à **corriger** :
+chaque durée porte l'article qui la fonde, et `declared_by` est laissé vide
+exprès — le rapport d'audit imprime qui a signé chaque chiffre et quand, et dans
+ce contexte cette personne est le délégué à la protection des données.
+
+**Ce que cela ne fait pas : auditer une certification HDS.** Ce référentiel
+couvre l'hébergement — sécurité physique, personnel, continuité, gestion des
+incidents, sur une base ISO 27001 / 20000-1 / 27018 — et la cryptographie n'en
+est qu'une tranche étroite. Sablier répond à une question que le dossier HDS
+pose, et la documente dans une forme qui tient devant un auditeur ; il ne
+certifie rien.
+
 ## Comment c'est assemblé
 
 Deux points d'extension, parce que l'étude de cadrage nomme deux axes qui vont

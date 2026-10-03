@@ -62,6 +62,13 @@ final class Declaration
         'general' => ['expiry' => 2035, 'deprecation' => 2030, 'source' => 'NIST IR 8547'],
         'anssi' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => 'ANSSI'],
         'nss' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => 'CNSA 2.0 (NSA)'],
+        // Health data hosted in France. The deadline is ANSSI's, because the
+        // data is sensitive; what the regime adds is the other side of the
+        // inequality. Retention here is written in law rather than guessed in
+        // a meeting — twenty years for a patient record, twenty-one for a
+        // vaccine dispensation, up to seventy for pharmacovigilance — which is
+        // the one input this tool usually has to go and ask for.
+        'hds' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => 'ANSSI · hébergement de données de santé'],
     ];
 
     public string $regime = 'general';

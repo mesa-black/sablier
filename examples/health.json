@@ -1,0 +1,67 @@
+{
+  "project": "Établissement de santé",
+
+  "_regime": "Health data hosted in France. The deadline is ANSSI's, because this is sensitive data; what this file carries is the other side of the inequality.",
+  "regime": "hds",
+
+  "_lifetimes": "Every duration below is a legal retention with the article that sets it, not an estimate. That is what makes health the one domain where this tool does not have to ask: the number is written down. Correct what does not apply to you, and have the data protection officer sign the file — the audit report prints who declared each duration and when.",
+  "default_lifetime_years": 20,
+
+  "domains": {
+    "dossier patient": {
+      "paths": ["src/Patient/*", "src/Dossier/*", "src/Entity/Patient*"],
+      "lifetime_years": 20,
+      "note": "Vingt ans à compter du dernier séjour ou de la dernière consultation externe (R1112-7 CSP). Dix ans à compter du décès si le patient meurt moins de dix ans après son dernier passage, et prorogation jusqu'au 28e anniversaire si le délai s'achève avant. Les délais sont suspendus par tout recours mettant en cause la responsabilité médicale.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "dossier pharmaceutique": {
+      "paths": ["src/Pharmacie/*", "src/Dispensation/*"],
+      "lifetime_years": 21,
+      "note": "Vingt et un ans à compter de la saisie pour une dispensation de vaccin (R1111-20-12 CSP). Trois ans pour les médicaments biologiques, quatre mois pour les autres dispensations : la plus longue gouverne le domaine tant qu'elles partagent un stockage.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "dossier médical partagé": {
+      "paths": ["src/Dmp/*"],
+      "lifetime_years": 10,
+      "note": "Dix ans à compter de la clôture du dossier (L1111-18 CSP), après la durée d'utilisation par le patient lui-même.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "vigilances sanitaires": {
+      "paths": ["src/Vigilance/*", "src/Pharmacovigilance/*"],
+      "lifetime_years": 70,
+      "note": "À défaut de précision légale, soixante-dix ans à compter du retrait du produit du marché (référentiel CNIL « vigilances sanitaires »). C'est la durée la plus longue de ce fichier, et celle qui décide seule du verdict de toute sauvegarde qui la contient.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "facturation et télétransmission": {
+      "paths": ["src/Facturation/*", "src/Teletransmission/*"],
+      "lifetime_years": 2,
+      "note": "Deux ans pour les décomptes de remboursement (L332-1 CSS) ; quatre-vingt-dix jours pour le double électronique des feuilles de soins (R161-47 CSS). Ce sont des données de santé malgré leur apparence comptable.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "sauvegardes": {
+      "paths": ["deploy/*backup*", "scripts/*dump*"],
+      "lifetime_years": 70,
+      "note": "Une sauvegarde hérite de la plus longue durée de ce qu'elle contient. Tant qu'elle contient des données de vigilance, elle vaut soixante-dix ans — et c'est la ligne qui produit le plus de verdicts rouges dans ce fichier.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "contenu publié": {
+      "paths": ["templates/*", "public/*"],
+      "lifetime_years": 0,
+      "note": "Publié : aucune durée de confidentialité à protéger.",
+      "declared_by": "",
+      "declared_on": ""
+    }
+  }
+}

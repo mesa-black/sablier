@@ -1,0 +1,38 @@
+{
+  "project": "Fixture santé",
+  "regime": "hds",
+  "default_lifetime_years": 20,
+  "domains": {
+    "dossier patient": {
+      "paths": [
+        "src/Patient/*",
+        "src/Dossier/*",
+        "src/Entity/Patient*"
+      ],
+      "lifetime_years": 20,
+      "note": "Vingt ans à compter du dernier séjour ou de la dernière consultation externe (R1112-7 CSP). Dix ans à compter du décès si le patient meurt moins de dix ans après son dernier passage, et prorogation jusqu'au 28e anniversaire si le délai s'achève avant. Les délais sont suspendus par tout recours mettant en cause la responsabilité médicale.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+    "vigilances sanitaires": {
+      "paths": [
+        "src/Vigilance/*",
+        "src/Pharmacovigilance/*"
+      ],
+      "lifetime_years": 70,
+      "note": "À défaut de précision légale, soixante-dix ans à compter du retrait du produit du marché (référentiel CNIL « vigilances sanitaires »). C'est la durée la plus longue de ce fichier, et celle qui décide seule du verdict de toute sauvegarde qui la contient.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+    "sauvegardes": {
+      "paths": [
+        "deploy/*backup*",
+        "scripts/*dump*"
+      ],
+      "lifetime_years": 70,
+      "note": "Une sauvegarde hérite de la plus longue durée de ce qu'elle contient. Tant qu'elle contient des données de vigilance, elle vaut soixante-dix ans — et c'est la ligne qui produit le plus de verdicts rouges dans ce fichier.",
+      "declared_by": "",
+      "declared_on": ""
+    }
+  }
+}
