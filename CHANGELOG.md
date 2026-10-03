@@ -4,7 +4,9 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
-## Unreleased
+## v0.4.0 — 2026-10-03
+
+The release where the tool started applying its own standards to itself.
 
 ### The interview as one file
 
@@ -70,8 +72,39 @@ one thing Chrome would not do. A report that cannot be printed cannot be signed
 or filed, and on those sites that is the difference between an audit and a
 folder of HTML.
 
+### Citing sources as they actually read
+
+Five regulatory references, checked against the documents rather than against
+memory. Three were wrong, and every one of them made this tool sound more
+certain than its source — the failure mode that matters, since a report is read
+in a room where somebody disagrees.
+
+NIST IR 8547 is an **initial public draft** and is now cited as one; its dates
+are right and are now quoted at the security level the table gives them. CNSA
+2.0 has two dates, not one: 2030 for signing and networking, 2033 for browsers,
+cloud and operating systems. Recommendation (EU) 2024/1101 asks for coordinated
+national roadmaps within two years and does not contain the sentence we
+attributed to it. ANSSI holds hybridation essential and requires it for French
+security visas, which is not the same as requiring it of everybody.
+
+`docs/scoping.md` had carried "re-verify: status of the document" since the
+first week. Writing that line is easy; this is what it was for.
+
+### What it says about itself
+
+Scanned with its own tool, this repository turned up two things to fix. Its
+declaration had no `declared_by`, no `declared_on` and no `service_until`, so
+the report printed our own missing horizon in the blind spots — the feature
+built for clients, pointed at us. And the exclusion list had eight entries, four
+of which excluded files that produce no findings at all. Scanned with the list
+removed entirely, this repository produces 47 findings instead of nine and not
+one of them is red. The list is four entries now, and the README gives the
+reason for each.
+
 ### Smaller
 
+- the test suite no longer opens two browser windows per run: `serve` opens one
+  for the person who typed it, and a pipe is not a person;
 - the network surface is pinned by a test: sockets are allowed in four files,
   all behind the probe, and the build fails the day a detector grows one. Where
   the kernel allows it, a full scan also runs with the network stack removed;
