@@ -167,6 +167,7 @@ return [
   bin/sablier serve <chemin>        le même entretien dans un navigateur, avec chronomètre
   bin/sablier advisories <chemin>   collecter les vulnérabilités publiées des dépendances
   bin/sablier accept <empreinte> --reason=…  accepter un constat, avec sa date d\'expiration
+  bin/sablier endorse <sablier.json>  signer la déclaration : les durées, par qui s\'y engage
 
     --declare=FICHIER   déclaration des domaines de données (défaut : sablier.json à la racine analysée)
     --out=FICHIER       rapport HTML (défaut : report.html)
@@ -340,6 +341,17 @@ Première action : %s',
     'cli.key_missing' => 'clé introuvable : %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage : sablier verify <rapport.html.sig> [--declare=sablier.json]',
+    'cli.verify_needs_declaration' => "Cette signature couvre une déclaration : il faut le fichier déclaré pour recalculer l'empreinte. sablier verify <déclaration>.sig --declare=<déclaration>",
+    'cli.endorse_usage' => 'usage : sablier endorse <sablier.json> [--sign=clef.key]',
+    'cli.endorse_empty' => "%s ne déclare aucun domaine : il n'y a rien à endosser.",
+    'cli.endorse_written' => '%s écrit : %d domaine(s) endossés.',
+    'cli.endorse_send' => "Transmettez cette empreinte par le canal qui prouve déjà qui vous êtes, et jamais par celui qui porte le fichier.",
+    'cli.endorse_verify' => 'Vérifier : sablier verify %s.sig --declare=%s',
+    'cli.endorse_state' => 'Endossée le %s · empreinte des clefs %s',
+    'endorse.changed' => "la déclaration a changé depuis son endossement : ce qui a été signé n'est plus ce que ce rapport utilise",
+    'endorse.audit' => 'Déclaration endossée le %s, empreinte des clefs %s. La signature couvre les durées, les chemins, le régime et les auteurs ci-dessus ; elle survit à une remise en forme du fichier et pas à une correction de son contenu.',
+    'endorse.audit.broken' => "Une signature est déposée à côté de cette déclaration, et elle ne correspond plus : %s. Le rapport a été produit sur le fichier tel qu'il est aujourd'hui, pas sur celui qui a été endossé.",
+    'endorse.audit.none' => "Cette déclaration n'est pas signée. Les durées ci-dessus engagent qui les a écrites, et rien ne prouve ici qui c'était : sablier endorse <déclaration>.",
     'domain.undeclared' => 'non déclaré',
     // --- ssh, which never becomes TLS ---
     'probe.ssh.banner' => 'bannière du serveur',

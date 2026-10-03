@@ -1050,6 +1050,35 @@ significa que la huella sale de la máquina, lo que rompe la promesa del pie de 
 del propio informe. Cuando una fecha debe ser oponible a alguien que no confía en usted,
 una autoridad de sellado de tiempo lo resuelve en una petición.
 
+### Firmar la entrada, no solo la salida
+
+Un informe se firma, se verifica, se encadena — y las duraciones sobre las que se
+apoya cada uno de sus veredictos eran una cadena de texto que cualquiera podía
+escribir en `declared_by`. El único artefacto aquí que compromete a personas era
+el único que nadie firmaba.
+
+```bash
+sablier endorse sablier.json         # clave efímera, destruida antes de volver
+sablier verify sablier.json.sig --declare=sablier.json
+```
+
+Lo que se firma son las **decisiones y no los bytes**: el régimen, las duraciones,
+las rutas, los trust anchors, las notas y los autores, con dominios y rutas
+ordenados. Reformatear el archivo, reordenar sus claves, recomponer una nota — el
+respaldo se mantiene. Corregir una duración, añadir una ruta, cambiar de régimen —
+se rompe, que es lo que espera quien respaldó ese archivo.
+
+El informe de auditoría imprime entonces una de tres cosas, en la misma sección
+que reproduce las duraciones: respaldada en tal fecha, con la huella de las
+claves; **sin firmar**, con el comando que lo arregla; o — el caso interesante —
+una firma que ya no concuerda, es decir que el archivo sobre el que se apoya este
+informe no es el que alguien refrendó.
+
+La clave es efímera por omisión, como la de los informes. Una declaración
+respaldada al final de una entrevista, ante la persona que la declaró, es
+exactamente el caso para el que se inventó esa clave: nada que almacenar, nada que
+rotar, y la huella viaja por el canal que ya prueba quién es.
+
 ## Los tres contenedores, y qué se afirma sobre ellos
 
 Una herramienta que lee dónde están sus claves no tiene por qué decirle que ejecute

@@ -180,12 +180,22 @@ final class Declaration
      */
     public array $probe = [];
 
+    /**
+     * Where this file was read from, so the endorsement beside it can be found.
+     *
+     * Empty when nothing was loaded, which is also when there is nothing to
+     * endorse.
+     */
+    public string $path = '';
+
     public static function load(?string $path): self
     {
         $self = new self();
         if ($path === null || !is_file($path)) {
             return $self;
         }
+
+        $self->path = $path;
 
         $raw = json_decode((string) file_get_contents($path), true);
         if (!\is_array($raw)) {
@@ -336,6 +346,102 @@ final class Declaration
     public function deadlinesAreStale(?\DateTimeImmutable $now = null): bool
     {
         return $this->monthsSinceCheck($now) >= self::STALE_AFTER_MONTHS;
+    }
+
+    /**
+     * A digest of what this declaration decides, independent of how it is written.
+     *
+     * The one input the whole report rests on is also the only artefact here
+     * nobody signs: `declared_by` is a string anybody can type. This makes the
+     * declaration signable, and what it covers is the decisions rather than the
+     * bytes — reformatting the file, reordering the keys or rewrapping a note
+     * keeps an endorsement valid, while changing a lifetime, a path, a regime or
+     * an author breaks it. That is the behaviour somebody endorsing a file
+     * expects: they signed what it says, not how it is laid out.
+     *
+     * Domains are sorted by name and paths within a domain are sorted too, for
+     * the same reason the report's own digest sorts its findings: the order a
+     * human happened to type them in is not part of what they decided.
+     */
+    public function digest(): string
+    {
+        $rows = [];
+        foreach ($this->domains as $domain) {
+            $paths = $domain['paths'];
+            sort($paths);
+            $rows[] = implode('|', [
+                $domain['name'],
+                (string) $domain['lifetime'],
+                $domain['trust_anchor'] ? 'anchor' : '-',
+                $domain['hybrid'] ? 'hybrid' : '-',
+                implode(',', $paths),
+                preg_replace('/\s+/', ' ', trim($domain['note'])) ?? '',
+                $domain['declared_by'],
+                $domain['declared_on'],
+            ]);
+        }
+        sort($rows);
+
+        return hash('sha256', implode("\n", [
+            'sablier-declaration/1',
+            $this->project,
+            $this->regime,
+            (string) $this->expiryYear,
+            (string) $this->deprecationYear,
+            (string) $this->defaultLifetime,
+            (string) $this->serviceUntil,
+            (string) \count($rows),
+            ...$rows,
+        ]));
+    }
+
+    /**
+     * The endorsement filed beside this declaration, when there is one.
+     *
+     * Three answers, not two. No file means nobody signed, which is the usual
+     * case and not a fault. A file that does not match means the declaration
+     * changed after it was endorsed — the interesting answer, and the reason
+     * this is checked rather than displayed: an endorsement that is printed
+     * without being verified is worse than none.
+     *
+     * @return array{valid:bool, reason:string, signed_at:string, fingerprint:string, ephemeral:bool}|null
+     */
+    public function endorsement(): ?array
+    {
+        if ($this->path === '' || !is_file($this->path.'.sig')) {
+            return null;
+        }
+
+        $block = Value::map(json_decode((string) file_get_contents($this->path.'.sig'), true));
+        /** @var array<string, mixed> $hybrid */
+        $hybrid = Value::map($block['hybrid'] ?? null);
+        $result = Signature::verify([
+            'algorithm' => Value::string($block['algorithm'] ?? null),
+            'digest' => Value::string($block['digest'] ?? null),
+            'signed_at' => Value::string($block['signed_at'] ?? null),
+            'public_key' => Value::string($block['public_key'] ?? null),
+            'signature' => Value::string($block['signature'] ?? null),
+            'hybrid' => $hybrid,
+        ], $this->digest());
+
+        $signedAt = \DateTimeImmutable::createFromFormat(
+            \DateTimeInterface::ATOM,
+            Value::string($block['signed_at'] ?? null),
+        );
+
+        return [
+            'valid' => $result['valid'],
+            // A changed digest means something different here than on a report:
+            // what the reader needs to hear is that the file the report rests
+            // on is no longer the file somebody endorsed.
+            'reason' => $result['reason'] === 'verify.changed' ? 'endorse.changed' : $result['reason'],
+            'signed_at' => $signedAt === false ? Value::string($block['signed_at'] ?? null) : $signedAt->format('d/m/Y H:i'),
+            'fingerprint' => Signature::fingerprint(
+                Value::string($block['public_key'] ?? null),
+                Value::string($hybrid['public_key'] ?? null),
+            ),
+            'ephemeral' => ($block['ephemeral'] ?? false) === true,
+        ];
     }
 
     /** Whether this regime reads the deadline off the data rather than a row. */

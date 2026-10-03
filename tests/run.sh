@@ -1298,6 +1298,79 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- the input, signed by whoever committed to it ------------------------------
+# Every verdict rests on durations a human declared, and `declared_by` is a string
+# anybody can type. An endorsement signs the decisions rather than the bytes: a
+# reformatted file keeps it, a corrected lifetime breaks it. Three states, and the
+# audit document has to carry all three.
+end=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$end/"
+./bin/sablier scan "$end" --audit="$end/none.html" --no-probe --quiet >/dev/null 2>&1 || true
+if ! grep -q "pas signée" "$end/none.html"; then
+	echo "✗ endorse: an unsigned declaration is not flagged as unsigned"
+	rm -rf "$end"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "endorse" "unsigned" "said in the section that uses it"
+
+./bin/sablier endorse "$end/sablier.json" >/dev/null 2>&1
+[ -s "$end/sablier.json.sig" ] || { echo "✗ endorse: nothing written"; rm -rf "$end"; exit 1; }
+if ! ./bin/sablier verify "$end/sablier.json.sig" --declare="$end/sablier.json" >/dev/null 2>&1; then
+	echo "✗ endorse: a fresh endorsement does not verify"
+	rm -rf "$end"; exit 1
+fi
+# The key signed once and is gone: the file says so, and nothing is left behind.
+php -r '
+	$b = json_decode(file_get_contents($argv[1]), true);
+	if (($b["covers"] ?? "") !== "declaration") { fwrite(STDERR, "✗ endorse: the file does not say what it covers\n"); exit(1); }
+	if (($b["ephemeral"] ?? false) !== true) { fwrite(STDERR, "✗ endorse: the default key was not ephemeral\n"); exit(1); }
+	if (!isset($b["hybrid"]) && trim((string) shell_exec("openssl list -signature-algorithms 2>/dev/null | grep -ci ML-DSA-65")) !== "0") {
+		fwrite(STDERR, "✗ endorse: this machine can sign ML-DSA and did not\n"); exit(1);
+	}
+' "$end/sablier.json.sig" || { rm -rf "$end"; exit 1; }
+printf '  ✓ %-24s %-10s %s\n' "endorse" "signed" "once, hybrid, and said so"
+
+# Reformatting is not a change of mind: the digest covers the decisions, so the
+# endorsement survives a rewrite of the file that says the same thing.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	// Same decisions, different bytes: key order, indentation, and the paths of
+	// one domain listed the other way round.
+	$d["domains"]["backups"]["paths"] = array_reverse($d["domains"]["backups"]["paths"]);
+	$d = array_reverse($d, true);
+	file_put_contents($argv[1], json_encode($d));
+' "$end/sablier.json"
+if ! ./bin/sablier verify "$end/sablier.json.sig" --declare="$end/sablier.json" >/dev/null 2>&1; then
+	echo "✗ endorse: reformatting the file broke an endorsement of its content"
+	rm -rf "$end"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "endorse" "reformat" "survives, as it should"
+
+# A corrected lifetime is a change of mind, and must break it.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$d["domains"]["backups"]["lifetime_years"] = 4;
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT));
+' "$end/sablier.json"
+if ./bin/sablier verify "$end/sablier.json.sig" --declare="$end/sablier.json" >/dev/null 2>&1; then
+	echo "✗ endorse: a corrected lifetime left the endorsement valid"
+	rm -rf "$end"; exit 1
+fi
+./bin/sablier scan "$end" --audit="$end/stale.html" --no-probe --quiet >/dev/null 2>&1 || true
+if ! grep -q "ne correspond plus" "$end/stale.html"; then
+	echo "✗ endorse: the audit document does not say the declaration moved"
+	rm -rf "$end"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "endorse" "corrected" "breaks, and the document says so"
+
+# Without the declared file there is nothing to recompute, and the command says
+# that rather than reporting half a verification as a success.
+if ./bin/sablier verify "$end/sablier.json.sig" >/dev/null 2>&1; then
+	echo "✗ endorse: an endorsement verified with nothing to recompute against"
+	rm -rf "$end"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "endorse" "no file" "refuses to half-verify"
+rm -rf "$end"
+
 # --- the one regime whose deadline is read off the data -------------------------
 # Every other regime is a pair of years. The EU roadmap classifies a use case by
 # the confidentiality it owes — high risk if a break after ten years or more

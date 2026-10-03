@@ -158,6 +158,7 @@ return [
   bin/sablier serve <ruta>          la misma entrevista en un navegador, con cronómetro
   bin/sablier advisories <ruta>     recopilar las vulnerabilidades publicadas de las dependencias
   bin/sablier accept <huella> --reason=…  aceptar un hallazgo, con su fecha de caducidad
+  bin/sablier endorse <sablier.json>  firmar la declaración: las duraciones, por quien se compromete
 
     --declare=ARCHIVO   declaración de dominios de datos (por defecto: sablier.json en la raíz analizada)
     --out=ARCHIVO       informe HTML (por defecto: report.html)
@@ -331,6 +332,17 @@ Primera acción: %s',
     'cli.key_missing' => 'clave no encontrada: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'uso: sablier verify <informe.html.sig> [--declare=sablier.json]',
+    'cli.verify_needs_declaration' => 'Esta firma cubre una declaración: hace falta el archivo declarado para recalcular la huella. sablier verify <declaración>.sig --declare=<declaración>',
+    'cli.endorse_usage' => 'uso: sablier endorse <sablier.json> [--sign=clave.key]',
+    'cli.endorse_empty' => '%s no declara ningún dominio: no hay nada que respaldar.',
+    'cli.endorse_written' => '%s escrito: %d dominio(s) respaldados.',
+    'cli.endorse_send' => 'Envíe esta huella por el canal que ya prueba quién es usted, y nunca por el que lleva el archivo.',
+    'cli.endorse_verify' => 'Verificar: sablier verify %s.sig --declare=%s',
+    'cli.endorse_state' => 'Respaldada el %s · huella de las claves %s',
+    'endorse.changed' => 'la declaración cambió después de ser respaldada: lo que se firmó ya no es lo que usa este informe',
+    'endorse.audit' => 'Declaración respaldada el %s, huella de las claves %s. La firma cubre las duraciones, rutas, régimen y autores anteriores; sobrevive a un reformateo del archivo y no a una corrección de su contenido.',
+    'endorse.audit.broken' => 'Hay una firma junto a esta declaración y ya no concuerda: %s. Este informe se produjo sobre el archivo tal como está hoy, no sobre el que fue respaldado.',
+    'endorse.audit.none' => 'Esta declaración no está firmada. Las duraciones anteriores comprometen a quien las escribió, y aquí nada establece quién fue: sablier endorse <declaración>.',
     'domain.undeclared' => 'sin declarar',
     // --- ssh, which never becomes TLS ---
     'probe.ssh.banner' => 'banner del servidor',

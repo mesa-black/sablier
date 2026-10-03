@@ -1050,6 +1050,34 @@ replace. A public chain means the digest leaves the machine, which breaks the
 promise in the report's own footer. When a date has to be opposable to someone
 who does not trust you, a timestamping authority answers it in one request.
 
+### Signing the input, not only the output
+
+A report is signed, verified, chained — and the durations every verdict in it
+rests on were a string anybody could type into `declared_by`. The one artefact
+here that commits people was the one artefact nobody signed.
+
+```bash
+sablier endorse sablier.json         # ephemeral key, destroyed before it returns
+sablier verify sablier.json.sig --declare=sablier.json
+```
+
+What is signed is the **decisions, not the bytes**: the regime, the lifetimes,
+the paths, the trust anchors, the notes and the authors, with domains and paths
+sorted. Reformat the file, reorder its keys, rewrap a note — the endorsement
+holds. Correct a lifetime, add a path, change the regime — it breaks, which is
+what somebody who endorsed that file expects.
+
+The audit report then prints one of three things in the very section that
+reproduces the durations: endorsed on a date, with the key fingerprint; **not
+signed**, with the command to fix it; or — the interesting one — a signature that
+no longer matches, which says the file this report rests on is not the file
+somebody put their name to.
+
+The key is ephemeral by default, like the reports'. A declaration endorsed at the
+end of an interview, in front of the person who declared it, is exactly the case
+that key was invented for: nothing to store, nothing to rotate, and the
+fingerprint travels by the channel that already proves who they are.
+
 ## The three containers, and what is claimed about them
 
 A tool that reads where your keys are has no business telling you to run

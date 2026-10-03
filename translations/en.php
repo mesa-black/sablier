@@ -158,6 +158,7 @@ return [
   bin/sablier serve <path>          the same interview in a browser, with a clock
   bin/sablier advisories <path>     collect published vulnerabilities of the dependencies
   bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
+  bin/sablier endorse <sablier.json>  sign the declaration: the durations, by whoever commits to them
 
     --declare=FILE      data domain declaration (default: sablier.json at the scanned root)
     --out=FILE          HTML report (default: report.html)
@@ -331,6 +332,17 @@ First action: %s',
     'cli.key_missing' => 'key not found: %s',
     'cli.signed' => '%s',
     'cli.verify_usage' => 'usage: sablier verify <report.html.sig> [--declare=sablier.json]',
+    'cli.verify_needs_declaration' => 'This signature covers a declaration: the declared file is needed to recompute the digest. sablier verify <declaration>.sig --declare=<declaration>',
+    'cli.endorse_usage' => 'usage: sablier endorse <sablier.json> [--sign=key.key]',
+    'cli.endorse_empty' => '%s declares no domain: there is nothing to endorse.',
+    'cli.endorse_written' => '%s written: %d domain(s) endorsed.',
+    'cli.endorse_send' => 'Send this fingerprint over the channel that already proves who you are, and never over the one carrying the file.',
+    'cli.endorse_verify' => 'Verify with: sablier verify %s.sig --declare=%s',
+    'cli.endorse_state' => 'Endorsed on %s · key fingerprint %s',
+    'endorse.changed' => 'the declaration changed after it was endorsed: what was signed is no longer what this report uses',
+    'endorse.audit' => 'Declaration endorsed on %s, key fingerprint %s. The signature covers the lifetimes, paths, regime and authors above; it survives a reformatting of the file and not a correction of its content.',
+    'endorse.audit.broken' => 'A signature is filed beside this declaration and no longer matches it: %s. This report was produced on the file as it stands today, not on the one that was endorsed.',
+    'endorse.audit.none' => 'This declaration is not signed. The lifetimes above commit whoever wrote them, and nothing here establishes who that was: sablier endorse <declaration>.',
     'domain.undeclared' => 'undeclared',
     // --- ssh, which never becomes TLS ---
     'probe.ssh.banner' => 'server banner',

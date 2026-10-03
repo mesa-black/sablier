@@ -1074,6 +1074,35 @@ casse la promesse du pied de page du rapport. Quand une date doit être opposabl
 quelqu'un qui ne vous fait pas confiance, une autorité d'horodatage y répond en une
 requête.
 
+### Signer l'entrée, pas seulement la sortie
+
+Un rapport est signé, vérifié, chaîné — et les durées sur lesquelles repose
+chacun de ses verdicts étaient une chaîne de caractères que n'importe qui pouvait
+taper dans `declared_by`. Le seul artefact ici qui engage des personnes était le
+seul que personne ne signait.
+
+```bash
+sablier endorse sablier.json         # clé éphémère, détruite avant le retour
+sablier verify sablier.json.sig --declare=sablier.json
+```
+
+Ce qui est signé, ce sont les **décisions et pas les octets** : le régime, les
+durées, les chemins, les trust anchors, les notes et les auteurs, domaines et
+chemins triés. Remettre le fichier en forme, réordonner ses clés, retailler une
+note — l'endossement tient. Corriger une durée, ajouter un chemin, changer de
+régime — il casse, et c'est ce qu'attend quelqu'un qui a endossé ce fichier.
+
+Le rapport d'audit imprime alors l'une de trois choses, dans la section même qui
+reproduit les durées : endossée à telle date, avec l'empreinte des clés ; **non
+signée**, avec la commande qui y remédie ; ou — le cas intéressant — une signature
+qui ne correspond plus, c'est-à-dire que le fichier sur lequel ce rapport repose
+n'est pas celui que quelqu'un a contresigné.
+
+La clé est éphémère par défaut, comme celle des rapports. Une déclaration endossée
+à la fin d'un entretien, devant la personne qui l'a déclarée, est exactement le
+cas pour lequel cette clé a été inventée : rien à stocker, rien à renouveler, et
+l'empreinte voyage par le canal qui prouve déjà qui elle est.
+
 ## Les trois conteneurs, et ce qui est affirmé à leur sujet
 
 Un outil qui lit où sont vos clés n'a pas à vous dire de lancer des images qu'il n'a pas

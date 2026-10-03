@@ -296,6 +296,19 @@ final class AuditReporter implements ReporterInterface
         }
 
         $body .= '<p>'.htmlspecialchars(Lang::t('audit.s6.default', $declaration->defaultLifetime)).'</p>';
+
+        // Whether the input this whole opinion rests on was signed by anybody.
+        // Printed in the section that reproduces it, because a reader weighing
+        // the durations is exactly the reader who should know whether somebody
+        // put their name to them — and whether the file has moved since.
+        $endorsement = $declaration->endorsement();
+        if ($endorsement === null) {
+            $body .= '<p class="flag">'.htmlspecialchars(Lang::t('endorse.audit.none')).'</p>';
+        } elseif ($endorsement['valid']) {
+            $body .= '<p>'.htmlspecialchars(Lang::t('endorse.audit', $endorsement['signed_at'], $endorsement['fingerprint'])).'</p>';
+        } else {
+            $body .= '<p class="flag">'.htmlspecialchars(Lang::t('endorse.audit.broken', Lang::t($endorsement['reason']))).'</p>';
+        }
         if ($declaration->graded()) {
             // The level is computed from a lifetime somebody declared, and the
             // framework's own test is whether a break would still cause

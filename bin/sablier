@@ -153,6 +153,80 @@ if ($command === 'keygen') {
     exit(0);
 }
 
+/**
+ * The one artefact in this chain nobody was signing.
+ *
+ * Every verdict in every report rests on durations a human declared, and until
+ * now `declared_by` was a string anybody could type. This signs the decisions —
+ * not the bytes — so the person who committed to a ten-year confidentiality can
+ * be the person who answers for it, and the audit document says whether the file
+ * it depends on is still the one that was endorsed.
+ *
+ * Ephemeral by default, for the same reason the reports are: a key that signs
+ * once and is destroyed proves what the channel carrying its fingerprint proves,
+ * and leaves nothing on a laptop to steal. A declaration endorsed at the end of
+ * an interview is exactly the case that key was invented for.
+ */
+if ($command === 'endorse') {
+    $target = $argv[2] ?? '';
+    $key = 'ephemeral';
+    foreach (\array_slice($argv, 3) as $arg) {
+        if (preg_match('/^--sign=(.+)$/', $arg, $m) === 1) {
+            $key = $m[1];
+        }
+    }
+    if (!is_file($target)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.endorse_usage')."\n");
+        exit(1);
+    }
+
+    $endorsed = Declaration::load($target);
+    if ($endorsed->domains === []) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.endorse_empty', $target)."\n");
+        exit(1);
+    }
+
+    $ephemeral = $key === 'ephemeral';
+    if ($ephemeral) {
+        $pair = Signature::keypair();
+        $pq = MlDsa::keypair();
+        $secret = $pair['secret'];
+        $pqSecret = $pq['secret'] ?? '';
+        $fingerprint = Signature::fingerprint($pair['public'], $pq['public'] ?? '');
+    } else {
+        if (!is_file($key)) {
+            fwrite(\STDERR, '✗ '.Lang::t('cli.key_missing', $key)."\n");
+            exit(1);
+        }
+        $hybridKey = Signature::hybridKeyPath($key);
+        $secret = trim((string) file_get_contents($key));
+        $pqSecret = is_file($hybridKey) ? (string) file_get_contents($hybridKey) : '';
+        $fingerprint = '';
+    }
+
+    $block = Signature::sign($endorsed->digest(), $secret, '', $pqSecret);
+    if ($ephemeral) {
+        $block['ephemeral'] = true;
+        sodium_memzero($secret);
+        if ($pqSecret !== '') {
+            sodium_memzero($pqSecret);
+        }
+    }
+    // What the signature covers, so a reader of the file alone knows which
+    // digest to recompute and from what.
+    file_put_contents(
+        $target.'.sig',
+        json_encode(['covers' => 'declaration'] + $block, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n",
+    );
+
+    printf("  %s\n", Lang::t('cli.endorse_written', $target.'.sig', \count($endorsed->domains)));
+    if ($fingerprint !== '') {
+        printf("\n  %s\n\n    %s\n\n  %s\n", Lang::t('seal.ephemeral.done'), $fingerprint, Lang::t('cli.endorse_send'));
+    }
+    printf("\n  %s\n", Lang::t('cli.endorse_verify', $target, $target));
+    exit(0);
+}
+
 if ($command === 'verify') {
     $signaturePath = $argv[2] ?? '';
     $declarePath = null;
@@ -171,6 +245,25 @@ if ($command === 'verify') {
 
     $block = Value::map(json_decode((string) file_get_contents($signaturePath), true));
     $declaration = $declarePath !== null ? Declaration::load($declarePath) : null;
+
+    // An endorsement covers the declaration it sits beside, so the digest can
+    // be recomputed here rather than taken on trust from the file that claims
+    // it. Without the declaration there is nothing to recompute, and the
+    // command says that instead of reporting a signature as verified when only
+    // half of it was.
+    if (Value::string($block['covers'] ?? null) === 'declaration') {
+        if ($declaration === null) {
+            fwrite(\STDERR, '✗ '.Lang::t('cli.verify_needs_declaration')."\n");
+            exit(1);
+        }
+        $endorsement = $declaration->endorsement();
+        printf("  %s\n", Lang::t($endorsement === null ? 'verify.incomplete' : $endorsement['reason']));
+        if ($endorsement !== null) {
+            printf("  %s\n", Lang::t('cli.endorse_state', $endorsement['signed_at'], $endorsement['fingerprint']));
+        }
+        exit($endorsement !== null && $endorsement['valid'] ? 0 : 1);
+    }
+
     $expectedKey = $declaration?->signingPublicKey;
     $expectedPqKey = $declaration?->signingPublicKeyPq;
     $previous = Value::string($block['previous'] ?? null);
