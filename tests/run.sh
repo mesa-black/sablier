@@ -147,6 +147,17 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "cbom" "unjudged" "named"
 rm -rf "$cbom"
 
+# --- and the server stays out of the operator's way --------------------------
+# Running the suite used to open two browser windows, because `serve` opens one
+# for the person who typed it and could not tell a person from a pipe. Checked
+# here rather than remembered, since the next window would be as surprising.
+if grep -q "posix_isatty" bin/sablier; then
+	printf '  ✓ %-24s %-10s %s\n' "serve" "quiet" "no browser opened for a script"
+else
+	echo "✗ serve: nothing stops it opening a browser in a pipeline"
+	exit 1
+fi
+
 # --- the interview in a browser ----------------------------------------------
 # The terminal version is for us; this one is for the room. Walk the whole
 # flow the way a person would — start, the system's context, one subject

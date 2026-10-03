@@ -342,9 +342,13 @@ if ($command === 'serve') {
     }
     printf("  %s\n\n", Lang::t('web.serving.stop'));
 
-    // Opening the browser is a convenience, never a requirement: the address
-    // is printed above and the server does not care who connects.
-    foreach ($local && $public === null ? ['open', 'xdg-open'] : [] as $opener) {
+    // Opening the browser is a convenience for a person, and a nuisance for
+    // everything else. The test suite starts this server twice per run, and on
+    // a developer's machine that was two windows every time the suite ran —
+    // reported as a bug, and rightly. A pipe instead of a terminal says nobody
+    // is watching, so nothing is opened.
+    $watched = !\function_exists('posix_isatty') || @posix_isatty(\STDOUT);
+    foreach ($local && $public === null && $watched ? ['open', 'xdg-open'] : [] as $opener) {
         if (trim((string) @shell_exec('command -v '.escapeshellarg($opener).' 2>/dev/null')) !== '') {
             @shell_exec(\sprintf('%s %s >/dev/null 2>&1 &', $opener, escapeshellarg($url)));
             break;
