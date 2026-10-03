@@ -4,7 +4,9 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
-## Unreleased
+## v0.5.0 — 2026-10-03
+
+The release where it stopped asking of others what it did not do itself.
 
 ### The managed services, as far as a file can tell
 
@@ -57,6 +59,18 @@ proves nothing to the one reader a post-quantum signature exists for.
 
 ### Smaller
 
+- the interview asks the questions that can change something **first**. Pointed
+  at a real project it opened on five directories computing SHA-256 — sound at
+  every declared lifetime, so no answer could have moved a verdict — and that
+  was question one of four;
+- `openssl_public_encrypt` was detected by nothing at all. RSA used directly is
+  how most PHP code seals something for a recipient, and the fixture written to
+  test the ordering found the hole;
+- the README exists in three languages, English governing, with a test that
+  fails when their sections diverge;
+- the example declaration no longer maps a real production application, nor
+  points its `probe` at somebody's live host;
+- the test suite no longer opens two browser windows per run;
 - a protocol's table of supported algorithms is inventory, not a use: an SSH
   client carries `hmac-sha1` because the specification obliges it to. Three of
   the six remaining false positives were this, and the measurement moves from

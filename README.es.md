@@ -669,7 +669,7 @@ jobs:
           coverage: none
 
       - name: Obtener Sablier
-        run: git clone --depth 1 --branch v0.4.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
+        run: git clone --depth 1 --branch v0.5.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
 
       - name: Inventariar la criptografía
         run: |
