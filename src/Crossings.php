@@ -39,7 +39,7 @@ final class Crossings
             if (!self::harvestable($finding)) {
                 continue;
             }
-            $domains[$finding->domain] ??= ['lifetime' => 0, 'declared' => $finding->domainDeclared];
+            $domains[$finding->domain] ??= ['lifetime' => 0, 'declared' => $finding->domainDeclared, 'expiry' => $finding->expiry];
             $domains[$finding->domain]['lifetime'] = max($domains[$finding->domain]['lifetime'], $finding->lifetime);
         }
 
@@ -49,7 +49,9 @@ final class Crossings
                 continue;
             }
 
-            $year = $analysis->declaration->expiryYear - $domain['lifetime'] + 1;
+            // Counted back from the deadline that applies to this domain, which
+            // under a graded regime is not the same for all of them.
+            $year = $domain['expiry'] - $domain['lifetime'] + 1;
             $serviceUntil = $analysis->declaration->serviceUntil;
             $crossings[] = [
                 'domain' => (string) $name,

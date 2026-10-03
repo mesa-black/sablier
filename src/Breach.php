@@ -35,13 +35,11 @@ final class Breach
     /**
      * One line per breached domain: what was asked, and what is still owed.
      *
-     * @return list<array{domain:string, taken:string, lifetime:int, until:int, readable:int, from:int, plaintext:bool, harvestable:bool}>
+     * @return list<array{domain:string, taken:string, lifetime:int, until:int, expiry:int, readable:int, from:int, plaintext:bool, harvestable:bool}>
      */
     public static function lines(Analysis $analysis): array
     {
-        $expiry = $analysis->declaration->expiryYear;
-
-        /** @var array<string, array{taken:string, lifetime:int, plaintext:bool, harvestable:bool}> $domains */
+        /** @var array<string, array{taken:string, lifetime:int, expiry:int, plaintext:bool, harvestable:bool}> $domains */
         $domains = [];
         foreach ($analysis->findings as $finding) {
             if ($finding->breachedOn === '' || $finding->verdict === Assessor::NOISE) {
@@ -52,6 +50,9 @@ final class Breach
             $current = $domains[$finding->domain] ?? [
                 'taken' => $finding->breachedOn,
                 'lifetime' => $finding->lifetime,
+                // The deadline this domain is measured against: under a graded
+                // regime it is read off the domain, not off the declaration.
+                'expiry' => $finding->expiry,
                 'plaintext' => false,
                 'harvestable' => false,
             ];
@@ -69,11 +70,13 @@ final class Breach
         foreach ($domains as $name => $domain) {
             $takenYear = (int) substr($domain['taken'], 0, 4);
             $until = $takenYear + $domain['lifetime'];
+            $expiry = $domain['expiry'];
             $lines[] = [
                 'domain' => $name,
                 'taken' => $domain['taken'],
                 'lifetime' => $domain['lifetime'],
                 'until' => $until,
+                'expiry' => $expiry,
                 // Plaintext loses the whole duration; an algorithm that holds
                 // loses none, and the interesting case is in between.
                 'readable' => $domain['plaintext']
@@ -110,7 +113,7 @@ final class Breach
                     $line['plaintext'] => Lang::t('breach.plaintext', $line['domain'], $line['lifetime'], $line['until']),
                     $line['readable'] > 0 => Lang::t(
                         $line['readable'] > 1 ? 'breach.readable' : 'breach.readable.one',
-                        $line['domain'], $line['lifetime'], $line['until'], $analysis->declaration->expiryYear, $line['readable'],
+                        $line['domain'], $line['lifetime'], $line['until'], $line['expiry'], $line['readable'],
                     ),
                     $line['harvestable'] => Lang::t('breach.held', $line['domain'], $line['until']),
                     default => Lang::t('breach.sound', $line['domain']),

@@ -1298,6 +1298,117 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- the one regime whose deadline is read off the data -------------------------
+# Every other regime is a pair of years. The EU roadmap classifies a use case by
+# the confidentiality it owes — high risk if a break after ten years or more
+# would still cause significant damage — so two domains in one repository hold
+# two different deadlines. The fixture has a ten-year domain and a one-year one,
+# which is the whole test.
+eu=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$eu/"
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$d["regime"] = "eu";
+	// The regime has to set the dates: an explicit year outranks it on purpose.
+	unset($d["expiry_year"], $d["deprecation_year"]);
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT));
+' "$eu/sablier.json"
+./bin/sablier scan "$eu" --out="$eu/r.html" --cbom="$eu/c.json" --audit="$eu/a.html" \
+	--calendar="$eu/c.ics" --no-probe --quiet >/dev/null 2>&1 || true
+graded=$(php -r '
+	$c = json_decode(file_get_contents($argv[1]), true);
+	$seen = [];
+	foreach ($c["components"] as $component) {
+		$p = [];
+		foreach ($component["properties"] as $property) { $p[$property["name"]] = $property["value"]; }
+		$seen[$p["sablier:domain"]] = $p["sablier:expiry_year"]."/".($p["sablier:risk_level"] ?? "-");
+	}
+	ksort($seen);
+	echo implode(" ", $seen);
+' "$eu/c.json")
+if [ "$graded" != "2030/high 2035/medium" ]; then
+	echo "✗ eu: the deadline is not read off each domain's lifetime ($graded)"
+	rm -rf "$eu"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "eu regime" "graded" "2030 for ten years, 2035 for one"
+
+# The crossing date is counted back from the deadline that applies to that
+# domain, so a graded regime moves it: 2030 − 10 + 1, not 2035 − 10 + 1.
+if ! grep -q "2021" "$eu/r.html"; then
+	echo "✗ eu: the crossing date was not counted back from the domain's own deadline"
+	rm -rf "$eu"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "eu regime" "crossing" "2021, counted back from 2030"
+
+# The document has to carry the framework it borrows: the roadmap by date, both
+# deadlines rather than one retained year, and the level beside each domain.
+for needle in "23 juin 2025" "31/12/2026" "haut risque"; do
+	if ! grep -q "$needle" "$eu/a.html"; then
+		echo "✗ eu: the audit document does not cite \"$needle\""
+		rm -rf "$eu"; exit 1
+	fi
+done
+printf '  ✓ %-24s %-10s %s\n' "eu regime" "cited" "roadmap, both deadlines, levels"
+
+# The impact test is the declarer's judgement, not ours, and the document says so
+# where the level is printed.
+if ! grep -q "ce jugement appartient" "$eu/a.html"; then
+	echo "✗ eu: the level is printed without saying whose judgement it rests on"
+	rm -rf "$eu"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "eu regime" "whose call" "the declarer's, said out loud"
+
+# An explicit year outranks the regime: the point of the setting is that a team
+# can disagree with the framework in a reviewable file.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$d["expiry_year"] = 2028;
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT));
+' "$eu/sablier.json"
+./bin/sablier scan "$eu" --cbom="$eu/fixed.json" --no-probe --quiet >/dev/null 2>&1 || true
+years=$(php -r '
+	$c = json_decode(file_get_contents($argv[1]), true);
+	$seen = [];
+	foreach ($c["components"] as $component) {
+		foreach ($component["properties"] as $property) {
+			if ($property["name"] === "sablier:expiry_year") { $seen[$property["value"]] = true; }
+		}
+	}
+	echo implode(",", array_keys($seen));
+' "$eu/fixed.json")
+if [ "$years" != "2028" ]; then
+	echo "✗ eu: a declared expiry year did not outrank the regime ($years)"
+	rm -rf "$eu"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "eu regime" "override" "a declared year still wins"
+rm -rf "$eu"
+
+# --- the obligation the standard cannot express --------------------------------
+# CycloneDX 1.6 describes the cryptography and not the duration it owes. Our
+# CBOM carries that duration in the shape the open proposal uses, so a consumer
+# implementing the real field maps it instead of parsing our integer.
+pp=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --cbom="$pp/c.json" --no-probe --quiet >/dev/null 2>&1 || true
+periods=$(php -r '
+	$c = json_decode(file_get_contents($argv[1]), true);
+	$seen = [];
+	foreach ($c["components"] as $component) {
+		foreach ($component["properties"] as $property) {
+			if (str_starts_with($property["name"], "sablier:protectionPeriod.")) {
+				$seen[substr($property["name"], 25)."=".$property["value"]] = true;
+			}
+		}
+	}
+	ksort($seen);
+	echo implode(" ", array_keys($seen));
+' "$pp/c.json")
+case "$periods" in
+	*"confidentiality=P10Y"*|*"integrity=P10Y"*) ;;
+	*) echo "✗ cbom: the confidentiality period is not carried ($periods)"; rm -rf "$pp"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "cbom" "protection" "ISO 8601 durations, both keys"
+rm -rf "$pp"
+
 # --- the post-breach document --------------------------------------------------
 # The third document, read the week after by people who have to say how long
 # this keeps costing. It is built on a date only the organisation can give, so

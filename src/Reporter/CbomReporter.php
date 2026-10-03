@@ -99,6 +99,7 @@ final class CbomReporter implements ReporterInterface
                     'name' => $project,
                 ],
                 'properties' => [
+                    ['name' => 'sablier:regime', 'value' => $analysis->declaration->regime],
                     ['name' => 'sablier:expiry_year', 'value' => (string) $analysis->declaration->expiryYear],
                     ['name' => 'sablier:current_year', 'value' => (string) $analysis->currentYear],
                     ['name' => 'sablier:default_lifetime_years', 'value' => (string) $analysis->declaration->defaultLifetime],
@@ -164,11 +165,43 @@ final class CbomReporter implements ReporterInterface
             ['name' => 'sablier:domain', 'value' => $finding->domain],
             ['name' => 'sablier:domain_declared', 'value' => $finding->domainDeclared ? 'true' : 'false'],
             ['name' => 'sablier:lifetime_years', 'value' => (string) $finding->lifetime],
+            // The deadline that applies to this finding, which under a graded
+            // regime is not the one in the metadata above.
+            ['name' => 'sablier:expiry_year', 'value' => (string) $finding->expiry],
             ['name' => 'sablier:confidence', 'value' => $finding->confidence],
             ['name' => 'sablier:because', 'value' => $finding->because],
         ];
         if ($finding->lifetime > 0) {
             $properties[] = ['name' => 'sablier:exposure_end', 'value' => (string) ($analysis->currentYear + $finding->lifetime)];
+
+            // The one thing a CBOM cannot say today.
+            //
+            // CycloneDX 1.6 describes the cryptography and not the obligation
+            // it carries: there is no field for "this must stay confidential
+            // for ten years", which is the input every verdict in this tool
+            // rests on. An inventory without it is a list of algorithms, which
+            // is why the EU roadmap can recommend CBOM as a format and still
+            // leave the risk classification to a human.
+            //
+            // CycloneDX/specification#1126 proposes `protectionPeriod` on
+            // `relatedCryptoMaterialProperties`, keyed `confidentiality` and
+            // `integrity`, holding an ISO 8601 duration — targeted at 2.0.
+            // Until it lands, the same shape travels as properties under our
+            // own namespace, so a consumer implementing the real field maps it
+            // mechanically instead of parsing our integer.
+            //
+            // The proposal also carries an absolute `until`, and this does not:
+            // that date depends on when each record was written, which is
+            // exactly what the tool says elsewhere it cannot know.
+            $properties[] = [
+                'name' => $finding->purpose === Catalogue::PURPOSE_CONFIDENTIALITY
+                    ? 'sablier:protectionPeriod.confidentiality'
+                    : 'sablier:protectionPeriod.integrity',
+                'value' => 'P'.$finding->lifetime.'Y',
+            ];
+        }
+        if ($finding->riskLevel !== '') {
+            $properties[] = ['name' => 'sablier:risk_level', 'value' => $finding->riskLevel];
         }
         if ($finding->inventory) {
             $properties[] = ['name' => 'sablier:declared_dependency', 'value' => 'true'];

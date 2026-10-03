@@ -10,6 +10,7 @@ use Sablier\Assessor;
 use Sablier\BlindSpots;
 use Sablier\Breach;
 use Sablier\Catalogue;
+use Sablier\Declaration;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Signature;
@@ -211,6 +212,7 @@ final class AuditReporter implements ReporterInterface
             'NIST IR 8547 ipd (2024)' => 'audit.ref.nist8547',
             'CNSA 2.0 (NSA)' => 'audit.ref.cnsa',
             'Recommandation (UE) 2024/1101' => 'audit.ref.eu',
+            'UE — feuille de route NIS CG (23/06/2025)' => 'audit.ref.roadmap',
             'ANSSI — avis sur la migration post-quantique' => 'audit.ref.anssi',
         ];
         $body = '<p>'.htmlspecialchars(Lang::t('audit.s4.intro')).'</p><table><tbody>';
@@ -220,7 +222,9 @@ final class AuditReporter implements ReporterInterface
         $checked = \DateTimeImmutable::createFromFormat('Y-m-d', $declaration->deadlinesCheckedOn);
 
         return $this->section(4, $body.'</tbody></table>'
-            .'<p>'.htmlspecialchars(Lang::t('audit.s4.retained', $declaration->expiryYear)).' '
+            .'<p>'.htmlspecialchars($declaration->graded()
+                ? Lang::t('audit.s4.retained.graded', $declaration->deprecationYear, $declaration->expiryYear)
+                : Lang::t('audit.s4.retained', $declaration->expiryYear)).' '
             .htmlspecialchars(Lang::t('audit.s4.checked', $checked === false ? $declaration->deadlinesCheckedOn : $checked->format('d/m/Y'))).'</p>');
     }
 
@@ -255,8 +259,13 @@ final class AuditReporter implements ReporterInterface
         if ($declaration->domains === []) {
             $body .= '<p>'.htmlspecialchars(Lang::t('audit.s6.none')).'</p>';
         } else {
+            // The level column only appears where the regime grades: under a
+            // flat one it would repeat the same deadline on every row, which is
+            // noise in a document somebody has to read under pressure.
+            $graded = $declaration->graded();
             $head = '<tr><th>'.htmlspecialchars(Lang::t('audit.col.domain')).'</th><th>'.htmlspecialchars(Lang::t('audit.col.lifetime'))
-                .'</th><th>'.htmlspecialchars(Lang::t('audit.col.paths')).'</th><th>'.htmlspecialchars(Lang::t('audit.col.note'))
+                .'</th>'.($graded ? '<th>'.htmlspecialchars(Lang::t('audit.col.level')).'</th>' : '')
+                .'<th>'.htmlspecialchars(Lang::t('audit.col.paths')).'</th><th>'.htmlspecialchars(Lang::t('audit.col.note'))
                 .'</th><th>'.htmlspecialchars(Lang::t('audit.col.declared')).'</th></tr>';
             $rows = '';
             foreach ($declaration->domains as $domain) {
@@ -265,10 +274,17 @@ final class AuditReporter implements ReporterInterface
                 $by = $domain['declared_by'] !== '' || $domain['declared_on'] !== ''
                     ? trim($domain['declared_by'].' '.($domain['declared_on'] !== '' ? '· '.$domain['declared_on'] : ''))
                     : null;
+                $level = '';
+                if ($graded) {
+                    $name = $declaration->riskLevel($domain['lifetime'], $domain['trust_anchor']);
+                    $level = '<td>'.htmlspecialchars(Lang::t("risk.$name").' · '
+                        .$declaration->expiryFor($domain['lifetime'], $domain['trust_anchor'])).'</td>';
+                }
                 $rows .= \sprintf(
-                    '<tr><td>%s</td><td class="n">%d</td><td><code>%s</code></td><td>%s</td><td>%s</td></tr>',
+                    '<tr><td>%s</td><td class="n">%d</td>%s<td><code>%s</code></td><td>%s</td><td>%s</td></tr>',
                     htmlspecialchars($domain['name']),
                     $domain['lifetime'],
+                    $level,
                     htmlspecialchars(implode(', ', $domain['paths'])),
                     htmlspecialchars($domain['note']),
                     $by !== null
@@ -280,6 +296,14 @@ final class AuditReporter implements ReporterInterface
         }
 
         $body .= '<p>'.htmlspecialchars(Lang::t('audit.s6.default', $declaration->defaultLifetime)).'</p>';
+        if ($declaration->graded()) {
+            // The level is computed from a lifetime somebody declared, and the
+            // framework's own test is whether a break would still cause
+            // significant damage. That judgement is the declarer's, and saying
+            // so is the difference between citing a framework and hiding behind
+            // one.
+            $body .= '<p class="note">'.htmlspecialchars(Lang::t('audit.s6.graded', Declaration::LONG_TERM_YEARS)).'</p>';
+        }
 
         // The same chart as the technical report, in the section whose numbers
         // it draws: a jury reads a bar against a line long before it reads a

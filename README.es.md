@@ -312,6 +312,69 @@ sobre una base ISO 27001 / 20000-1 / 27018— y la criptografía es solo una fra
 estrecha. Sablier responde a una pregunta que plantea el expediente HDS, y la
 documenta en una forma que resiste ante un auditor; no certifica nada.
 
+## Cuando el plazo se lee del dato
+
+Todos los regímenes anteriores son un par de años. Uno no lo es:
+
+```bash
+# sablier.json: { "regime": "eu" }
+cp examples/eu.json /ruta/del/proyecto/sablier.json
+```
+
+La *hoja de ruta coordinada para la transición a la criptografía post-cuántica*
+del Grupo de Cooperación NIS (23 de junio de 2025) no fija una fecha para todos.
+Clasifica cada caso de uso por la confidencialidad que debe, y da a cada clase su
+propio final:
+
+> « this document considers a use case as **high-risk if compromising
+> confidentiality after 10 years or more would still cause significant damage** »
+>
+> « For high-risk use cases, quantum-vulnerable public-key mechanisms **shall not
+> be used stand-alone after the end of 2030**, analogously **after the end of 2035
+> for medium-risk** »
+
+Esa clasificación funciona con la única entrada que esta herramienta pide y que
+nadie más recoge. Bajo `eu`, el plazo se lee por dominio: diez años o más de
+confidencialidad — o un `trust_anchor` que firma software, el ejemplo que la hoja
+de ruta da del caso de alto impacto — sitúan un dominio en **riesgo alto, 2030**;
+más corto es **riesgo medio, 2035**. Dos dominios en un repositorio, dos plazos, a
+partir de la declaración ya escrita. El informe de auditoría imprime el nivel al
+lado de cada dominio, y las dos fechas en lugar de un único año retenido.
+
+Lo que la herramienta no toma prestado es el juicio. El criterio de la hoja de
+ruta es si un compromiso después de esa duración *seguiría causando un daño
+significativo* — y declarar diez años **es** ese juicio. El documento lo dice allí
+donde se imprime el nivel, en lugar de presentar un nivel calculado como un
+hallazgo.
+
+Una razón más en 2026: el **Milestone 1, el 31/12/2026**, enumera entre sus First
+Steps «Support mature cryptographic asset management», «Create dependency maps» y
+«Perform quantum risk analysis» — y recomienda el CBOM como formato de inventario.
+Un escaneo produce el inventario y el análisis de riesgo. El mapa de dependencias
+no, y eso queda escrito en los puntos ciegos en vez de insinuado.
+
+### La obligación que el estándar no sabe escribir
+
+CycloneDX 1.6 describe la criptografía y no la duración que debe. Ningún campo
+dice «esto debe seguir siendo confidencial diez años» — la entrada sobre la que se
+apoya cada veredicto aquí, y la razón por la que se puede recomendar el CBOM como
+formato dejando la clasificación del riesgo a un humano.
+[CycloneDX/specification#1126](https://github.com/CycloneDX/specification/issues/1126)
+propone `protectionPeriod` en `relatedCryptoMaterialProperties`, con claves
+`confidentiality` e `integrity` y una duración ISO 8601, previsto para la 2.0.
+
+Mientras tanto, nuestro CBOM lleva la misma forma bajo su propio espacio de
+nombres, para que un consumidor que implemente el campo real la traslade
+mecánicamente en lugar de analizar nuestro entero:
+
+```json
+{ "name": "sablier:protectionPeriod.confidentiality", "value": "P10Y" }
+```
+
+La propuesta lleva además un `until` absoluto, y nosotros no: esa fecha depende de
+cuándo se escribió cada registro, que es exactamente lo que la herramienta dice en
+otro lugar que no puede saber.
+
 ## Cómo está montado
 
 Dos puntos de extensión, porque el estudio de alcance nombra dos ejes que de verdad

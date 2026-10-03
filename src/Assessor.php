@@ -48,6 +48,10 @@ final class Assessor
             $finding->trustAnchor = $domain['trust_anchor'];
             $finding->hybrid = $domain['hybrid'];
             $finding->breachedOn = $domain['breached'];
+            $finding->expiry = $this->declaration->expiryFor($domain['lifetime'], $domain['trust_anchor']);
+            $finding->riskLevel = $this->declaration->graded()
+                ? $this->declaration->riskLevel($domain['lifetime'], $domain['trust_anchor'])
+                : '';
 
             [$finding->verdict, $finding->because] = $this->verdict($finding);
             $this->applyAdvisories($finding);
@@ -193,7 +197,7 @@ final class Assessor
 
         if ($algo['purpose'] === Catalogue::PURPOSE_AUTHENTICITY) {
             if ($finding->trustAnchor) {
-                return [self::MIGRATE, Lang::t('reason.trust_anchor', $this->declaration->expiryYear)];
+                return [self::MIGRATE, Lang::t('reason.trust_anchor', $finding->expiry)];
             }
 
             return [self::WATCH, Lang::t('reason.signature', $this->declaration->deprecationYear)];
@@ -205,8 +209,8 @@ final class Assessor
         // horizon is printed as a blind spot rather than passed over.
         $lastEmission = max($this->currentYear, $this->declaration->serviceUntil);
         $exposureEnd = $lastEmission + $finding->lifetime;
-        if ($exposureEnd > $this->declaration->expiryYear) {
-            $gap = $exposureEnd - $this->declaration->expiryYear;
+        if ($exposureEnd > $finding->expiry) {
+            $gap = $exposureEnd - $finding->expiry;
 
             return [self::COMPROMISED, Lang::t(
                 'reason.harvested',
@@ -217,6 +221,6 @@ final class Assessor
             ).($finding->domainDeclared ? '' : ' '.Lang::t('reason.undeclared_domain'))];
         }
 
-        return [self::WATCH, Lang::t('reason.short_lived', $exposureEnd, $this->declaration->expiryYear)];
+        return [self::WATCH, Lang::t('reason.short_lived', $exposureEnd, $finding->expiry)];
     }
 }

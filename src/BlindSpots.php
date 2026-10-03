@@ -51,11 +51,20 @@ final class BlindSpots
         $lines[] = $analysis->declaration->serviceUntil > 0
             ? Lang::t('blind.service_until.declared', $analysis->declaration->serviceUntil)
             : Lang::t('blind.service_until');
-        $lines[] = Lang::t(
-            'blind.regime',
-            $analysis->declaration->expiryYear,
-            Declaration::REGIMES[$analysis->declaration->regime]['source'] ?? '?',
-        );
+        // A graded regime has no single retained date, and printing one as if
+        // it did would hide the thing that makes it different.
+        $lines[] = $analysis->declaration->graded()
+            ? Lang::t(
+                'blind.regime.graded',
+                $analysis->declaration->deprecationYear,
+                $analysis->declaration->expiryYear,
+                Declaration::REGIMES[$analysis->declaration->regime]['source'] ?? '?',
+            )
+            : Lang::t(
+                'blind.regime',
+                $analysis->declaration->expiryYear,
+                Declaration::REGIMES[$analysis->declaration->regime]['source'] ?? '?',
+            );
 
         if ($analysis->declaration->rejectedAcceptances !== []) {
             $lines[] = Lang::t('accepted.rejected', \count($analysis->declaration->rejectedAcceptances));

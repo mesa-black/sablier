@@ -28,6 +28,15 @@ final class Declaration
     /** After this many months without a re-check, the report says so out loud. */
     public const int STALE_AFTER_MONTHS = 12;
 
+    /**
+     * The lifetime above which the EU roadmap calls a use case high-risk.
+     *
+     * "data that needs to remain confidential for at least 10 years should be
+     * protected from quantum computer attacks starting no later than by the end
+     * of 2030". Ten years is theirs, not a number we picked.
+     */
+    public const int LONG_TERM_YEARS = 10;
+
     /** Planning date: the regulatory deadline, not a prediction of when the maths breaks. */
     public int $deprecationYear = 2030;
     public int $expiryYear = 2035;
@@ -56,7 +65,9 @@ final class Declaration
      * An explicit expiry_year always wins: the regime is a shortcut, not an
      * authority.
      *
-     * @var array<string, array{expiry:int, deprecation:int, source:string}>
+     * One regime does not work like the others: see `graded` below.
+     *
+     * @var array<string, array{expiry:int, deprecation:int, source:string, graded?:bool}>
      */
     public const array REGIMES = [
         'general' => ['expiry' => 2035, 'deprecation' => 2030, 'source' => 'NIST IR 8547'],
@@ -69,9 +80,32 @@ final class Declaration
         // vaccine dispensation, up to seventy for pharmacovigilance — which is
         // the one input this tool usually has to go and ask for.
         'hds' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => 'ANSSI · hébergement de données de santé'],
+        // The one regime whose deadline is not a date but a function of the
+        // data. The NIS Cooperation Group's roadmap classifies a use case by
+        // the confidentiality it owes — high risk if a break after ten years
+        // would still cause significant damage — and gives each class its own
+        // end date. It is the only published framework that asks for the input
+        // this tool was built around, which is why the expiry here is read per
+        // domain rather than taken from this row. The pair below is what the
+        // regime ends on, for the timeline and for anything with no domain.
+        'eu' => ['expiry' => 2035, 'deprecation' => 2030, 'source' => 'UE · NIS CG, feuille de route coordonnée du 23/06/2025', 'graded' => true],
     ];
 
+    /** The three levels of the roadmap, highest first. */
+    public const string RISK_HIGH = 'high';
+    public const string RISK_MEDIUM = 'medium';
+    public const string RISK_LOW = 'low';
+
     public string $regime = 'general';
+
+    /**
+     * Somebody wrote the year down themselves.
+     *
+     * A declaration that states `expiry_year` outranks any regime, including a
+     * graded one: the point of the setting is that the team can disagree with
+     * the framework and say so in a reviewable file.
+     */
+    public bool $expiryOverridden = false;
 
     /**
      * The day data left, when somebody already took it.
@@ -172,6 +206,7 @@ final class Declaration
 
         $self->deprecationYear = Value::int($raw['deprecation_year'] ?? null, $self->deprecationYear);
         $self->expiryYear = Value::int($raw['expiry_year'] ?? null, $self->expiryYear);
+        $self->expiryOverridden = Value::int($raw['expiry_year'] ?? null) !== 0;
         $self->defaultLifetime = Value::int($raw['default_lifetime_years'] ?? null, $self->defaultLifetime);
         $self->probe = Value::strings($raw['probe'] ?? null);
         $self->exclude = Value::strings($raw['exclude'] ?? null);
@@ -301,6 +336,64 @@ final class Declaration
     public function deadlinesAreStale(?\DateTimeImmutable $now = null): bool
     {
         return $this->monthsSinceCheck($now) >= self::STALE_AFTER_MONTHS;
+    }
+
+    /** Whether this regime reads the deadline off the data rather than a row. */
+    public function graded(): bool
+    {
+        return (self::REGIMES[$this->regime]['graded'] ?? false) === true;
+    }
+
+    /**
+     * The quantum risk level of a domain, as the roadmap defines it.
+     *
+     * Quoted rather than paraphrased, because the whole point of naming a
+     * regime is to borrow somebody else's authority: "If confidentiality needs
+     * to be protected, then the quantum risk level is medium or high. If
+     * confidentiality needs to be protected for a long time period (at least 10
+     * years), and an attack after 10 years or more would still have significant
+     * impact, then the quantum risk level is high. […] If the transition effort
+     * is high (taking more than 8 years) and the impact of an attack is high,
+     * for example for securing software updates, the quantum risk level is
+     * high."
+     *
+     * The second sentence is the lifetime this tool already asks for. The last
+     * is what `trust_anchor` marks: a key that signs software or firmware is
+     * the roadmap's own example of the high-impact case.
+     *
+     * The impact clause ("would still have significant damage") is a judgement
+     * this tool cannot make. Declaring a ten-year lifetime *is* that judgement,
+     * made by the person who declared it, and the report says so where the
+     * level is printed.
+     */
+    public function riskLevel(int $lifetime, bool $trustAnchor): string
+    {
+        if ($lifetime >= self::LONG_TERM_YEARS || $trustAnchor) {
+            return self::RISK_HIGH;
+        }
+
+        return self::RISK_MEDIUM;
+    }
+
+    /**
+     * The year quantum-vulnerable public key cryptography stops being an option
+     * for this particular data.
+     *
+     * Flat for every regime but one. Under the EU roadmap a high-risk use case
+     * loses stand-alone quantum-vulnerable public-key mechanisms after the end
+     * of 2030 and a medium-risk one after the end of 2035, so two domains in
+     * the same repository can hold two different deadlines — which is the
+     * roadmap's position, not a refinement of ours.
+     */
+    public function expiryFor(int $lifetime, bool $trustAnchor): int
+    {
+        if (!$this->graded() || $this->expiryOverridden) {
+            return $this->expiryYear;
+        }
+
+        return $this->riskLevel($lifetime, $trustAnchor) === self::RISK_HIGH
+            ? self::REGIMES[$this->regime]['deprecation']
+            : self::REGIMES[$this->regime]['expiry'];
     }
 
     /**

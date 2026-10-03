@@ -19,6 +19,20 @@ final class Finding
 
     /** The day this domain's data left, when somebody declared one. */
     public string $breachedOn = '';
+
+    /**
+     * The year quantum-vulnerable public key cryptography stops being an option
+     * for this data.
+     *
+     * Carried on the finding rather than read from the declaration, because
+     * under a graded regime two domains in one repository hold two different
+     * dates. Everything that prints a deadline next to a finding has to print
+     * this one.
+     */
+    public int $expiry = 0;
+
+    /** The regime's own name for the level this domain sits at, when it has one. */
+    public string $riskLevel = '';
     public string $verdict = '';
     public string $because = '';
 

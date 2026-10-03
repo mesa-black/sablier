@@ -55,6 +55,21 @@ final class Timeline
     }
 
     /**
+     * What the two marks on the axis mean.
+     *
+     * Under a flat regime they are a deprecation and an expiry. Under a graded
+     * one they are the end dates of two risk levels, and labelling them
+     * "deprecation" would misname somebody else's framework on a chart that
+     * cites it.
+     */
+    private static function markLabel(Analysis $analysis, string $mark): string
+    {
+        return $analysis->declaration->graded()
+            ? Lang::t("timeline.graded.$mark")
+            : Lang::t("timeline.$mark");
+    }
+
+    /**
      * One bar per declared domain: how long its data must stay secret, against
      * the date its protection expires.
      *
@@ -110,8 +125,8 @@ final class Timeline
             'start' => $start,
             'end' => $end,
             'marks' => [
-                ['year' => $analysis->declaration->deprecationYear, 'label' => Lang::t('timeline.deprecation')],
-                ['year' => $analysis->declaration->expiryYear, 'label' => Lang::t('timeline.expiry')],
+                ['year' => $analysis->declaration->deprecationYear, 'label' => self::markLabel($analysis, 'deprecation')],
+                ['year' => $analysis->declaration->expiryYear, 'label' => self::markLabel($analysis, 'expiry')],
             ],
             'bars' => array_map(
                 static fn (string $name, int $lifetime): array => [
@@ -131,8 +146,8 @@ final class Timeline
         $title = htmlspecialchars(Lang::t('timeline.title'));
         $legend = htmlspecialchars(Lang::t('timeline.legend'));
         $dates = self::crossings($analysis);
-        $deprecationLabel = htmlspecialchars(Lang::t('timeline.deprecation'));
-        $expiryLabel = htmlspecialchars(Lang::t('timeline.expiry'));
+        $deprecationLabel = htmlspecialchars(self::markLabel($analysis, 'deprecation'));
+        $expiryLabel = htmlspecialchars(self::markLabel($analysis, 'expiry'));
 
         return <<<HTML
             <section class="timeline">

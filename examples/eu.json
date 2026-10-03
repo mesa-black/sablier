@@ -1,0 +1,54 @@
+{
+  "project": "Entité NIS2",
+
+  "_regime": "Feuille de route coordonnée pour la transition vers la cryptographie post-quantique, groupe de coopération NIS, 23 juin 2025. C'est le seul régime de cet outil dont l'échéance n'est pas une date mais une fonction de la donnée : la feuille de route classe chaque cas d'usage par la confidentialité qu'il doit, et donne à chaque classe sa propre fin. Rien à régler ici — l'échéance de chaque domaine se lit sur sa durée.",
+  "regime": "eu",
+
+  "_levels": "Haut risque : dix ans ou plus de confidentialité due, si une compromission après ce délai causerait encore un dommage significatif. La cryptographie à clé publique vulnérable au quantique ne doit alors plus être employée seule après fin 2030. Risque moyen : après fin 2035. Le critère du dommage est un jugement qui vous appartient ; le déclarer, c'est le porter.",
+
+  "_steps": "Milestone 1 de la feuille de route, au 31/12/2026, parmi les First Steps : « Support mature cryptographic asset management », « Create dependency maps », « Perform quantum risk analysis ». Un scan produit l'inventaire et l'analyse de risque ; la carte des dépendances reste à faire ailleurs. Le format CBOM y est recommandé : --cbom=cbom.json.",
+
+  "_lifetimes": "Les durées ci-dessous sont des exemples à corriger, pas des obligations légales comme dans examples/health.json. Chacune doit porter son fondement — contrat, archivage légal, engagement client — et la personne qui l'a déclarée. Le rapport d'audit imprime les deux.",
+  "default_lifetime_years": 5,
+
+  "domains": {
+    "données clients": {
+      "paths": ["src/Customer/*", "src/Entity/Customer*", "src/Billing/*"],
+      "lifetime_years": 10,
+      "note": "Dix ans d'archivage comptable des pièces justificatives (article L123-22 du code de commerce). Haut risque sous la feuille de route : une facture lisible en 2036 reste une facture.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "signature de livrables": {
+      "paths": ["deploy/*", ".github/workflows/*", "src/Release/*"],
+      "lifetime_years": 3,
+      "trust_anchor": true,
+      "note": "Clés qui signent du logiciel ou du micrologiciel. Haut risque indépendamment de la durée : la feuille de route en fait son exemple explicite du cas à fort impact, parce qu'une signature forgée vaut une mise à jour forgée.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "jetons de session": {
+      "paths": ["src/Security/*", "src/Auth/*"],
+      "lifetime_years": 1,
+      "note": "Rien à protéger au-delà de la session elle-même. Risque moyen : échéance fin 2035, et c'est une réponse légitime que de ne rien faire avant.",
+      "declared_by": "",
+      "declared_on": ""
+    },
+
+    "sauvegardes": {
+      "paths": ["deploy/backup*", "ops/backup*"],
+      "lifetime_years": 10,
+      "note": "Une sauvegarde hérite de la durée la plus longue qu'elle contient. Tant que la base des clients y est, c'est dix ans — corriger à la hausse si un domaine plus long y entre.",
+      "declared_by": "",
+      "declared_on": ""
+    }
+  },
+
+  "_service_until": "L'année où ce système cesse d'écrire des données. Sans elle le calcul suppose que c'est aujourd'hui, ce qui sous-estime l'exposition, et le rapport le dit.",
+  "service_until": 0,
+
+  "_probe": "Les hôtes dont on veut savoir ce qu'ils négocient réellement, plutôt que ce que le dépôt prétend.",
+  "probe": []
+}

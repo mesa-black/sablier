@@ -93,7 +93,7 @@ final class IncidentReporter implements ReporterInterface
      * the breach. This one measures the declaration, and the paragraph that
      * follows it says so before the reader has had time to quote it.
      *
-     * @param list<array{domain:string, taken:string, lifetime:int, until:int, readable:int, from:int, plaintext:bool, harvestable:bool}> $lines
+     * @param list<array{domain:string, taken:string, lifetime:int, until:int, expiry:int, readable:int, from:int, plaintext:bool, harvestable:bool}> $lines
      */
     private function purpose(array $lines): string
     {
@@ -116,7 +116,7 @@ final class IncidentReporter implements ReporterInterface
     /**
      * The input, printed in full before anything is concluded from it.
      *
-     * @param list<array{domain:string, taken:string, lifetime:int, until:int, readable:int, from:int, plaintext:bool, harvestable:bool}> $lines
+     * @param list<array{domain:string, taken:string, lifetime:int, until:int, expiry:int, readable:int, from:int, plaintext:bool, harvestable:bool}> $lines
      */
     private function declared(Analysis $analysis, array $lines): string
     {
@@ -148,11 +148,10 @@ final class IncidentReporter implements ReporterInterface
     /**
      * The arithmetic, one row per domain, and the protection it rests on.
      *
-     * @param list<array{domain:string, taken:string, lifetime:int, until:int, readable:int, from:int, plaintext:bool, harvestable:bool}> $lines
+     * @param list<array{domain:string, taken:string, lifetime:int, until:int, expiry:int, readable:int, from:int, plaintext:bool, harvestable:bool}> $lines
      */
     private function duration(Analysis $analysis, array $lines): string
     {
-        $expiry = $analysis->declaration->expiryYear;
         $rows = '';
         foreach ($lines as $line) {
             $rows .= '<tr'.($line['readable'] > 0 ? ' class="past"' : '').'>'
@@ -163,7 +162,7 @@ final class IncidentReporter implements ReporterInterface
                 // quantum does not reach reads as a deadline it does not have.
                 .'<td class="n">'.htmlspecialchars(match (true) {
                     $line['plaintext'] => Lang::t('incident.cell.none'),
-                    $line['harvestable'] => (string) $expiry,
+                    $line['harvestable'] => (string) $line['expiry'],
                     default => Lang::t('incident.cell.beyond'),
                 }).'</td>'
                 .'<td class="n">'.($line['readable'] > 0 ? (string) $line['readable'] : '—').'</td>'
@@ -171,7 +170,7 @@ final class IncidentReporter implements ReporterInterface
                 .'<td>'.htmlspecialchars($this->protection($analysis, $line['domain'])).'</td></tr>';
         }
 
-        $body = '<p>'.htmlspecialchars(Lang::t('incident.s3.lead', $expiry)).'</p>'
+        $body = '<p>'.htmlspecialchars(Lang::t('incident.s3.lead', $analysis->declaration->expiryYear)).'</p>'
             .'<table><thead><tr>'
             .'<th>'.htmlspecialchars(Lang::t('incident.col.domain')).'</th>'
             .'<th>'.htmlspecialchars(Lang::t('incident.col.until')).'</th>'
