@@ -785,6 +785,34 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
 rm -rf "$exp"
 
+# --- the questions that can change something, first ---------------------------
+# SHA-256 is sound at every lifetime, so a subject made only of it cannot be
+# changed by any answer. On the first real project this tool was pointed at,
+# that was question one of four. It is asked last now — not dropped, since the
+# declaration outlives the scan.
+ord=$(./bin/sablier worksheet tests/fixtures/order --out=/tmp/sablier-order.html >/dev/null 2>&1; php -r '
+	$h = file_get_contents("/tmp/sablier-order.html");
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	echo implode(" ", array_map(static fn (array $s): string => implode(",", $s["paths"]), $d["subjects"]));
+')
+rm -f /tmp/sablier-order.html
+if [ "$ord" != "src/Risky src/Safe" ]; then
+	echo "✗ interview: the subject that decides nothing is not asked last ($ord)"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "order" "what can change a verdict comes first"
+
+# The fixture that found this also found a hole: RSA used directly through
+# openssl_public_encrypt was detected by nothing at all.
+if ! ./bin/sablier scan tests/fixtures/order --json=/tmp/sablier-order.json --airgap --quiet >/dev/null 2>&1; then :; fi
+if ! grep -q '"algorithm": "rsa"' /tmp/sablier-order.json; then
+	echo "✗ detector: openssl_public_encrypt is invisible again"
+	rm -f /tmp/sablier-order.json; exit 1
+fi
+rm -f /tmp/sablier-order.json
+printf '  ✓ %-24s %-10s %s\n' "detector" "rsa" "openssl_public_encrypt is seen"
+
 # --- the managed services, as far as a file can tell --------------------------
 # Every report carries the line "the cryptography of your managed services
 # appears in no file of this repository". That is true of an application, and

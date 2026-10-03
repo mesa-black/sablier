@@ -180,15 +180,17 @@ minutes, quarante avec le rapport lu devant la personne.
 
 | # | Sujet | Ce que la personne verra |
 |---|---|---|
-| 1 | 5 endroits — `src/Billing`, `src/Entity`, `src/Feedback`, `src/Identity`, `src/Security` | une empreinte calculée sur un contenu |
-| 2 | `.env`, `.env.dev`, `.env.test` | des réglages lus au démarrage : à qui l'application se connecte, avec quel compte et quel mot de passe |
-| 3 | `composer` | du chiffrement à clé publique — pour que seul le destinataire puisse relire, ou pour protéger une sauvegarde |
-| 4 | `config/secrets` | un coffre à secrets — mots de passe, clés, jetons, chiffrés, qui protège tout le reste |
+| 1 | `.env`, `.env.dev`, `.env.test` | des réglages lus au démarrage : à qui l'application se connecte, avec quel compte et quel mot de passe |
+| 2 | `composer` | du chiffrement à clé publique — pour que seul le destinataire puisse relire, ou pour protéger une sauvegarde |
+| 3 | `config/secrets` | un coffre à secrets — mots de passe, clés, jetons, chiffrés, qui protège tout le reste |
 
-L'ordre vient du nombre de fichiers, pas de l'importance : le sujet qui en
-couvre le plus passe en premier. Le premier est donc le plus abstrait des
-quatre, et c'est un mauvais tirage — si la personne décroche là, notez-le,
-c'est la règle de tri qu'il faudra revoir et pas la question.
+Un quatrième sujet existe — cinq endroits qui calculent une empreinte
+(`src/Billing`, `src/Entity`, `src/Feedback`, `src/Identity`, `src/Security`) —
+et il est posé **en dernier, exprès**. Ce qu'on y trouve est du SHA-256, sain
+quelle que soit la durée déclarée : aucune réponse ne peut y changer un verdict.
+Il reste dans l'entretien parce que la déclaration survit à cette analyse, mais
+il ne mérite pas l'attention du début de séance. Si le temps manque, c'est
+celui-là qu'on saute.
 
 Les deux images mal nommées n'y sont **délibérément pas** : un `.png` qui est
 un JPEG est une confirmation de développeur, pas une décision métier.
@@ -212,7 +214,7 @@ Notez ses mots, pas seulement sa conclusion.
 
 ### La ligne à surveiller
 
-Le coffre, sujet 4. Un passage à blanc répondant « vingt ans » à la question du
+Le coffre, sujet 3. Un passage à blanc répondant « vingt ans » à la question du
 tort fait basculer ce constat en **COMPROMIS** et place sa date de bascule à
 *déjà franchie* — un rapport qui passe d'aucun rouge à un rouge, sur la foi
 d'une phrase dite à voix haute. L'arithmétique n'est pas la partie

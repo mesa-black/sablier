@@ -589,4 +589,6 @@ Première action : %s',
     'detail.tf.key' => "Clé créée par l'infrastructure elle-même.",
     'detail.tf.kms_spec' => "Clé asymétrique au service de gestion de clés : à confirmer, l'usage dépend de qui s'en sert.",
     'blind.managed_services.iac' => "L'infrastructure déclarée en code a été lue : ce qui suit est ce qu'elle demande au fournisseur. Ce que le fournisseur en fait réellement — ses propres clés, ses propres algorithmes, sa terminaison TLS — reste hors de ce rapport.",
+    'detail.openssl_rsa' => "Chiffrement RSA direct : ce qui est chiffré aujourd'hui se déchiffre le jour où RSA tombe.",
+    'detail.openssl_rsa_sign' => 'Opération RSA avec la clé privée : signature ou scellement.',
 ];

@@ -580,4 +580,6 @@ Primera acción: %s',
     'detail.tf.key' => 'Una clave que la infraestructura crea para sí misma.',
     'detail.tf.kms_spec' => 'Una clave asimétrica en el servicio de gestión de claves: a confirmar, el uso depende de quién la llame.',
     'blind.managed_services.iac' => 'Se ha leído la infraestructura declarada como código: lo que sigue es lo que pide al proveedor. Lo que el proveedor hace realmente —sus propias claves, sus algoritmos, su terminación TLS— queda fuera de este informe.',
+    'detail.openssl_rsa' => 'Cifrado RSA directo: lo que se cifra hoy se descifra el día en que RSA caiga.',
+    'detail.openssl_rsa_sign' => 'Operación RSA con la clave privada: firma o sellado.',
 ];

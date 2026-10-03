@@ -580,4 +580,6 @@ First action: %s',
     'detail.tf.key' => 'A key the infrastructure creates for itself.',
     'detail.tf.kms_spec' => 'An asymmetric key in the key management service: to confirm, since the use depends on who calls it.',
     'blind.managed_services.iac' => 'The infrastructure declared as code was read: what follows is what it asks of the provider. What the provider actually does — its own keys, its own algorithms, its TLS termination — is still outside this report.',
+    'detail.openssl_rsa' => 'Direct RSA encryption: what is sealed today is readable the day RSA falls.',
+    'detail.openssl_rsa_sign' => 'An RSA operation with the private key: a signature or a seal.',
 ];

@@ -71,6 +71,11 @@ final class PhpDetector extends PatternDetector
             ['/openssl_(?:en|de)crypt\s*\(\s*[^,]+,\s*[\$A-Z]/', null, Catalogue::PURPOSE_CONFIDENTIALITY, 'detail.cipher_from_variable'],
             ['/OPENSSL_KEYTYPE_RSA/', 'rsa', Catalogue::PURPOSE_CONFIDENTIALITY, 'detail.rsa_keygen'],
             ['/OPENSSL_KEYTYPE_EC/', 'ecdsa', Catalogue::PURPOSE_AUTHENTICITY, 'detail.ec_keygen'],
+            // RSA used directly, which is how most PHP code encrypts for a
+            // recipient. Found missing when a fixture written to test something
+            // else produced no finding at all.
+            ['/openssl_(?:public_encrypt|private_decrypt)\s*\(/', 'rsa', Catalogue::PURPOSE_CONFIDENTIALITY, 'detail.openssl_rsa'],
+            ['/openssl_(?:private_encrypt|public_decrypt)\s*\(/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, 'detail.openssl_rsa_sign'],
             ['/openssl_sign\s*\(/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, 'detail.openssl_sign'],
             ['/openssl_verify\s*\(/', 'rsa-sign', Catalogue::PURPOSE_AUTHENTICITY, 'detail.openssl_verify'],
             ['/sodium_crypto_box\w*\s*\(/', 'ecdh', Catalogue::PURPOSE_CONFIDENTIALITY, 'detail.sodium_box'],

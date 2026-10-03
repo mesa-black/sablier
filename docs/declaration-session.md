@@ -175,15 +175,16 @@ minutes, forty with the report read in front of the person.
 
 | # | Subject | What the person will be shown |
 |---|---|---|
-| 1 | 5 places — `src/Billing`, `src/Entity`, `src/Feedback`, `src/Identity`, `src/Security` | a fingerprint computed over content |
-| 2 | `.env`, `.env.dev`, `.env.test` | settings read at startup: what it connects to, with which account and password |
-| 3 | `composer` | public-key encryption — so only the recipient can read it back, or to protect a backup |
-| 4 | `config/secrets` | a vault of secrets — passwords, keys, tokens, encrypted, protecting everything else |
+| 1 | `.env`, `.env.dev`, `.env.test` | settings read at startup: what it connects to, with which account and password |
+| 2 | `composer` | public-key encryption — so only the recipient can read it back, or to protect a backup |
+| 3 | `config/secrets` | a vault of secrets — passwords, keys, tokens, encrypted, protecting everything else |
 
-The order comes from the number of files, not from importance: the subject
-covering the most comes first. So the first one is the most abstract of the
-four, which is a bad draw — if the person loses interest there, write it down:
-what needs revisiting is the sort rule, not the question.
+A fourth subject exists — five places computing a fingerprint (`src/Billing`,
+`src/Entity`, `src/Feedback`, `src/Identity`, `src/Security`) — and it is asked
+**last, on purpose**. What sits there is SHA-256, sound at every declared
+lifetime: no answer can change a verdict. It stays in the interview because the
+declaration outlives this scan, but it does not deserve the attention of the
+first minutes. If time runs short, that is the one to skip.
 
 The two mislabelled images are deliberately **not** in the list: a `.png` that
 is a JPEG is a developer's confirmation, not a business decision.
@@ -206,7 +207,7 @@ Write down their words, not only their conclusion.
 
 ### The line to watch
 
-The vault, subject 4. A dry run answering "twenty years" to the harm question
+The vault, subject 3. A dry run answering "twenty years" to the harm question
 turns that finding **COMPROMISED** and moves its crossing date to *already
 past* — a report that went from no red at all to one red, on the strength of a
 sentence somebody said out loud. The arithmetic is not the interesting part.

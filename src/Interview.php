@@ -60,7 +60,7 @@ final class Interview
      *
      * @param list<Finding> $findings
      *
-     * @return list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, files:int, names:list<string>, algorithms:list<string>}>
+     * @return list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, decides:bool, files:int, names:list<string>, algorithms:list<string>}>
      */
     public static function areas(array $findings, Declaration $declaration): array
     {
@@ -77,6 +77,13 @@ final class Interview
 
             [$path, $pattern] = self::area($finding->file);
             $areas[$path]['pattern'] = $pattern;
+            // Whether an answer here can change anything. SHA-256 is sound at
+            // every lifetime, so a subject made only of it is a minute spent
+            // for nothing — and on one real project it was the first question
+            // of the session. Asked last rather than dropped: the declaration
+            // outlives this scan, and the next one may find something there.
+            $areas[$path]['decides'] = ($areas[$path]['decides'] ?? false)
+                || $finding->verdict !== Assessor::CLEAR;
             $areas[$path]['files'][$finding->file] = true;
             $areas[$path]['algorithms'][$finding->algorithm] = true;
         }
@@ -88,13 +95,15 @@ final class Interview
             $out[] = [
                 'path' => $path,
                 'pattern' => $area['pattern'],
+                'decides' => $area['decides'],
                 'files' => \count($names),
                 'names' => \array_slice($names, 0, 3),
                 'algorithms' => array_keys($area['algorithms']),
             ];
         }
 
-        usort($out, static fn (array $a, array $b): int => $b['files'] <=> $a['files'] ?: strcmp($a['path'], $b['path']));
+        usort($out, static fn (array $a, array $b): int => [$b['decides'], $b['files']] <=> [$a['decides'], $a['files']]
+            ?: strcmp($a['path'], $b['path']));
 
         // One subject per sentence. The label is what the agenda prints, so two
         // areas sharing it are, to the person being asked, the same question.
@@ -107,6 +116,7 @@ final class Interview
                     'paths' => [$area['path']],
                     'pattern' => $area['pattern'],
                     'patterns' => [$area['pattern']],
+                    'decides' => $area['decides'],
                     'files' => $area['files'],
                     'names' => $area['names'],
                     'algorithms' => $area['algorithms'],
@@ -117,13 +127,15 @@ final class Interview
 
             $merged[$key]['paths'][] = $area['path'];
             $merged[$key]['patterns'][] = $area['pattern'];
+            $merged[$key]['decides'] = $merged[$key]['decides'] || $area['decides'];
             $merged[$key]['files'] += $area['files'];
             $merged[$key]['names'] = \array_slice([...$merged[$key]['names'], ...$area['names']], 0, 3);
             $merged[$key]['algorithms'] = array_values(array_unique([...$merged[$key]['algorithms'], ...$area['algorithms']]));
         }
 
         $out = array_values($merged);
-        usort($out, static fn (array $a, array $b): int => $b['files'] <=> $a['files'] ?: strcmp($a['path'], $b['path']));
+        usort($out, static fn (array $a, array $b): int => [$b['decides'], $b['files']] <=> [$a['decides'], $a['files']]
+            ?: strcmp($a['path'], $b['path']));
 
         return $out;
     }
