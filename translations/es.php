@@ -571,4 +571,5 @@ Primera acción: %s',
     'detail.hmac_legacy' => 'HMAC construido sobre un resumen obsoleto: los ataques de colisión no se aplican, pero es un mecanismo de autenticación heredado que hay que migrar.',
     'algo.hmac-md5.replacement' => 'HMAC-SHA-256',
     'algo.hmac-sha1.replacement' => 'HMAC-SHA-256',
+    'detail.capability_table' => 'Tabla de algoritmos admitidos: el protocolo obliga a entenderlos, lo que no es un uso. A confirmar.',
 ];

@@ -571,4 +571,5 @@ First action: %s',
     'detail.hmac_legacy' => 'HMAC built on an outdated digest: the collision attacks do not apply, but it is a legacy authentication mechanism to migrate.',
     'algo.hmac-md5.replacement' => 'HMAC-SHA-256',
     'algo.hmac-sha1.replacement' => 'HMAC-SHA-256',
+    'detail.capability_table' => 'A table of supported algorithms: the protocol obliges it to understand them, which is not a use. To confirm.',
 ];

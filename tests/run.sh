@@ -796,18 +796,20 @@ counts=$(php -r '
 	$f = json_decode(file_get_contents($argv[1]), true);
 	$v = [];
 	foreach ($f as $x) { $v[$x["verdict"]] = ($v[$x["verdict"]] ?? 0) + 1; }
-	printf("%d/%d/%d", $v["noise"] ?? 0, $v["urgent"] ?? 0, $v["clear"] ?? 0);
+	printf("%d/%d/%d/%d", $v["noise"] ?? 0, $v["urgent"] ?? 0, $v["clear"] ?? 0, $v["watch"] ?? 0);
 ' "$dg/d.json")
 rm -rf "$dg"
-# Five identifiers, three real uses of a broken digest, one HMAC — and nothing
-# at all for the call that only appears in a comment.
-if [ "$counts" != "5/3/1" ]; then
-	echo "✗ digests: identity and security no longer tell apart (noise/urgent/clear = $counts)"
+# Five identifiers, three real uses of a broken digest, two things to leave
+# alone, two table entries to confirm — and nothing at all for the call that
+# only appears in a comment.
+if [ "$counts" != "5/3/2/2" ]; then
+	echo "✗ digests: identity and security no longer tell apart (noise/urgent/clear/watch = $counts)"
 	exit 1
 fi
 printf '  ✓ %-24s %-10s %s\n' "digests" "identity" "hash codes, locks and filenames are noise"
 printf '  ✓ %-24s %-10s %s\n' "digests" "security" "tokens, fingerprints and KDFs stay red"
 printf '  ✓ %-24s %-10s %s\n' "digests" "hmac" "a keyed digest is not its digest"
+printf '  ✓ %-24s %-10s %s\n' "digests" "tables" "a protocol's algorithm list is inventory"
 
 # --- a closed site: refuse, and print anyway ---------------------------------
 # --airgap is not --no-probe with a different name. One skips a step, the other

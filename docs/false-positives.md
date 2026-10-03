@@ -29,7 +29,8 @@ algorithm named is not the algorithm in the code.
 |---|---|---|---|---|
 | **before** (20 repositories) | 497 | 89 | 82 | **92 %** |
 | **after** (the same 20) | 467 | 8 | 1 | 12 % |
-| **after** (31 repositories, 11 never used for tuning) | 959 | 24 | 6 | **25 %** |
+| **after** (31 repositories, 11 never used for tuning) | 959 | 24 | 6 | 25 % |
+| **after capability tables** (the same 31) | 959 | 21 | 3 | **14 %** |
 
 The first line is the honest starting point: **nine out of ten red findings
 were wrong**. The third is where it stands now. The middle line is there to
@@ -59,14 +60,17 @@ distinction so it cannot rot.
 
 ## What is still wrong, and why it is left
 
-Six false positives remain in the 31 repositories, and they fall in two groups.
+Three false positives remain in the 31 repositories.
 
-Three are **algorithm capability tables** in phpseclib: an SSH client lists
-`hmac-sha1` because the protocol requires it. The right verdict is "confirm",
-not "fix today", and the tool already has that rule for lock files — it does not
-yet recognise a table of supported algorithms as the same kind of statement.
+The three **algorithm capability tables** in phpseclib are fixed: a match arm
+whose *key* names an algorithm — `'hmac-sha1', 'hmac-sha1-etm@openssh.com' =>
+[new Hash('sha1'), 20]` — is an SSH client saying what the specification obliges
+it to understand, and is now reported as inventory to confirm rather than as a
+hole to close. The key naming the algorithm is what separates it from a
+configuration line like `'algorithm' => 'RS256'`, where the key names a setting
+and the value is somebody's choice.
 
-Three are identifiers whose line carries no hint at all: `md5($id)`,
+Three identifiers remain whose line carries no hint at all: `md5($id)`,
 `md5(time() . $buffer)`, `md5($_SERVER['REMOTE_ADDR'])`. Catching those needs
 to know what the value is used for, which a regular expression cannot see.
 Suppressing them by shape would also suppress real findings, and the trade is

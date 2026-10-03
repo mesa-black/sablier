@@ -116,8 +116,8 @@ out.
 
 ## How often it is wrong
 
-Measured, not claimed: **31 public PHP repositories, 959 findings, 24 of them
-red, 6 of those wrong — 25 %.** Before this measurement it was 92 %, and the
+Measured, not claimed: **31 public PHP repositories, 959 findings, 21 of them
+red, 3 of those wrong — 14 %.** Before this measurement it was 92 %, and the
 nine out of ten reds that were wrong were all the same handful of mistakes:
 `mcrypt_*` reported as DES, object hash codes and lock names read as security
 controls, HMAC-MD5 called broken, a call matched inside a comment.
@@ -127,7 +127,7 @@ the judgement on every remaining red finding, and the repositories to reproduce
 it — including the six that were never used for tuning, where the rate was 63 %
 until the rules were made general rather than particular.
 
-Six false positives are left and are documented rather than hidden. Recall did
+Three false positives are left and are documented rather than hidden. Recall did
 not move: every real finding the first corpus contained is still reported.
 
 ## Two sources, because a repository can be wrong

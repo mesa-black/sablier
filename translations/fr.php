@@ -580,4 +580,5 @@ Première action : %s',
     'detail.hmac_legacy' => "HMAC construit sur un condensat dépassé : les collisions ne s'y appliquent pas, mais c'est un mécanisme d'authentification à migrer.",
     'algo.hmac-md5.replacement' => 'HMAC-SHA-256',
     'algo.hmac-sha1.replacement' => 'HMAC-SHA-256',
+    'detail.capability_table' => "Table d'algorithmes supportés : le protocole impose de les comprendre, ce n'est pas un usage. À confirmer.",
 ];

@@ -20,6 +20,18 @@ final class Digests
     // CLEAR — HMAC is not its digest.
     public function legacyAuth(string $data, string $key): string { return hash_hmac('md5', $data, $key); }
 
+    // WATCH — a table of what a protocol obliges it to understand, not a use.
+    public function macs(string $name): array
+    {
+        return match ($name) {
+            'hmac-sha2-256' => [new Hash('sha256'), 32],
+            'hmac-sha1', 'hmac-sha1-etm@openssh.com' => [new Hash('sha1'), 20],
+            'hmac-md5'
+                => [new Hash('md5'), 16],
+            default => null,
+        };
+    }
+
     // Nothing at all: a mention in a comment.
     // This used to call hash_hmac('sha1', $data, $key) before the migration.
 }

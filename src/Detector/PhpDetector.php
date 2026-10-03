@@ -6,6 +6,7 @@ namespace Sablier\Detector;
 
 use Sablier\Catalogue;
 use Sablier\Finding;
+use Sablier\Lang;
 use Sablier\SourceFile;
 
 /** Cryptography called from PHP source. */
@@ -105,10 +106,40 @@ final class PhpDetector extends PatternDetector
         ];
     }
 
+    /**
+     * A table of algorithms a protocol requires, rather than a use of one.
+     *
+     * `'hmac-sha1', 'hmac-sha1-etm@openssh.com' => [new Hash('sha1'), 20]` is an
+     * SSH client saying what the specification obliges it to understand. The
+     * key names the algorithm, which is what separates it from a configuration
+     * line like `'algorithm' => 'RS256'`, where the key names a setting and the
+     * value is somebody's choice.
+     */
+    private const string CAPABILITY_ARM = '/^\s*(?:default|[\'"][\w.@+-]*(?:hmac|sha|md5|rsa|ecdsa|ecdh|dsa|aes|3?des|rc[24]|curve|ed25519|x25519|nistp|ssh-)[\w.@+-]*[\'"])'
+        .'(?:\s*,\s*[\'"][\w.@+-]+[\'"])*\s*=>'
+        // An arm wrapped over two lines puts the key above and the arrow below,
+        // and a line that opens with `=>` is never anything else.
+        .'|^\s*=>/i';
+
     protected function finding(SourceFile $file, int $offset, ?string $algorithm, string $purpose, string $detail): ?Finding
     {
         $finding = parent::finding($file, $offset, $algorithm, $purpose, $detail);
-        if ($finding === null || !\in_array($algorithm, self::HASHES, true)) {
+        if ($finding === null) {
+            return null;
+        }
+
+        // Presence in a table is not a call site — the same rule the lock files
+        // already get, and the reason their broken entries are reported as
+        // something to confirm rather than something to fix tonight.
+        if (preg_match(self::CAPABILITY_ARM, $file->lineTextAt($offset)) === 1) {
+            return new Finding(
+                $finding->algorithm, $finding->purpose, $finding->file, $finding->line,
+                $finding->evidence, $finding->confidence, $finding->likelyNonCrypto,
+                Lang::t('detail.capability_table'), inventory: true,
+            );
+        }
+
+        if (!\in_array($algorithm, self::HASHES, true)) {
             return $finding;
         }
 
