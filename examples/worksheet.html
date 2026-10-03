@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Questionnaire Sablier — tmp.U8FRFSHEPD</title>
+<style>:root{--ink:#16181d;--muted:#55595f;--paper:#fbfaf8;--line:#dcd8d2;--accent:#2a4c7d;--bad:#8f241c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);line-height:1.55;
+     font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;gap:1rem;
+       padding:1rem 1.5rem;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:.22em;font-size:.8rem}
+.project{font-weight:400;letter-spacing:0;color:var(--muted);margin-left:.7rem;text-transform:none}
+.clock{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem}
+main{max-width:40rem;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:0 0 1.2rem;text-wrap:balance}
+h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:2.2rem 0 .6rem}
+.lead{font-size:1.05rem}
+.found{border-left:3px solid var(--accent);padding:.5rem 0 .5rem 1rem;margin:1.4rem 0 1.8rem;font-size:1.05rem}
+.purpose{background:#00000008;border-radius:3px;padding:.9rem 1.1rem;margin:0 0 1.6rem}
+.q{font-weight:600}
+.reuses{margin:-.8rem 0 1.6rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;font-size:.85rem;color:var(--muted)}
+.reuse{margin:0;padding:.25rem .6rem;font-size:.85rem;background:transparent;color:var(--ink);
+       border:1px solid var(--line);border-radius:999px;cursor:pointer}
+.hint{display:block;color:var(--muted);font-size:.85rem;margin:.2rem 0 .5rem}
+.optional .q{font-weight:400;color:var(--muted)}
+.years{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}
+.year{border:1px solid var(--line);border-radius:3px;padding:.45rem .8rem;cursor:pointer;background:#fff}
+.year:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.year input{margin-right:.35rem}
+.where{color:var(--muted);font-size:.85rem;font-family:ui-monospace,Menlo,monospace;margin:0 0 1.8rem}
+.field{display:block;margin:1.4rem 0}
+.field span{display:block;margin-bottom:.4rem}
+input[type=text],textarea{width:100%;padding:.7rem .8rem;font-size:1rem;font-family:inherit;line-height:1.5;
+                 border:1px solid var(--line);border-radius:3px;background:#fff;color:inherit}
+textarea{resize:vertical;min-height:4.5rem}
+input[type=text]:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+fieldset{border:1px solid var(--line);border-radius:3px;margin:1.4rem 0;padding:.8rem 1rem}
+legend{color:var(--muted);font-size:.85rem;padding:0 .3rem}
+.choice{display:block;margin:.4rem 0}
+button,.button{display:inline-block;margin-top:1.2rem;padding:.75rem 1.4rem;font-size:1rem;font-family:inherit;
+               border:1px solid var(--ink);border-radius:3px;background:var(--ink);color:var(--paper);
+               cursor:pointer;text-decoration:none}
+button.ghost{background:transparent;color:var(--muted);border-color:var(--line);margin-left:.6rem}
+.actions{display:flex;flex-wrap:wrap;align-items:center}
+.questions{color:var(--muted);padding-left:1.2rem}
+.questions li{margin:.5rem 0}
+.subjects{list-style:none;padding:0;margin:1.6rem 0}
+.subjects li{border-top:1px solid var(--line);padding:.7rem 0;display:flex;justify-content:space-between;gap:1rem}
+.subjects span{color:var(--muted);font-size:.85rem;text-align:right}
+.subjects span code{white-space:nowrap}
+/* Several places under one description: the list of paths needs a
+   line of its own, or it squeezes the label into two. */
+.subjects li.many{flex-direction:column;align-items:flex-start;gap:.25rem}
+.subjects li.many span{text-align:left}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
+td{border-bottom:1px solid var(--line);padding:.45rem .4rem;vertical-align:top}
+td.n{text-align:right;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.verdicts{list-style:none;padding:0;margin:.4rem 0}
+.verdicts li{margin:.3rem 0}
+.count{display:inline-block;min-width:1.8rem;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.note{color:var(--muted);font-size:.85rem;margin-top:2rem}
+/* Every surface that was given a literal white above has to be
+   given one here too. A dark override placed before the rule it
+   overrides loses on source order, which is how a text area ended
+   up white with light grey text in it — unreadable, and only on
+   the screen somebody was typing a sentence into. */
+@media (prefers-color-scheme:dark){
+    :root{--ink:#e9e6e1;--paper:#15161a;--line:#33363d;--muted:#9a9790;--accent:#8aa8d8}
+    input[type=text],textarea,.year{background:#1d1f24;color:var(--ink)}
+    input[type=text]::placeholder,textarea::placeholder{color:var(--muted)}
+    .purpose{background:#ffffff0a}
+    button,.button{background:var(--ink);color:var(--paper)}
+    button.ghost{background:transparent;color:var(--ink)}
+}
+.out{width:100%;min-height:9rem;font-family:ui-monospace,Menlo,Consolas,monospace;
+     font-size:.8rem;line-height:1.4;margin:.6rem 0 1rem}
+.row{display:flex;flex-wrap:wrap;gap:.6rem;margin:1rem 0}
+.done-note{color:var(--muted);font-size:.9rem}
+table{width:100%;border-collapse:collapse;margin:1.4rem 0}
+td{border-top:1px solid var(--line);padding:.55rem 0;font-size:.92rem}
+td.n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}</style></head>
+<body>
+<header><span class="brand">SABLIER<span class="project">tmp.U8FRFSHEPD</span></span>
+<span class="clock" id="clock" aria-hidden="true">0:00</span></header>
+<main id="main"></main>
+<script id="data" type="application/json">{"format":1,"project":"tmp.U8FRFSHEPD","generated_on":"2026-10-03","lang":"fr","subjects":[{"paths":["deploy"],"patterns":["deploy/*"],"names":["deploy/backup.sh"],"title":"Sujet 1 sur 2 · la partie « deploy »","count":"1 fichier(s)","found":"Ici, l'application chiffre quelque chose avec une clé publique — typiquement pour que seul le destinataire puisse le relire, ou pour protéger une sauvegarde.","label":"Chiffrement à clé publique","signature":false,"suggested":""},{"paths":["src"],"patterns":["src/*"],"names":["src/Tokens.php"],"title":"Sujet 2 sur 2 · la partie « src »","count":"1 fichier(s)","found":"Ici, l'application chiffre du contenu avant de le ranger ou de l'envoyer. Le chiffrement sert à ce que personne d'autre ne puisse le lire.","label":"Contenu chiffré","signature":false,"suggested":""}],"years":[{"value":0,"harm":"Aucun tort","trust":"Pas besoin de preuve"},{"value":1,"harm":"1 ans","trust":"1 ans"},{"value":3,"harm":"3 ans","trust":"3 ans"},{"value":5,"harm":"5 ans","trust":"5 ans"},{"value":10,"harm":"10 ans","trust":"10 ans"},{"value":20,"harm":"20 ans","trust":"20 ans"},{"value":30,"harm":"30 ans","trust":"30 ans"}],"regimes":[{"key":"general","label":"Commercial ou grand public — échéance 2035 (NIST IR 8547, brouillon)"},{"key":"anssi","label":"Institutionnel, données sensibles — 2030, date après laquelle l'ANSSI juge déraisonnable d'acheter sans post-quantique"},{"key":"nss","label":"Systèmes de sécurité nationale — 2030 pour la signature et le réseau, 2033 pour le reste (CNSA 2.0)"}],"t":{"introTitle":"Avant de commencer","purpose":"Ce qu'on fait et pourquoi : on vérifie combien de temps les protections de tmp.U8FRFSHEPD tiendront. La machine sait lire ce qui est protégé ; elle ne sait pas combien de temps chaque donnée doit rester secrète. C'est la seule chose qu'on vient vous demander, et c'est elle qui décide du résultat.","lead":"Nous allons passer en revue 2 sujets de tmp.U8FRFSHEPD. Pour chacun, je vous montre ce qui est protégé à cet endroit, et je vous pose deux ou trois questions courtes.","q1":"Si quelqu'un en obtenait une copie, de quoi parlerait-on, dans vos mots ? (exemples : comptabilité, dossiers clients, pièces jointes)","q2":"Combien d'années devez-vous garder ça ? (obligation légale, contrat, ou votre propre règle ; 0 si rien ne l'impose)","q3":"Si ça sortait aujourd'hui, pendant combien d'années est-ce que ça ferait encore du tort ? (0 si c'est public ou sans conséquence)","rules":"Aucune question n'est technique, et il n'y a pas de bonne réponse. Si vous ne savez pas, passez le sujet : ce qui reste sans réponse sera écrit comme tel dans le rapport, plutôt qu'inventé. Le chronomètre sert à nous, pas à vous juger : il nous dit où nos questions sont mal posées.","start":"Commencer","offlineNote":"Ce fichier ne communique avec rien : pas de serveur, pas de réseau, aucune donnée envoyée nulle part. Tout reste dans cette page tant qu'elle est ouverte. À la fin, vous récupérez vos réponses — des noms de données et des durées, jamais le contenu de l'application — et vous les transmettez à la personne qui a préparé l'audit.","contextTitle":"Deux questions sur le système","contextLead":"Elles déplacent toutes les réponses qui suivent : combien de temps ce système écrira encore des données, et à quel cadre il répond.","who":"Qui répond à ces questions ?","whoHint":"Nom et fonction. C'est écrit à côté de chaque durée dans le rapport : une durée sans auteur est une durée que personne ne pensera à remettre en question.","service":"Jusqu'à quelle année cette application écrira-t-elle encore des données ? (une année, ou entrée si vous ne savez pas)","regime":"Dans quel cadre ce système fonctionne-t-il ?","name":"De quelles données parle-t-on, chez vous ?","nameHint":"Un nom court, celui que vous utiliseriez en réunion : comptabilité, dossiers clients, accès techniques. Corrigez la proposition si elle est fausse.","reuse":"Déjà nommé :","harm":"Si ça se retrouvait en ligne demain, pendant combien de temps est-ce que ça ferait encore du tort ?","harmHint":"Au doigt mouillé, et sans vous censurer : c'est la réponse qui décide du verdict.","trust":"Pendant combien de temps devra-t-on pouvoir prouver que c'est bien vous qui l'avez émis ?","trustHint":"Ici rien n'est caché : une signature est publique, elle sert à prouver l'origine. La question est la durée de cette preuve.","retention":"Une loi ou un contrat vous oblige-t-il à garder ces données ? (facultatif)","retentionHint":"Si oui, combien d'années. Sinon, laissez vide — la plupart du temps c'est vide.","note":"Pourquoi cette durée ? Une phrase, pour la personne qui relira (facultatif)","where":"Dans : %s","next":"Suivant","unknown":"Je ne sais pas","skip":"Passer ce sujet","feedbackTitle":"Deux dernières questions, sur l'entretien lui-même","feedbackLead":"Celles-ci servent à corriger l'outil. Elles ne vont pas dans le rapport : elles vont dans le compte rendu de séance.","missing":"Une question que vous auriez attendue et qu'on ne vous a pas posée ?","unclear":"Un mot, une phrase que vous n'avez pas compris ?","finish":"Terminer et récupérer mes réponses","doneTitle":"Voilà ce que votre heure a produit","doneLead":"%d sujet(s) déclaré(s), en %s.","download":"Enregistrer mes réponses","copy":"Copier","copied":"Copié","skipped":"passée","doesNotKnow":"ne sait pas","years":"ans","handBack":"Enregistrez ce fichier ou copiez son contenu, et transmettez-le à la personne qui mène l'audit. C'est tout ce dont elle a besoin : le rapport sera calculé chez elle."}}</script>
+<script>(function () {
+  var D = JSON.parse(document.getElementById('data').textContent);
+  var T = D.t, main = document.getElementById('main'), clock = document.getElementById('clock');
+  var state = {step: 'intro', index: 0, context: {}, answers: [], record: [], feedback: {},
+               startedAt: 0, servedAt: 0};
+
+  function esc(s) {
+    return String(s === undefined || s === null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function fmt(template, value) { return String(template).replace('%s', value); }
+  function seconds() { return Math.round((Date.now() - state.servedAt) / 100) / 10; }
+  function duration(s) {
+    return s < 60 ? Math.round(s) + ' s'
+      : Math.floor(s / 60) + ' min ' + String(Math.round(s % 60)).padStart(2, '0') + ' s';
+  }
+
+  setInterval(function () {
+    if (!state.startedAt) { return; }
+    var t = Math.floor((Date.now() - state.startedAt) / 1000);
+    clock.textContent = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+  }, 1000);
+
+  function intro() {
+    var rows = D.subjects.map(function (s) {
+      var paths = s.paths.map(function (p) { return '<code>' + esc(p) + '</code>'; }).join(' ');
+      return '<li' + (s.paths.length > 1 ? ' class="many"' : '') + '><strong>' + esc(s.label) +
+             '</strong><span>' + esc(s.count) + ' · ' + paths + '</span></li>';
+    }).join('');
+    main.innerHTML = '<h1>' + esc(T.introTitle) + '</h1>' +
+      '<p class="purpose">' + esc(T.purpose) + '</p>' +
+      '<p class="lead">' + esc(T.lead) + '</p>' +
+      '<ol class="questions"><li>' + esc(T.q1) + '</li><li>' + esc(T.q2) + '</li><li>' +
+      esc(T.q3) + '</li></ol>' +
+      '<p>' + esc(T.rules) + '</p>' +
+      '<ul class="subjects">' + rows + '</ul>' +
+      '<div class="actions"><button type="button" id="go">' + esc(T.start) + '</button></div>' +
+      '<p class="note">' + esc(T.offlineNote) + '</p>';
+    document.getElementById('go').addEventListener('click', function () {
+      state.startedAt = Date.now();
+      state.servedAt = Date.now();
+      state.step = 'context';
+      render();
+    });
+  }
+
+  function context() {
+    var regimes = D.regimes.map(function (r, i) {
+      return '<label class="choice"><input type="radio" name="regime" value="' + esc(r.key) + '"' +
+             (i === 0 ? ' checked' : '') + '> ' + esc(r.label) + '</label>';
+    }).join('');
+    main.innerHTML = '<h1>' + esc(T.contextTitle) + '</h1>' +
+      '<p class="lead">' + esc(T.contextLead) + '</p>' +
+      '<label class="field"><span class="q">' + esc(T.who) + '</span>' +
+      '<span class="hint">' + esc(T.whoHint) + '</span>' +
+      '<input type="text" id="who" autocomplete="off" autofocus></label>' +
+      '<label class="field"><span class="q">' + esc(T.service) + '</span>' +
+      '<input type="text" id="service" inputmode="numeric" placeholder="2032"></label>' +
+      '<div class="field" role="radiogroup" aria-labelledby="regime-q">' +
+      '<span class="q" id="regime-q">' + esc(T.regime) + '</span>' + regimes + '</div>' +
+      '<div class="actions"><button type="button" id="next">' + esc(T.next) + '</button></div>';
+    document.getElementById('next').addEventListener('click', function () {
+      var year = parseInt(document.getElementById('service').value, 10);
+      state.context = {
+        who: document.getElementById('who').value.trim(),
+        regime: (document.querySelector('input[name=regime]:checked') || {}).value || 'general'
+      };
+      if (year >= 2024 && year <= 2100) { state.context.service_until = year; }
+      state.contextSeconds = seconds();
+      state.step = 'subject';
+      state.servedAt = Date.now();
+      render();
+    });
+  }
+
+  function subject() {
+    var s = D.subjects[state.index];
+    var used = state.answers.map(function (a) { return a.name; })
+      .filter(function (v, i, all) { return v && all.indexOf(v) === i; });
+    var chips = used.length === 0 ? '' :
+      '<p class="used">' + esc(T.reuse) + ' ' + used.map(function (name) {
+        return '<button type="button" class="reuse" data-name="' + esc(name) + '">' + esc(name) + '</button>';
+      }).join(' ') + '</p>';
+    var years = D.years.map(function (y) {
+      return '<label class="year"><input type="radio" name="harm" value="' + y.value + '"> ' +
+             esc(s.signature ? y.trust : y.harm) + '</label>';
+    }).join('');
+    var where = s.paths.length > 1 ? s.paths.join(', ') : s.names.join(', ');
+
+    main.innerHTML = '<h1>' + esc(s.title) + '</h1>' +
+      '<p class="found">' + esc(s.found) + '</p>' +
+      '<label class="field"><span class="q">' + esc(T.name) + '</span>' +
+      '<span class="hint">' + esc(T.nameHint) + '</span>' +
+      '<input type="text" id="name" value="' + esc(s.suggested) + '" autocomplete="off" autofocus></label>' +
+      chips +
+      '<div class="field" role="radiogroup" aria-labelledby="harm-q">' +
+      '<span class="q" id="harm-q">' + esc(s.signature ? T.trust : T.harm) + '</span>' +
+      '<span class="hint">' + esc(s.signature ? T.trustHint : T.harmHint) + '</span>' +
+      '<div class="years">' + years + '</div></div>' +
+      '<label class="field optional"><span class="q">' + esc(T.retention) + '</span>' +
+      '<span class="hint">' + esc(T.retentionHint) + '</span>' +
+      '<input type="text" id="retention" inputmode="numeric" autocomplete="off"></label>' +
+      '<label class="field optional"><span class="q">' + esc(T.note) + '</span>' +
+      '<textarea id="note" rows="3"></textarea></label>' +
+      '<div class="actions"><button type="button" id="answer">' + esc(T.next) + '</button>' +
+      '<button type="button" id="unknown" class="ghost">' + esc(T.unknown) + '</button>' +
+      '<button type="button" id="skip" class="ghost">' + esc(T.skip) + '</button></div>' +
+      '<p class="where">' + esc(fmt(T.where, where)) + '</p>';
+
+    Array.prototype.forEach.call(document.querySelectorAll('.reuse'), function (b) {
+      b.addEventListener('click', function () { document.getElementById('name').value = b.dataset.name; });
+    });
+    document.getElementById('answer').addEventListener('click', function () { record('answer'); });
+    document.getElementById('unknown').addEventListener('click', function () { record('unknown'); });
+    document.getElementById('skip').addEventListener('click', function () { record('skip'); });
+  }
+
+  function place(paths) {
+    return paths.length > 1 ? paths[0] + ' +' + (paths.length - 1) : paths[0];
+  }
+
+  function record(action) {
+    var s = D.subjects[state.index];
+    var name = document.getElementById('name').value.trim();
+    var took = seconds();
+
+    if (action !== 'answer' || name === '') {
+      state.record.push({area: place(s.paths), places: s.paths, skipped: true,
+                         reason: action === 'unknown' ? 'does_not_know' : 'skipped', seconds: took});
+    } else {
+      var picked = document.querySelector('input[name=harm]:checked');
+      var harm = picked ? parseInt(picked.value, 10) : 0;
+      var retention = parseInt(document.getElementById('retention').value, 10);
+      if (isNaN(retention) || retention < 0) { retention = 0; }
+      // Whichever is longer: data you must keep is data that can
+      // still be stolen. The same rule as Interview::lifetime.
+      var lifetime = Math.max(harm, retention);
+      state.answers.push({name: name, paths: s.patterns, lifetime: lifetime,
+                          note: document.getElementById('note').value.trim(),
+                          trust_anchor: s.signature && harm >= 10,
+                          declared_by: state.context.who || ''});
+      state.record.push({area: place(s.paths), places: s.paths, name: name,
+                         retention_years: retention, harm_years: harm,
+                         lifetime_years: lifetime, skipped: false, seconds: took});
+    }
+
+    state.index += 1;
+    state.servedAt = Date.now();
+    state.step = state.index >= D.subjects.length ? 'feedback' : 'subject';
+    render();
+  }
+
+  function feedback() {
+    main.innerHTML = '<h1>' + esc(T.feedbackTitle) + '</h1>' +
+      '<p class="lead">' + esc(T.feedbackLead) + '</p>' +
+      '<label class="field"><span class="q">' + esc(T.missing) + '</span>' +
+      '<textarea id="missing" rows="4" autofocus></textarea></label>' +
+      '<label class="field"><span class="q">' + esc(T.unclear) + '</span>' +
+      '<textarea id="unclear" rows="4"></textarea></label>' +
+      '<div class="actions"><button type="button" id="finish">' + esc(T.finish) + '</button></div>';
+    document.getElementById('finish').addEventListener('click', function () {
+      state.feedback = {missing: document.getElementById('missing').value.trim(),
+                        unclear: document.getElementById('unclear').value.trim(),
+                        seconds: seconds()};
+      state.step = 'done';
+      render();
+    });
+  }
+
+  function payload() {
+    return {
+      format: D.format,
+      project: D.project,
+      generated_on: D.generated_on,
+      answered_on: new Date().toISOString().slice(0, 10),
+      elapsed_seconds: Math.round((Date.now() - state.startedAt) / 1000),
+      context: state.context,
+      context_seconds: state.contextSeconds || 0,
+      answers: state.answers,
+      record: state.record,
+      feedback: state.feedback
+    };
+  }
+
+  function done() {
+    var text = JSON.stringify(payload(), null, 2);
+    var rows = state.record.map(function (r) {
+      var middle = r.skipped ? (r.reason === 'does_not_know' ? T.doesNotKnow : T.skipped)
+                             : r.lifetime_years + ' ' + T.years;
+      return '<tr><td>' + esc(r.area) + '</td><td>' + esc(r.name || '—') + '</td>' +
+             '<td class="n">' + esc(middle) + '</td><td class="n">' + Math.round(r.seconds) + ' s</td></tr>';
+    }).join('');
+    main.innerHTML = '<h1>' + esc(T.doneTitle) + '</h1>' +
+      '<p class="lead">' + esc(T.doneLead.replace('%d', state.answers.length)
+        .replace('%s', duration(Math.round((Date.now() - state.startedAt) / 1000)))) + '</p>' +
+      '<table>' + rows + '</table>' +
+      '<p>' + esc(T.handBack) + '</p>' +
+      '<div class="row"><button type="button" id="dl">' + esc(T.download) + '</button>' +
+      '<button type="button" id="cp" class="ghost">' + esc(T.copy) + '</button></div>' +
+      '<textarea class="out" id="json" readonly rows="12"></textarea>';
+    document.getElementById('json').value = text;
+    document.getElementById('dl').addEventListener('click', function () {
+      var blob = new Blob([text], {type: 'application/json'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'reponses-' + D.project.replace(/[^A-Za-z0-9._-]+/g, '-') + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+    document.getElementById('cp').addEventListener('click', function () {
+      var field = document.getElementById('json');
+      field.select();
+      try { document.execCommand('copy'); } catch (e) { /* the textarea is still selected */ }
+      document.getElementById('cp').textContent = T.copied;
+    });
+  }
+
+  function render() {
+    ({intro: intro, context: context, subject: subject, feedback: feedback, done: done})[state.step]();
+    window.scrollTo(0, 0);
+  }
+
+  render();
+})();</script>
+</body></html>

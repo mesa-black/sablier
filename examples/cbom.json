@@ -1,0 +1,514 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:92cd7996-cbe6-85ae-90aa-e64e425865da",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-10-03T01:31:27+00:00",
+        "tools": {
+            "components": [
+                {
+                    "type": "application",
+                    "name": "Sablier",
+                    "version": "0.4.0",
+                    "description": "Cryptographic inventory with the expiry date of each protection."
+                }
+            ]
+        },
+        "component": {
+            "type": "application",
+            "bom-ref": "sablier:target",
+            "name": "Fixture"
+        },
+        "properties": [
+            {
+                "name": "sablier:expiry_year",
+                "value": "2035"
+            },
+            {
+                "name": "sablier:current_year",
+                "value": "2026"
+            },
+            {
+                "name": "sablier:default_lifetime_years",
+                "value": "3"
+            }
+        ]
+    },
+    "components": [
+        {
+            "type": "cryptographic-asset",
+            "bom-ref": "sablier:60d4e40f",
+            "name": "AES-256",
+            "evidence": {
+                "occurrences": [
+                    {
+                        "location": "deploy/backup.sh",
+                        "line": 4
+                    }
+                ]
+            },
+            "cryptoProperties": {
+                "assetType": "algorithm",
+                "algorithmProperties": {
+                    "primitive": "block-cipher",
+                    "cryptoFunctions": [
+                        "encrypt",
+                        "decrypt"
+                    ]
+                }
+            },
+            "properties": [
+                {
+                    "name": "sablier:algorithm",
+                    "value": "aes-256"
+                },
+                {
+                    "name": "sablier:fingerprint",
+                    "value": "60d4e40f"
+                },
+                {
+                    "name": "sablier:verdict",
+                    "value": "clear"
+                },
+                {
+                    "name": "sablier:purpose",
+                    "value": "confidentiality"
+                },
+                {
+                    "name": "sablier:domain",
+                    "value": "backups"
+                },
+                {
+                    "name": "sablier:domain_declared",
+                    "value": "true"
+                },
+                {
+                    "name": "sablier:lifetime_years",
+                    "value": "10"
+                },
+                {
+                    "name": "sablier:confidence",
+                    "value": "haute"
+                },
+                {
+                    "name": "sablier:because",
+                    "value": "Tient face à Grover. Rien à faire."
+                },
+                {
+                    "name": "sablier:exposure_end",
+                    "value": "2036"
+                }
+            ]
+        },
+        {
+            "type": "cryptographic-asset",
+            "bom-ref": "sablier:d45d9d61",
+            "name": "RSA",
+            "evidence": {
+                "occurrences": [
+                    {
+                        "location": "deploy/backup.sh",
+                        "line": 3
+                    }
+                ]
+            },
+            "cryptoProperties": {
+                "assetType": "algorithm",
+                "algorithmProperties": {
+                    "primitive": "pke",
+                    "cryptoFunctions": [
+                        "encrypt",
+                        "decrypt"
+                    ],
+                    "nistQuantumSecurityLevel": 0
+                }
+            },
+            "properties": [
+                {
+                    "name": "sablier:algorithm",
+                    "value": "rsa"
+                },
+                {
+                    "name": "sablier:fingerprint",
+                    "value": "d45d9d61"
+                },
+                {
+                    "name": "sablier:verdict",
+                    "value": "compromised"
+                },
+                {
+                    "name": "sablier:purpose",
+                    "value": "confidentiality"
+                },
+                {
+                    "name": "sablier:domain",
+                    "value": "backups"
+                },
+                {
+                    "name": "sablier:domain_declared",
+                    "value": "true"
+                },
+                {
+                    "name": "sablier:lifetime_years",
+                    "value": "10"
+                },
+                {
+                    "name": "sablier:confidence",
+                    "value": "haute"
+                },
+                {
+                    "name": "sablier:because",
+                    "value": "Chiffré aujourd'hui, à garder confidentiel jusqu'en 2036 — soit 1 an après la péremption de RSA. Une capture faite maintenant sera lisible."
+                },
+                {
+                    "name": "sablier:exposure_end",
+                    "value": "2036"
+                }
+            ]
+        },
+        {
+            "type": "cryptographic-asset",
+            "bom-ref": "sablier:e51683bf",
+            "name": "RSA",
+            "evidence": {
+                "occurrences": [
+                    {
+                        "location": "deploy/backup.sh",
+                        "line": 5
+                    }
+                ]
+            },
+            "cryptoProperties": {
+                "assetType": "algorithm",
+                "algorithmProperties": {
+                    "primitive": "signature",
+                    "cryptoFunctions": [
+                        "sign",
+                        "verify"
+                    ],
+                    "nistQuantumSecurityLevel": 0
+                }
+            },
+            "properties": [
+                {
+                    "name": "sablier:algorithm",
+                    "value": "rsa-sign"
+                },
+                {
+                    "name": "sablier:fingerprint",
+                    "value": "e51683bf"
+                },
+                {
+                    "name": "sablier:verdict",
+                    "value": "watch"
+                },
+                {
+                    "name": "sablier:purpose",
+                    "value": "authenticity"
+                },
+                {
+                    "name": "sablier:domain",
+                    "value": "backups"
+                },
+                {
+                    "name": "sablier:domain_declared",
+                    "value": "true"
+                },
+                {
+                    "name": "sablier:lifetime_years",
+                    "value": "10"
+                },
+                {
+                    "name": "sablier:confidence",
+                    "value": "haute"
+                },
+                {
+                    "name": "sablier:because",
+                    "value": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité."
+                },
+                {
+                    "name": "sablier:exposure_end",
+                    "value": "2036"
+                }
+            ]
+        },
+        {
+            "type": "cryptographic-asset",
+            "bom-ref": "sablier:1cb40f3e",
+            "name": "AES-256",
+            "evidence": {
+                "occurrences": [
+                    {
+                        "location": "src/Tokens.php",
+                        "line": 22
+                    }
+                ]
+            },
+            "cryptoProperties": {
+                "assetType": "algorithm",
+                "algorithmProperties": {
+                    "primitive": "block-cipher",
+                    "cryptoFunctions": [
+                        "encrypt",
+                        "decrypt"
+                    ]
+                }
+            },
+            "properties": [
+                {
+                    "name": "sablier:algorithm",
+                    "value": "aes-256"
+                },
+                {
+                    "name": "sablier:fingerprint",
+                    "value": "1cb40f3e"
+                },
+                {
+                    "name": "sablier:verdict",
+                    "value": "clear"
+                },
+                {
+                    "name": "sablier:purpose",
+                    "value": "confidentiality"
+                },
+                {
+                    "name": "sablier:domain",
+                    "value": "session tokens"
+                },
+                {
+                    "name": "sablier:domain_declared",
+                    "value": "true"
+                },
+                {
+                    "name": "sablier:lifetime_years",
+                    "value": "1"
+                },
+                {
+                    "name": "sablier:confidence",
+                    "value": "haute"
+                },
+                {
+                    "name": "sablier:because",
+                    "value": "Tient face à Grover. Rien à faire."
+                },
+                {
+                    "name": "sablier:exposure_end",
+                    "value": "2027"
+                }
+            ]
+        },
+        {
+            "type": "cryptographic-asset",
+            "bom-ref": "sablier:3b0efd3b",
+            "name": "MD5",
+            "evidence": {
+                "occurrences": [
+                    {
+                        "location": "src/Tokens.php",
+                        "line": 12
+                    }
+                ]
+            },
+            "cryptoProperties": {
+                "assetType": "algorithm",
+                "algorithmProperties": {
+                    "primitive": "hash",
+                    "cryptoFunctions": [
+                        "digest"
+                    ]
+                }
+            },
+            "properties": [
+                {
+                    "name": "sablier:algorithm",
+                    "value": "md5"
+                },
+                {
+                    "name": "sablier:fingerprint",
+                    "value": "3b0efd3b"
+                },
+                {
+                    "name": "sablier:verdict",
+                    "value": "noise"
+                },
+                {
+                    "name": "sablier:purpose",
+                    "value": "integrity"
+                },
+                {
+                    "name": "sablier:domain",
+                    "value": "session tokens"
+                },
+                {
+                    "name": "sablier:domain_declared",
+                    "value": "true"
+                },
+                {
+                    "name": "sablier:lifetime_years",
+                    "value": "1"
+                },
+                {
+                    "name": "sablier:confidence",
+                    "value": "haute"
+                },
+                {
+                    "name": "sablier:because",
+                    "value": "Ressemble à un identifiant (clé de cache, empreinte) plutôt qu'à un contrôle de sécurité. À confirmer, pas à corriger."
+                },
+                {
+                    "name": "sablier:exposure_end",
+                    "value": "2027"
+                },
+                {
+                    "name": "sablier:likely_non_crypto",
+                    "value": "true"
+                }
+            ],
+            "externalReferences": [
+                {
+                    "url": "https://nvd.nist.gov/vuln/detail/CVE-2004-2761",
+                    "type": "advisories",
+                    "comment": "CVE-2004-2761"
+                }
+            ]
+        },
+        {
+            "type": "cryptographic-asset",
+            "bom-ref": "sablier:d87d2d2b",
+            "name": "SHA-1",
+            "evidence": {
+                "occurrences": [
+                    {
+                        "location": "src/Tokens.php",
+                        "line": 17
+                    }
+                ]
+            },
+            "cryptoProperties": {
+                "assetType": "algorithm",
+                "algorithmProperties": {
+                    "primitive": "hash",
+                    "cryptoFunctions": [
+                        "digest"
+                    ]
+                }
+            },
+            "properties": [
+                {
+                    "name": "sablier:algorithm",
+                    "value": "sha1"
+                },
+                {
+                    "name": "sablier:fingerprint",
+                    "value": "d87d2d2b"
+                },
+                {
+                    "name": "sablier:verdict",
+                    "value": "urgent"
+                },
+                {
+                    "name": "sablier:purpose",
+                    "value": "integrity"
+                },
+                {
+                    "name": "sablier:domain",
+                    "value": "session tokens"
+                },
+                {
+                    "name": "sablier:domain_declared",
+                    "value": "true"
+                },
+                {
+                    "name": "sablier:lifetime_years",
+                    "value": "1"
+                },
+                {
+                    "name": "sablier:confidence",
+                    "value": "haute"
+                },
+                {
+                    "name": "sablier:because",
+                    "value": "Cassé classiquement, indépendamment du quantique. L'échéance était hier."
+                },
+                {
+                    "name": "sablier:exposure_end",
+                    "value": "2027"
+                }
+            ],
+            "externalReferences": [
+                {
+                    "url": "https://nvd.nist.gov/vuln/detail/CVE-2005-4900",
+                    "type": "advisories",
+                    "comment": "CVE-2005-4900"
+                }
+            ]
+        },
+        {
+            "type": "cryptographic-asset",
+            "bom-ref": "sablier:a994f9c6",
+            "name": "RSA",
+            "evidence": {
+                "occurrences": [
+                    {
+                        "location": "src/Tokens.php",
+                        "line": 7
+                    }
+                ]
+            },
+            "cryptoProperties": {
+                "assetType": "algorithm",
+                "algorithmProperties": {
+                    "primitive": "signature",
+                    "cryptoFunctions": [
+                        "sign",
+                        "verify"
+                    ],
+                    "nistQuantumSecurityLevel": 0
+                }
+            },
+            "properties": [
+                {
+                    "name": "sablier:algorithm",
+                    "value": "rsa-sign"
+                },
+                {
+                    "name": "sablier:fingerprint",
+                    "value": "a994f9c6"
+                },
+                {
+                    "name": "sablier:verdict",
+                    "value": "watch"
+                },
+                {
+                    "name": "sablier:purpose",
+                    "value": "authenticity"
+                },
+                {
+                    "name": "sablier:domain",
+                    "value": "session tokens"
+                },
+                {
+                    "name": "sablier:domain_declared",
+                    "value": "true"
+                },
+                {
+                    "name": "sablier:lifetime_years",
+                    "value": "1"
+                },
+                {
+                    "name": "sablier:confidence",
+                    "value": "haute"
+                },
+                {
+                    "name": "sablier:because",
+                    "value": "Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité."
+                },
+                {
+                    "name": "sablier:exposure_end",
+                    "value": "2027"
+                }
+            ]
+        }
+    ]
+}

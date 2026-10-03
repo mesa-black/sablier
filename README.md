@@ -2,6 +2,9 @@
 
 What is encrypted in your project, and **how long it holds**.
 
+*[Français](README.fr.md) · [Español](README.es.md) — this English version is the
+one that governs; the others are translations, and the drift is checked in CI.*
+
 *Scoping study: [docs/scoping.md](docs/scoping.md)*
 
 Sablier reads a project, inventories its cryptography, and crosses that inventory
@@ -57,7 +60,10 @@ run. Both are regenerated at each release, and both are a single self-contained
 file — open them from disk. [`examples/report.pdf`](examples/report.pdf) and
 [`examples/audit.pdf`](examples/audit.pdf) are the same two documents as this
 tool typesets them, thirteen and twenty-six kilobytes, which is what a PDF
-weighs when no browser printed it. [`CHANGELOG.md`](CHANGELOG.md) says what each
+weighs when no browser printed it. [`examples/worksheet.html`](examples/worksheet.html)
+is the offline interview as it is handed over, [`examples/cbom.json`](examples/cbom.json)
+the same inventory as CycloneDX, and [`examples/crossings.ics`](examples/crossings.ics)
+the crossing dates as a calendar. [`CHANGELOG.md`](CHANGELOG.md) says what each
 release changed.
 
 The report is a self-contained HTML file: no remote font, no script, no request.
@@ -291,9 +297,20 @@ nothing. And when most findings sit in undeclared domains, finishing the
 declaration comes before everything else — until then the verdicts above are
 approximations delivered in a confident typeface.
 
-A share button hands the summary to Threema, which opens a local application
-with plain text. Nothing reaches a third-party server, which is the only kind of
-sharing this tool can offer without contradicting its own footer.
+A share button hands the summary to **Threema**, which opens a local
+application with plain text. Nothing reaches a third-party server, which is the
+only kind of sharing this tool can offer without contradicting its own footer.
+
+Threema is the house channel for everything this tool hands over, and the reason
+is in the arithmetic rather than in a preference: it is end-to-end encrypted, it
+authenticates the person rather than a domain, and the key that matters is
+checked by scanning a code in front of somebody. That is exactly the property an
+audit needs when it sends a **fingerprint** — see further down: the report may go
+by e-mail, the fingerprint must not go the same way.
+
+`threema://` is a phone scheme. On a desktop that has never registered it the
+browser refuses the link, so the summary it would have carried is printed in a
+disclosure under the button, selectable in one click.
 
 ## Wrong findings
 
@@ -812,39 +829,24 @@ declaration, `signing_public_key` and `signing_public_key_pq`. A post-quantum ke
 signs would be worth nothing to the one reader this signature exists for: the
 one who can already forge the Ed25519 half.
 
-## Signing a report
+### What is actually signed
 
-```bash
-sablier keygen                                   # private key, mode 600
-sablier scan /path --sign=sablier.key            # writes report.html.sig
-sablier verify report.html.sig --declare=sablier.json
-```
+**A digest of the findings, not the file.** Two runs of the same inventory
+differ byte for byte — a rendering date, a duration — while saying exactly the
+same thing; two renderings in two languages give the same digest.
 
-What is signed is **a digest of the findings, not the file**. Two runs of the
-same inventory differ byte for byte — a rendering date, a duration — while
-saying exactly the same thing; two renderings in two languages give the same
-digest. The expected public key lives in the versioned declaration, because a
-signature that verifies against whatever key came with it proves only that
-somebody had a key.
+**Each report names the one before it.** A second run over the same output path
+reads the signature it is about to replace and records that digest inside what
+it signs, with no flag to remember — so a folder of reports is an audit trail
+rather than a pile of files, and `sablier verify new.sig --previous=old.sig`
+says whether the link holds. A report that claims a predecessor says so even
+when the earlier file is not at hand: somebody holding one document learns that
+another exists.
 
-And the uncomfortable part, printed in the report rather than buried in a
-footnote: **the signature is Ed25519, which this very tool classifies as
-quantum-vulnerable.** PHP offers no post-quantum signature at all — RSA and
-ECDSA through ext-openssl, Ed25519 through ext-sodium, all three broken by the
-same algorithm — so the choice was never "Ed25519 or nothing" but "Ed25519 or
-equally exposed". That is defensible for a report
-whose authenticity matters for months — a signature cannot be harvested, and
-breaking the curve in 2035 does not forge a 2026 signature anyone still cares
-about. It is not defensible for a report you must still prove genuine after the
-expiry year. Sablier tells you which of the two you are in and lets you decide.
-
-**Each report names the one before it.** A second run over the same output
-path reads the signature it is about to replace and records that digest inside
-what it signs, with no flag to remember — so a folder of reports is an audit
-trail rather than a pile of files, and `sablier verify new.sig
---previous=old.sig` says whether the link holds. A report that claims a
-predecessor says so even when the earlier file is not at hand: somebody
-holding one document learns that another exists.
+With an ephemeral key each link is signed by a different pair, so the chain is a
+sequence of independently authenticated statements that reference each other
+rather than one key vouching for all of them. The recipient needs every
+fingerprint, and the audit report prints each one.
 
 There is no blockchain here and there will not be one. A chain of your own is
 one node, which is one person: no more trustworthy than the signature it would

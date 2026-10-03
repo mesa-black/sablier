@@ -785,6 +785,22 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "expose" "guard" "403 without, 200 with"
 rm -rf "$exp"
 
+# --- three READMEs that still describe the same tool --------------------------
+# The English one governs and the others are translations, which rot in silence
+# unless something counts them. Headings are the cheap half of that: a section
+# added to one and not the others shows up here rather than in front of a reader
+# who does not read English.
+for level in "^## " "^### "; do
+	en=$(grep -c "$level" README.md || true)
+	fr=$(grep -c "$level" README.fr.md || true)
+	es=$(grep -c "$level" README.es.md || true)
+	if [ "$en" != "$fr" ] || [ "$en" != "$es" ]; then
+		echo "✗ readme: $level — en=$en fr=$fr es=$es, the translations have drifted"
+		exit 1
+	fi
+done
+printf '  ✓ %-24s %-10s %s\n' "readme" "three langs" "same sections in en, fr and es"
+
 # --- the questions that can change something, first ---------------------------
 # SHA-256 is sound at every lifetime, so a subject made only of it cannot be
 # changed by any answer. On the first real project this tool was pointed at,
