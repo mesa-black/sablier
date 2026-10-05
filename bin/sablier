@@ -464,6 +464,9 @@ if ($command === 'serve') {
         'log' => \dirname($out).'/session.json',
         'report' => $directory.'/report.html',
         'areas' => $areas,
+        // Read once, here: the questions are worded against it and a subprocess
+        // per screen would be a subprocess per screen.
+        'started_in' => Interview::startedIn($root),
         'index' => 0,
         'answers' => [],
         'record' => [],
@@ -553,7 +556,9 @@ if ($command === 'worksheet') {
 
     $out ??= 'worksheet.html';
     $project = $declaration->project !== '' ? $declaration->project : basename($root);
-    file_put_contents($out, Worksheet::render($project, $areas, date('Y-m-d')));
+    // The project's own history, so the questions can be anchored on years the
+    // person lived through rather than on spans nobody estimates well.
+    file_put_contents($out, Worksheet::render($project, $areas, date('Y-m-d'), Interview::startedIn($root)));
     printf("\n  %s\n\n", Lang::t('worksheet.written', $out));
     exit(0);
 }

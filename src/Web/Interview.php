@@ -125,6 +125,9 @@ final class Interview
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.q.who')).'</span>'
             .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.who.hint')).'</span>'
             .'<input type="text" name="who" autofocus autocomplete="off"></label>'
+            .($this->session->int('started_in') > 0
+                ? '<p class="technical">'.htmlspecialchars(Lang::t('web.context.started', $this->session->int('started_in'))).'</p>'
+                : '')
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('declare.q.service')).'</span>'
             .'<input type="text" name="service_until" inputmode="numeric" placeholder="2032"></label>'
             .'<fieldset><legend>'.htmlspecialchars(Lang::t('web.context.regime')).'</legend>'.$regimes.'</fieldset>'
@@ -183,7 +186,7 @@ final class Interview
         // would cost but how long the proof has to hold.
         $signature = Questions::isSignature($algorithms);
         $years = '';
-        foreach (Questions::consequences() as $choice) {
+        foreach (Questions::consequences($this->session->int('started_in')) as $choice) {
             $years .= \sprintf(
                 '<label class="year"><input type="radio" name="harm" value="%d"> %s</label>',
                 $choice['value'],

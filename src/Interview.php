@@ -224,6 +224,31 @@ final class Interview
     }
 
     /**
+     * The year this project first wrote anything down, from its own history.
+     *
+     * Asked of git rather than of the person: the repository knows, and a date
+     * somebody has to remember is a date somebody gets wrong. A project without
+     * history, or on a machine without git, returns zero and the questions fall
+     * back to their general wording.
+     *
+     * A first commit is a proxy, not a birth certificate — a repository
+     * re-created by a migration reads as younger than the project. That is why
+     * it is only ever used to *word a question*, never to compute a verdict: the
+     * person can disagree with the premise in front of them, which they cannot
+     * do with an arithmetic they never see.
+     */
+    public static function startedIn(string $root): int
+    {
+        $command = \sprintf(
+            'git -C %s log --reverse --format=%%ad --date=format:%%Y 2>/dev/null',
+            escapeshellarg($root),
+        );
+        $year = (int) trim(explode("\n", (string) @shell_exec($command))[0]);
+
+        return $year > 1990 && $year <= (int) date('Y') ? $year : 0;
+    }
+
+    /**
      * What the person is offered instead of a number of years.
      *
      * The first session came back with the same duration seven times, and the
@@ -232,32 +257,56 @@ final class Interview
      * middle one and moves on — which is a defect of the question, not of the
      * person answering.
      *
-     * So the choices are consequences, and the tool does the arithmetic. The
-     * four are deliberately far apart: they are meant to be distinguishable at
-     * a glance, not to be precise. Precision comes from the two fields below
-     * them — a legal retention, and a sentence of justification — and from the
-     * person who reads the declaration afterwards.
+     * So the choices are consequences, and the tool does the arithmetic. Where
+     * the project's own history is known they are anchored on years the person
+     * lived through — "what we were writing in 2019, at the start" — because
+     * nobody estimates a span of seven years well, and everybody can say
+     * whether the invoices from the first year of the company still matter. The
+     * longest choice is then the project's own age rather than a round number
+     * somebody picked.
+     *
+     * The four are deliberately far apart: they are meant to be told apart at a
+     * glance, not to be precise. Precision comes from the two fields below them
+     * — a legal retention, and a sentence of justification.
      *
      * Twenty and thirty years left the list with the other numbers. The cases
-     * that need them — health records, pharmacovigilance, defence — are
-     * written in law rather than guessed in a meeting, and the retention field
-     * takes any number.
+     * that need them — health records, pharmacovigilance, defence — are written
+     * in law rather than guessed in a meeting, and the retention field takes any
+     * number.
      *
      * @return list<array{value:int, harm:string, trust:string}>
      */
-    public static function consequences(): array
+    public static function consequences(int $startedIn = 0, ?int $currentYear = null): array
     {
-        $out = [];
-        foreach ([0, 1, 3, 10] as $years) {
-            $out[] = [
-                'value' => $years,
-                'harm' => Lang::t("web.harm.$years"),
-                'trust' => Lang::t("web.trust.$years"),
-            ];
+        $currentYear ??= (int) date('Y');
+        $age = $startedIn > 0 ? $currentYear - $startedIn : 0;
+
+        // Under three years the anchors collapse onto each other — "last year"
+        // and "at the start" would name the same year — so the general wording
+        // stands.
+        if ($age < self::ANCHOR_FROM_YEARS) {
+            $out = [];
+            foreach ([0, 1, 3, 10] as $years) {
+                $out[] = [
+                    'value' => $years,
+                    'harm' => Lang::t("web.harm.$years"),
+                    'trust' => Lang::t("web.trust.$years"),
+                ];
+            }
+
+            return $out;
         }
 
-        return $out;
+        return [
+            ['value' => 0, 'harm' => Lang::t('web.harm.0'), 'trust' => Lang::t('web.trust.0')],
+            ['value' => 1, 'harm' => Lang::t('web.harm.anchor.1', $currentYear - 1), 'trust' => Lang::t('web.trust.1')],
+            ['value' => 3, 'harm' => Lang::t('web.harm.anchor.3', $currentYear - 3), 'trust' => Lang::t('web.trust.3')],
+            ['value' => $age, 'harm' => Lang::t('web.harm.anchor.start', $startedIn), 'trust' => Lang::t('web.trust.10')],
+        ];
     }
+
+    /** Below this age, "last year" and "at the start" name the same year. */
+    public const int ANCHOR_FROM_YEARS = 4;
 
     /**
      * Whether a set of answers looks like one answer given several times.

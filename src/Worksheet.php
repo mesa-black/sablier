@@ -30,7 +30,7 @@ final class Worksheet
     /**
      * @param list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, decides:bool, technical:bool, files:int, names:list<string>, algorithms:list<string>}> $areas
      */
-    public static function render(string $project, array $areas, string $generatedOn): string
+    public static function render(string $project, array $areas, string $generatedOn, int $startedIn = 0): string
     {
         // The order is fixed the moment this file is written, so every heading
         // and every count is rendered here rather than reassembled in a browser
@@ -75,7 +75,7 @@ final class Worksheet
             ];
         }
 
-        $years = Interview::consequences();
+        $years = Interview::consequences($startedIn);
 
         $data = [
             'format' => self::FORMAT,
@@ -107,6 +107,11 @@ final class Worksheet
                 'who' => Lang::t('web.q.who'),
                 'whoHint' => Lang::t('web.q.who.hint'),
                 'service' => Lang::t('declare.q.service'),
+                // The premise the questions are worded against, shown so it can
+                // be contradicted. A first commit is a proxy for the start of a
+                // project, and a repository re-created by a migration reads as
+                // younger than the thing it holds.
+                'started' => $startedIn > 0 ? Lang::t('web.context.started', $startedIn) : '',
                 'regime' => Lang::t('web.context.regime'),
                 'name' => Lang::t('web.q.name'),
                 'nameHint' => Lang::t('web.q.name.hint'),
@@ -264,6 +269,7 @@ final class Worksheet
                   '<label class="field"><span class="q">' + esc(T.who) + '</span>' +
                   '<span class="hint">' + esc(T.whoHint) + '</span>' +
                   '<input type="text" id="who" autocomplete="off" autofocus></label>' +
+                  (T.started ? '<p class="technical">' + esc(T.started) + '</p>' : '') +
                   '<label class="field"><span class="q">' + esc(T.service) + '</span>' +
                   '<input type="text" id="service" inputmode="numeric" placeholder="2032"></label>' +
                   '<div class="field" role="radiogroup" aria-labelledby="regime-q">' +

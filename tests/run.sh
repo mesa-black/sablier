@@ -1298,6 +1298,70 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- questions worded against the project's own history -------------------------
+# Nobody estimates seven years well, and everybody can say whether the invoices
+# from the company's first year still matter. Where the repository knows when it
+# started, the choices name years the person lived through and the longest one is
+# the project's own age rather than a round number somebody picked.
+anc=$(mktemp -d)
+cd "$anc"
+git init -q . && git config user.email t@t && git config user.name t
+mkdir -p src/Billing
+printf '<?php final class I { public function r(string $p): string { return hash("sha256", $p); } }\n' > src/Billing/I.php
+git add -A >/dev/null && GIT_AUTHOR_DATE="2019-03-01T10:00:00" GIT_COMMITTER_DATE="2019-03-01T10:00:00" git commit -qm first
+cd - >/dev/null
+started=$(php -r '
+	foreach (["Lang", "Value", "Assessor", "Catalogue", "Finding", "SourceFile", "Signature", "MlDsa", "Declaration", "Interview"] as $class) {
+		require "src/$class.php";
+	}
+	echo Sablier\Interview::startedIn($argv[1]);
+' "$anc")
+if [ "$started" != "2019" ]; then
+	echo "✗ anchor: the first commit year was read as \"$started\""
+	rm -rf "$anc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "anchor" "history" "first commit, from the repository"
+
+./bin/sablier worksheet "$anc" --out="$anc/w.html" >/dev/null 2>&1 || true
+anchored=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	$last = end($d["years"]);
+	echo (str_contains($last["harm"], "2019") ? "ancré" : "générique")."/".$last["value"];
+' "$anc/w.html")
+# 2026 − 2019: the longest choice is how long this project has been writing.
+if [ "$anchored" != "ancré/7" ]; then
+	echo "✗ anchor: the longest choice is not the project's own age ($anchored)"
+	rm -rf "$anc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "anchor" "oldest" "the project's age, not a round number"
+
+# The premise is shown where it can be contradicted. A first commit is a proxy:
+# a repository re-created by a migration reads as younger than the project.
+if ! grep -q "écrit des données depuis 2019" "$anc/w.html"; then
+	echo "✗ anchor: the date the questions rest on is not shown to the reader"
+	rm -rf "$anc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "anchor" "premise" "shown, so it can be denied"
+rm -rf "$anc"
+
+# A project younger than the gap between the anchors keeps the general wording:
+# "last year" and "at the start" would otherwise name the same year.
+young=$(php -r '
+	foreach (["Lang", "Value", "Assessor", "Catalogue", "Finding", "SourceFile", "Signature", "MlDsa", "Declaration", "Interview"] as $class) {
+		require "src/$class.php";
+	}
+	$choices = Sablier\Interview::consequences(2025, 2026);
+	$last = end($choices);
+	echo str_contains($last["harm"], "2025") ? "ancré" : "générique";
+')
+if [ "$young" != "générique" ]; then
+	echo "✗ anchor: a one-year-old project was given anchors that collapse"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "anchor" "too young" "general wording below four years"
+
 # --- consequences, not spans of years ------------------------------------------
 # Asked "how many years would this still hurt" over 0/1/3/5/10/20/30, the first
 # respondent picked the middle button seven times. That is a defect of the
