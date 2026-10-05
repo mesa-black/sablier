@@ -311,6 +311,38 @@ final class Interview
         ];
     }
 
+    /**
+     * What the end of the system implies, in the one number that follows from it.
+     *
+     * The context screen asks when the application stops writing, and the
+     * regimes under it carry 2030, 2033 and 2035. Somebody who answers 2029
+     * then reads later years on the same screen and concludes the thing is
+     * broken — which was the reaction of the first person asked. Both are
+     * right: the deadline belongs to the algorithm, not to the application, and
+     * data written in 2029 to be kept ten years has to hold until 2039.
+     *
+     * So the answer is used rather than only filed. The last record is written
+     * in the final year, and it is harvestable for its lifetime from there, so
+     * nothing crosses unless the lifetime exceeds the gap between that year and
+     * the expiry. With 2029 against 2035 that is six years — and under six, the
+     * honest thing for this system to say is that there is nothing to do.
+     *
+     * @return array{0:string, 1:int} the message key, and the years of margin
+     */
+    public static function margin(int $serviceUntil, int $expiry, bool $graded): array
+    {
+        if ($serviceUntil <= 0) {
+            return ['web.context.implies.unknown', 0];
+        }
+
+        $gap = $expiry - $serviceUntil;
+        if ($gap <= 0) {
+            return ['web.context.implies.past', 0];
+        }
+
+        return [$graded ? 'web.context.implies.graded' : 'web.context.implies', $gap];
+    }
+
     /** Below this age, "last year" and "at the start" name the same year. */
     public const int ANCHOR_FROM_YEARS = 4;
 

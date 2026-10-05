@@ -88,7 +88,14 @@ final class Worksheet
                 // Off the regimes the tool implements, so this list cannot
                 // drift from them the way the served interview's did.
                 ...array_map(
-                    static fn (string $key): array => ['key' => $key, 'label' => Lang::t("web.regime.$key")],
+                    static fn (string $key): array => [
+                        'key' => $key,
+                        'label' => Lang::t("web.regime.$key"),
+                        // So the file can say what the answers imply without a
+                        // round trip to anything.
+                        'expiry' => Declaration::REGIMES[$key]['expiry'],
+                        'graded' => (Declaration::REGIMES[$key]['graded'] ?? false) === true,
+                    ],
                     array_keys(Declaration::REGIMES),
                 ),
             ],
@@ -113,6 +120,13 @@ final class Worksheet
                 // younger than the thing it holds.
                 'started' => $startedIn > 0 ? Lang::t('web.context.started', $startedIn) : '',
                 'regime' => Lang::t('web.context.regime'),
+                'regimeHint' => Lang::t('web.context.regime.hint'),
+                // Templates, filled in the page: the numbers depend on answers
+                // this file is written before anybody gives.
+                'implies' => Lang::t('web.context.implies'),
+                'impliesGraded' => Lang::t('web.context.implies.graded'),
+                'impliesPast' => Lang::t('web.context.implies.past'),
+                'impliesUnknown' => Lang::t('web.context.implies.unknown'),
                 'name' => Lang::t('web.q.name'),
                 'nameHint' => Lang::t('web.q.name.hint'),
                 'reuse' => Lang::t('web.q.name.reuse'),
@@ -222,6 +236,27 @@ final class Worksheet
                   .replace(/"/g, '&quot;');
               }
               function fmt(template, value) { return String(template).replace('%s', value); }
+              // Several placeholders, in order: the derived sentences carry three.
+              function fill(template) {
+                var values = Array.prototype.slice.call(arguments, 1);
+                return String(template).replace(/%[ds]/g, function () { return values.shift(); });
+              }
+              // What the two context answers imply, in the one number that
+              // follows from them. The deadlines in the regimes belong to the
+              // algorithms, not to the application, and somebody who says 2029
+              // and then reads 2035 under it is owed the arithmetic rather than
+              // left to conclude the thing is broken.
+              function implication() {
+                var year = parseInt((document.getElementById('service') || {}).value, 10);
+                var chosen = document.querySelector('input[name="regime"]:checked');
+                var regime = null;
+                D.regimes.forEach(function (r) { if (chosen && r.key === chosen.value) { regime = r; } });
+                if (!regime) { return ''; }
+                if (isNaN(year) || year <= 0) { return T.impliesUnknown; }
+                var gap = regime.expiry - year;
+                if (gap <= 0) { return fill(T.impliesPast, year, regime.expiry); }
+                return fill(regime.graded ? T.impliesGraded : T.implies, year, regime.expiry, gap);
+              }
               function seconds() { return Math.round((Date.now() - state.servedAt) / 100) / 10; }
               function duration(s) {
                 return s < 60 ? Math.round(s) + ' s'
@@ -273,8 +308,18 @@ final class Worksheet
                   '<label class="field"><span class="q">' + esc(T.service) + '</span>' +
                   '<input type="text" id="service" inputmode="numeric" placeholder="2032"></label>' +
                   '<div class="field" role="radiogroup" aria-labelledby="regime-q">' +
-                  '<span class="q" id="regime-q">' + esc(T.regime) + '</span>' + regimes + '</div>' +
+                  '<span class="q" id="regime-q">' + esc(T.regime) + '</span>' +
+                  '<span class="hint">' + esc(T.regimeHint) + '</span>' + regimes + '</div>' +
+                  '<p class="technical" id="implies"></p>' +
                   '<div class="actions"><button type="button" id="next">' + esc(T.next) + '</button></div>';
+                // Live, because the question it answers is asked by the screen
+                // itself: a year typed above and later years listed below.
+                var say = function () { document.getElementById('implies').textContent = implication(); };
+                document.getElementById('service').addEventListener('input', say);
+                Array.prototype.forEach.call(document.querySelectorAll('input[name=regime]'), function (r) {
+                  r.addEventListener('change', say);
+                });
+                say();
                 document.getElementById('next').addEventListener('click', function () {
                   var year = parseInt(document.getElementById('service').value, 10);
                   state.context = {

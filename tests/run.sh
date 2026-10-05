@@ -1298,6 +1298,57 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- the end of the system is used, not only filed ------------------------------
+# The context screen asks when the application stops writing, and the regimes
+# under it carry 2030, 2033 and 2035. Somebody who answered 2029 then read later
+# years on the same screen and concluded the thing was broken. Both are right:
+# the deadline belongs to the algorithm, not to the application, and data written
+# in 2029 to be kept ten years has to hold until 2039. So the answer now produces
+# the one number that follows from it.
+mar=$(mktemp -d)
+margins=$(php -r '
+	foreach (["Lang", "Value", "Assessor", "Catalogue", "Finding", "SourceFile", "Signature", "MlDsa", "Declaration", "Interview"] as $class) {
+		require "src/$class.php";
+	}
+	$rows = [];
+	foreach ([[2029, 2035, false], [2040, 2035, false], [2029, 2035, true], [0, 2035, false]] as [$until, $expiry, $graded]) {
+		[$key, $gap] = Sablier\Interview::margin($until, $expiry, $graded);
+		$rows[] = str_replace("web.context.", "", $key)."/".$gap;
+	}
+	echo implode(" ", $rows);
+')
+if [ "$margins" != "implies/6 implies.past/0 implies.graded/6 implies.unknown/0" ]; then
+	echo "✗ margin: the arithmetic of the end date is wrong ($margins)"
+	rm -rf "$mar"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "margin" "six years" "2035 − 2029, and the three edges"
+
+# The offline file has to be able to say it without a round trip to anything, so
+# it carries each regime's expiry and the sentences as templates.
+./bin/sablier worksheet tests/fixtures/order --out="$mar/w.html" >/dev/null 2>&1 || true
+carried=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	$general = null;
+	foreach ($d["regimes"] as $regime) { if ($regime["key"] === "general") { $general = $regime; } }
+	$templates = str_contains($d["t"]["implies"], "%d") && str_contains($d["t"]["impliesPast"], "%d");
+	echo ($general["expiry"] ?? 0).($templates ? "/templates" : "/formatted");
+' "$mar/w.html")
+if [ "$carried" != "2035/templates" ]; then
+	echo "✗ margin: the offline file cannot compute what the answers imply ($carried)"
+	rm -rf "$mar"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "margin" "offline" "expiries and templates travel"
+
+# And the reason those later years are there at all, said where they are shown.
+if ! grep -q "échéances sont celles des algorithmes" "$mar/w.html"; then
+	echo "✗ margin: nothing explains why a deadline past the end of the application applies"
+	rm -rf "$mar"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "margin" "why" "whose deadline it is, under the choices"
+rm -rf "$mar"
+
 # --- questions worded against the project's own history -------------------------
 # Nobody estimates seven years well, and everybody can say whether the invoices
 # from the company's first year still matter. Where the repository knows when it

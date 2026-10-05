@@ -130,7 +130,9 @@ final class Interview
                 : '')
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('declare.q.service')).'</span>'
             .'<input type="text" name="service_until" inputmode="numeric" placeholder="2032"></label>'
-            .'<fieldset><legend>'.htmlspecialchars(Lang::t('web.context.regime')).'</legend>'.$regimes.'</fieldset>'
+            .'<fieldset><legend>'.htmlspecialchars(Lang::t('web.context.regime')).'</legend>'
+            .'<span class="hint">'.htmlspecialchars(Lang::t('web.context.regime.hint')).'</span>'
+            .$regimes.'</fieldset>'
             .'<button type="submit">'.htmlspecialchars(Lang::t('web.next')).'</button>'
             .'</form>',
         );
@@ -215,7 +217,12 @@ final class Interview
                 \count($places) > 1 => Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($places)),
                 default => Lang::t('web.subject.title', $index + 1, \count($areas), $place),
             },
-            '<p class="found">'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
+            // Once, on the first subject: what the two context answers imply.
+            // The deadlines listed with the regimes belong to the algorithms and
+            // not to the application, and somebody who answers 2029 and reads
+            // 2035 under it is owed the arithmetic.
+            ($index === 0 ? '<p class="technical">'.htmlspecialchars($this->implication()).'</p>' : '')
+            .'<p class="found">'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
             // Plumbing, and whoever is in the room may not be the person who
             // answers for it. Said before the questions rather than after.
             .($technical ? '<p class="technical">'.htmlspecialchars(Lang::t('web.subject.technical')).'</p>' : '')
@@ -258,6 +265,26 @@ final class Interview
                 : Value::strings($area['names'] ?? null)))).'</p></details>',
             timer: true,
         );
+    }
+
+    /** The sentence that follows from the end of the system and the regime. */
+    private function implication(): string
+    {
+        $context = $this->session->map('context');
+        $regime = Value::string($context['regime'] ?? null, 'general');
+        $regime = isset(Declaration::REGIMES[$regime]) ? $regime : 'general';
+        $expiry = Declaration::REGIMES[$regime]['expiry'];
+        [$key, $gap] = Questions::margin(
+            Value::int($context['service_until'] ?? null),
+            $expiry,
+            (Declaration::REGIMES[$regime]['graded'] ?? false) === true,
+        );
+
+        return $key === 'web.context.implies.unknown'
+            ? Lang::t($key)
+            : ($gap === 0
+                ? Lang::t($key, Value::int($context['service_until'] ?? null), $expiry)
+                : Lang::t($key, Value::int($context['service_until'] ?? null), $expiry, $gap));
     }
 
     /** What the client calls the thing being audited, on every screen. */
