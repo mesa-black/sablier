@@ -84,33 +84,22 @@ final class Worksheet
             'lang' => Lang::locale(),
             'subjects' => $subjects,
             'years' => $years,
-            'regimes' => [
-                // Off the regimes the tool implements, so this list cannot
-                // drift from them the way the served interview's did.
-                ...array_map(
-                    static fn (string $key): array => [
-                        'key' => $key,
-                        'label' => Lang::t("web.regime.$key"),
-                        // So the file can say what the answers imply without a
-                        // round trip to anything.
-                        'expiry' => Declaration::REGIMES[$key]['expiry'],
-                        'graded' => (Declaration::REGIMES[$key]['graded'] ?? false) === true,
-                    ],
-                    array_keys(Declaration::REGIMES),
-                ),
-            ],
+
             't' => [
                 'introTitle' => Lang::t('web.intro.title'),
                 'purpose' => Lang::t('web.purpose', $project),
                 'lead' => Lang::t('web.intro.lead', \count($areas), $project),
-                'q1' => Lang::t('declare.q.name.first'),
-                'q2' => Lang::t('web.q.harm'),
-                'q3' => Lang::t('declare.q.retention'),
                 'rules' => Lang::t('web.intro.rules'),
                 'start' => Lang::t('web.intro.button'),
                 'offlineNote' => Lang::t('worksheet.note'),
+                // Two questions on that screen, both of them the respondent's.
+                // Which regulatory regime applies is not: nobody outside the
+                // field picks between NIST IR 8547, CNSA 2.0 and an ANSSI
+                // position, and asking printed five lines of acronyms in front
+                // of somebody who was already lost — then deadlines of 2030 and
+                // 2035 under a year they had just given as 2029. The auditor
+                // sets it in the declaration, where it is reviewable.
                 'contextTitle' => Lang::t('web.context.title'),
-                'contextLead' => Lang::t('web.context.lead'),
                 'who' => Lang::t('web.q.who'),
                 'whoHint' => Lang::t('web.q.who.hint'),
                 'service' => Lang::t('declare.q.service'),
@@ -118,15 +107,6 @@ final class Worksheet
                 // be contradicted. A first commit is a proxy for the start of a
                 // project, and a repository re-created by a migration reads as
                 // younger than the thing it holds.
-                'started' => $startedIn > 0 ? Lang::t('web.context.started', $startedIn) : '',
-                'regime' => Lang::t('web.context.regime'),
-                'regimeHint' => Lang::t('web.context.regime.hint'),
-                // Templates, filled in the page: the numbers depend on answers
-                // this file is written before anybody gives.
-                'implies' => Lang::t('web.context.implies'),
-                'impliesGraded' => Lang::t('web.context.implies.graded'),
-                'impliesPast' => Lang::t('web.context.implies.past'),
-                'impliesUnknown' => Lang::t('web.context.implies.unknown'),
                 'name' => Lang::t('web.q.name'),
                 'nameHint' => Lang::t('web.q.name.hint'),
                 'reuse' => Lang::t('web.q.name.reuse'),
@@ -241,22 +221,6 @@ final class Worksheet
                 var values = Array.prototype.slice.call(arguments, 1);
                 return String(template).replace(/%[ds]/g, function () { return values.shift(); });
               }
-              // What the two context answers imply, in the one number that
-              // follows from them. The deadlines in the regimes belong to the
-              // algorithms, not to the application, and somebody who says 2029
-              // and then reads 2035 under it is owed the arithmetic rather than
-              // left to conclude the thing is broken.
-              function implication() {
-                var year = parseInt((document.getElementById('service') || {}).value, 10);
-                var chosen = document.querySelector('input[name="regime"]:checked');
-                var regime = null;
-                D.regimes.forEach(function (r) { if (chosen && r.key === chosen.value) { regime = r; } });
-                if (!regime) { return ''; }
-                if (isNaN(year) || year <= 0) { return T.impliesUnknown; }
-                var gap = regime.expiry - year;
-                if (gap <= 0) { return fill(T.impliesPast, year, regime.expiry); }
-                return fill(regime.graded ? T.impliesGraded : T.implies, year, regime.expiry, gap);
-              }
               function seconds() { return Math.round((Date.now() - state.servedAt) / 100) / 10; }
               function duration(s) {
                 return s < 60 ? Math.round(s) + ' s'
@@ -270,22 +234,17 @@ final class Worksheet
               }, 1000);
 
               function intro() {
-                // Places, and nothing else. The agenda used to carry a count of
-                // files and the paths themselves, which tell a reader who does
-                // not write the code nothing at all.
                 var rows = D.subjects.map(function (s) {
                   return '<li' + (s.paths.length > 1 ? ' class="many"' : '') +
                          '><strong>' + esc(s.label) + '</strong></li>';
                 }).join('');
                 main.innerHTML = '<h1>' + esc(T.introTitle) + '</h1>' +
-                  '<p class="purpose">' + esc(T.purpose) + '</p>' +
                   '<p class="lead">' + esc(T.lead) + '</p>' +
-                  '<ol class="questions"><li>' + esc(T.q1) + '</li><li>' + esc(T.q2) + '</li><li>' +
-                  esc(T.q3) + '</li></ol>' +
-                  '<p>' + esc(T.rules) + '</p>' +
                   '<ul class="subjects">' + rows + '</ul>' +
+                  '<p>' + esc(T.rules) + '</p>' +
                   '<div class="actions"><button type="button" id="go">' + esc(T.start) + '</button></div>' +
-                  '<p class="note">' + esc(T.offlineNote) + '</p>';
+                  '<details class="where"><summary>' + esc(T.details) + '</summary>' +
+                  '<p>' + esc(T.purpose) + ' ' + esc(T.offlineNote) + '</p></details>';
                 document.getElementById('go').addEventListener('click', function () {
                   state.startedAt = Date.now();
                   state.servedAt = Date.now();
@@ -295,37 +254,16 @@ final class Worksheet
               }
 
               function context() {
-                var regimes = D.regimes.map(function (r, i) {
-                  return '<label class="choice"><input type="radio" name="regime" value="' + esc(r.key) + '"' +
-                         (i === 0 ? ' checked' : '') + '> ' + esc(r.label) + '</label>';
-                }).join('');
                 main.innerHTML = '<h1>' + esc(T.contextTitle) + '</h1>' +
-                  '<p class="lead">' + esc(T.contextLead) + '</p>' +
                   '<label class="field"><span class="q">' + esc(T.who) + '</span>' +
                   '<span class="hint">' + esc(T.whoHint) + '</span>' +
                   '<input type="text" id="who" autocomplete="off" autofocus></label>' +
-                  (T.started ? '<p class="technical">' + esc(T.started) + '</p>' : '') +
                   '<label class="field"><span class="q">' + esc(T.service) + '</span>' +
                   '<input type="text" id="service" inputmode="numeric" placeholder="2032"></label>' +
-                  '<div class="field" role="radiogroup" aria-labelledby="regime-q">' +
-                  '<span class="q" id="regime-q">' + esc(T.regime) + '</span>' +
-                  '<span class="hint">' + esc(T.regimeHint) + '</span>' + regimes + '</div>' +
-                  '<p class="technical" id="implies"></p>' +
                   '<div class="actions"><button type="button" id="next">' + esc(T.next) + '</button></div>';
-                // Live, because the question it answers is asked by the screen
-                // itself: a year typed above and later years listed below.
-                var say = function () { document.getElementById('implies').textContent = implication(); };
-                document.getElementById('service').addEventListener('input', say);
-                Array.prototype.forEach.call(document.querySelectorAll('input[name=regime]'), function (r) {
-                  r.addEventListener('change', say);
-                });
-                say();
                 document.getElementById('next').addEventListener('click', function () {
                   var year = parseInt(document.getElementById('service').value, 10);
-                  state.context = {
-                    who: document.getElementById('who').value.trim(),
-                    regime: (document.querySelector('input[name=regime]:checked') || {}).value || 'general'
-                  };
+                  state.context = { who: document.getElementById('who').value.trim() };
                   if (year >= 2024 && year <= 2100) { state.context.service_until = year; }
                   state.contextSeconds = seconds();
                   state.step = 'subject';
@@ -349,7 +287,6 @@ final class Worksheet
                 var where = s.paths.length > 1 ? s.paths.join(', ') : s.names.join(', ');
 
                 main.innerHTML = '<h1>' + esc(s.title) + '</h1>' +
-                  '<p class="found">' + esc(s.found) + '</p>' +
                   (s.technical ? '<p class="technical">' + esc(T.technicalNote) + '</p>' : '') +
                   (!s.technical && !s.decides ? '<p class="technical">' + esc(T.noopNote) + '</p>' : '') +
                   '<label class="field"><span class="q">' + esc(T.name) + '</span>' +
@@ -368,9 +305,8 @@ final class Worksheet
                   '<div class="actions"><button type="button" id="answer">' + esc(T.next) + '</button>' +
                   '<button type="button" id="unknown" class="ghost">' + esc(T.unknown) + '</button>' +
                   '<button type="button" id="skip" class="ghost">' + esc(T.skip) + '</button></div>' +
-                  // Folded: what an auditor checks and a developer recognises,
-                  // and noise to the person answering about data.
                   '<details class="where"><summary>' + esc(T.details) + '</summary>' +
+                  '<p>' + esc(s.found) + '</p>' +
                   '<p>' + esc(fmt(T.where, where)) + '</p></details>';
 
                 Array.prototype.forEach.call(document.querySelectorAll('.reuse'), function (b) {

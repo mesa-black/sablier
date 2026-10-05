@@ -956,6 +956,35 @@ Las reglas de fusión no se reimplementan en el navegador. La página recoge res
 que un nombre dado dos veces significa lo mismo —un dominio, ambas rutas, la duración
 más larga— se haya dado donde se haya dado.
 
+### Lo que la persona lee, y su presupuesto
+
+Tres sesiones con el mismo directivo acabaron en *«es jerga para mí, no entiendo
+las frases, estoy perdido»*. La tercera vez, el documento había llegado a **986
+palabras** que atravesar para responder dos preguntas por tema — con *huella*
+cinco veces, y *algoritmo*, *plazo*, *régimen*, *declaración*, *fontanería* en
+el camino. Casi todo se había añadido de buena fe, un párrafo defendible a la
+vez, cada uno explicando lo que la herramienta no podía saber o por qué se hacía
+una pregunta.
+
+Todo lo retirado se sigue diciendo — en el informe de auditoría, que es donde
+una reserva pertenece: lo lee quien debe pesar las cifras, no quien aporta una.
+Quedan **235 palabras**, y un test falla por encima de 260. Un presupuesto en
+lugar de una relectura, porque la prosa llega un párrafo justificado a la vez y
+nada más lo habría detectado. Un segundo test falla si una palabra del oficio
+vuelve al camino.
+
+Dos preguntas también se fueron. La criptografía hallada en un lugar está ahora
+detrás de un pliegue, con los nombres de archivo: cierto, y sin utilidad para
+quien responde sobre datos. Y **no se pregunta qué régimen regulatorio aplica**
+— nadie fuera del campo elige entre NIST IR 8547, CNSA 2.0 y una posición de la
+ANSSI, y la pregunta imprimía cinco líneas de siglas, y luego plazos de 2030 y
+2035 bajo un año que la persona acababa de dar como 2029. Es del auditor
+fijarlo, en la declaración, donde es revisable; la importación lo dice cuando se
+queda en el valor por omisión.
+
+Lo que sobrevive es lo único de lo que la persona enfrente es la autoridad: de
+qué datos se trata, en sus palabras, y qué costaría si salieran.
+
 ## En una red que no la tiene
 
 ```bash

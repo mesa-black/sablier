@@ -206,7 +206,12 @@ written=$(php -r '
 	$d = json_decode(file_get_contents($argv[1]), true);
 	$log = json_decode(file_get_contents($argv[2]), true);
 	echo ($d["service_until"] ?? 0) === 2032
-		&& ($d["regime"] ?? "") === "anssi"
+		// A posted regime is ignored: that choice is not for the person being
+		// interviewed. Nobody outside the field picks between NIST IR 8547,
+		// CNSA 2.0 and an ANSSI position, and the question put five lines of
+		// acronyms in front of somebody who was already lost. The auditor sets
+		// it in the declaration, where it is reviewable.
+		&& !isset($d["regime"])
 		&& ($d["domains"]["backups"]["lifetime_years"] ?? -1) === 10
 		&& count($log["record"] ?? []) === 2
 		&& ($log["feedback"]["unclear"] ?? "") === "fingerprint"
@@ -1298,56 +1303,66 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
-# --- the end of the system is used, not only filed ------------------------------
-# The context screen asks when the application stops writing, and the regimes
-# under it carry 2030, 2033 and 2035. Somebody who answered 2029 then read later
-# years on the same screen and concluded the thing was broken. Both are right:
-# the deadline belongs to the algorithm, not to the application, and data written
-# in 2029 to be kept ten years has to hold until 2039. So the answer now produces
-# the one number that follows from it.
-mar=$(mktemp -d)
-margins=$(php -r '
-	foreach (["Lang", "Value", "Assessor", "Catalogue", "Finding", "SourceFile", "Signature", "MlDsa", "Declaration", "Interview"] as $class) {
-		require "src/$class.php";
-	}
-	$rows = [];
-	foreach ([[2029, 2035, false], [2040, 2035, false], [2029, 2035, true], [0, 2035, false]] as [$until, $expiry, $graded]) {
-		[$key, $gap] = Sablier\Interview::margin($until, $expiry, $graded);
-		$rows[] = str_replace("web.context.", "", $key)."/".$gap;
-	}
-	echo implode(" ", $rows);
-')
-if [ "$margins" != "implies/6 implies.past/0 implies.graded/6 implies.unknown/0" ]; then
-	echo "✗ margin: the arithmetic of the end date is wrong ($margins)"
-	rm -rf "$mar"; exit 1
-fi
-printf '  ✓ %-24s %-10s %s\n' "margin" "six years" "2035 − 2029, and the three edges"
-
-# The offline file has to be able to say it without a round trip to anything, so
-# it carries each regime's expiry and the sentences as templates.
-./bin/sablier worksheet tests/fixtures/order --out="$mar/w.html" >/dev/null 2>&1 || true
-carried=$(php -r '
+# --- the questionnaire has a word budget ----------------------------------------
+# Three sessions with the same person ended in "it is gibberish to me, I do not
+# understand the sentences, I am lost". The questionnaire had grown to 986 words
+# of reader-visible text for two questions per subject — most of it added in good
+# faith, each paragraph defensible on its own, and together a document nobody
+# outside the field can get through. Everything removed is still said in the
+# auditor's own documents, which is where a caveat belongs.
+#
+# A budget rather than a review: prose arrives one justified paragraph at a time,
+# and nothing else would have caught it.
+bud=$(mktemp -d)
+./bin/sablier worksheet tests/fixtures/order --out="$bud/w.html" >/dev/null 2>&1 || true
+words=$(php -r '
 	$h = file_get_contents($argv[1]);
 	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
 	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
-	$general = null;
-	foreach ($d["regimes"] as $regime) { if ($regime["key"] === "general") { $general = $regime; } }
-	$templates = str_contains($d["t"]["implies"], "%d") && str_contains($d["t"]["impliesPast"], "%d");
-	echo ($general["expiry"] ?? 0).($templates ? "/templates" : "/formatted");
-' "$mar/w.html")
-if [ "$carried" != "2035/templates" ]; then
-	echo "✗ margin: the offline file cannot compute what the answers imply ($carried)"
-	rm -rf "$mar"; exit 1
+	// Every string the respondent reads without opening a fold, once.
+	$folded = ["purpose", "offlineNote", "where", "details"];
+	$count = 0;
+	foreach ($d["t"] as $key => $value) {
+		if (!is_string($value) || in_array($key, $folded, true)) { continue; }
+		$count += str_word_count($value, 0, "àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ-");
+	}
+	foreach ($d["years"] as $choice) { $count += str_word_count($choice["harm"], 0, "àâäéèêëîïôöùûüç-"); }
+	echo $count;
+' "$bud/w.html")
+if [ "$words" -gt 260 ]; then
+	echo "✗ budget: $words words in front of the respondent, over the 260 allowed"
+	rm -rf "$bud"; exit 1
 fi
-printf '  ✓ %-24s %-10s %s\n' "margin" "offline" "expiries and templates travel"
+printf '  ✓ %-24s %-10s %s\n' "budget" "$words words" "under 260, folds excluded"
 
-# And the reason those later years are there at all, said where they are shown.
-if ! grep -q "échéances sont celles des algorithmes" "$mar/w.html"; then
-	echo "✗ margin: nothing explains why a deadline past the end of the application applies"
-	rm -rf "$mar"; exit 1
+# And not one of the words that lost the first three sessions.
+jargon=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	$folded = ["purpose", "offlineNote", "where", "details"];
+	$banned = ["algorithme", "algorithmes", "cryptographie", "post-quantique", "quantique", "échéance",
+		"échéances", "régime", "récoltable", "empreinte", "empreintes", "plomberie", "verdict", "inventaire"];
+	$seen = [];
+	foreach ($d["t"] as $key => $value) {
+		if (!is_string($value) || in_array($key, $folded, true)) { continue; }
+		foreach ($banned as $word) {
+			if (preg_match("/\b".preg_quote($word, "/")."\b/ui", $value) === 1) { $seen[$word] = true; }
+		}
+	}
+	foreach ($d["subjects"] as $subject) {
+		foreach ($banned as $word) {
+			if (preg_match("/\b".preg_quote($word, "/")."\b/ui", $subject["title"].$subject["label"]) === 1) { $seen[$word] = true; }
+		}
+	}
+	echo implode(",", array_keys($seen));
+' "$bud/w.html")
+if [ -n "$jargon" ]; then
+	echo "✗ budget: the words that lost three sessions are back ($jargon)"
+	rm -rf "$bud"; exit 1
 fi
-printf '  ✓ %-24s %-10s %s\n' "margin" "why" "whose deadline it is, under the choices"
-rm -rf "$mar"
+printf '  ✓ %-24s %-10s %s\n' "budget" "vocabulary" "no trade word on the path"
+rm -rf "$bud"
 
 # --- questions worded against the project's own history -------------------------
 # Nobody estimates seven years well, and everybody can say whether the invoices
@@ -1412,13 +1427,19 @@ if [ "$anchored" != "ancré/7" ]; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "anchor" "oldest" "the project's age, not a round number"
 
-# The premise is shown where it can be contradicted. A first commit is a proxy:
-# a repository re-created by a migration reads as younger than the project.
-if ! grep -q "écrit des données depuis 2019" "$anc/w.html"; then
-	echo "✗ anchor: the date the questions rest on is not shown to the reader"
+# The premise is in the choice itself, which is where it can be contradicted: a
+# person who reads "what we were writing in 2019" and started in 2012 says so.
+# It used to be a paragraph above as well, and a paragraph is what this
+# questionnaire had too much of.
+if ! grep -q "2019" "$anc/w.html"; then
+	echo "✗ anchor: the year the choices rest on is nowhere the reader can see it"
 	rm -rf "$anc"; exit 1
 fi
-printf '  ✓ %-24s %-10s %s\n' "anchor" "premise" "shown, so it can be denied"
+if grep -q "écrit des données depuis" "$anc/w.html"; then
+	echo "✗ anchor: the premise is explained twice, once too many"
+	rm -rf "$anc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "anchor" "premise" "in the choice, not in a paragraph"
 rm -rf "$anc"
 
 # A project younger than the gap between the anchors keeps the general wording:
@@ -1652,7 +1673,7 @@ printf '  ✓ %-24s %-10s %s\n' "interview" "no guess" "the data name is theirs 
 
 # A question that cannot change today's verdict says so, and so does one whose
 # answer belongs to the technical team.
-for needle in "ne changera pas le résultat" "de la plomberie"; do
+for needle in "ne change rien" "Sujet technique"; do
 	if ! grep -q "$needle" "$ask/w.html"; then
 		echo "✗ interview: the questionnaire does not say \"$needle\""
 		rm -rf "$ask"; exit 1
@@ -1687,28 +1708,17 @@ if [ -n "$visible" ]; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "interview" "no paths" "folded, not in the conversation"
 
-# The regimes offered are the regimes implemented. These two lists were typed
-# separately and drifted: the served interview offered a health regime that its
-# own handler then discarded in silence.
-offered=$(php -r '
-	$h = file_get_contents($argv[1]);
-	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
-	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
-	$keys = array_map(static fn (array $r): string => $r["key"], $d["regimes"]);
-	sort($keys);
-	echo implode(",", $keys);
-' "$ask/w.html")
-implemented=$(php -r '
-	foreach (["Lang", "Value", "Signature", "MlDsa", "Declaration"] as $class) { require "src/$class.php"; }
-	$keys = array_keys(Sablier\Declaration::REGIMES);
-	sort($keys);
-	echo implode(",", $keys);
-')
-if [ "$offered" != "$implemented" ]; then
-	echo "✗ interview: regimes offered ($offered) are not those implemented ($implemented)"
+# Which regulatory regime applies is not asked. Nobody outside the field picks
+# between NIST IR 8547, CNSA 2.0 and an ANSSI position, and the question printed
+# five lines of acronyms — then deadlines of 2030 and 2035 under a year the
+# person had just given as 2029. It is the auditor's, in the declaration.
+# On the page, not in its source: a script is not what anybody reads.
+page=$(php -r 'echo preg_replace("#<script.*?</script>#s", "", file_get_contents($argv[1]));' "$ask/w.html")
+if printf '%s' "$page" | grep -qi "NIST\|CNSA\|ANSSI\|régime\|regime"; then
+	echo "✗ interview: the regulatory regime is still put to the person being asked"
 	rm -rf "$ask"; exit 1
 fi
-printf '  ✓ %-24s %-10s %s\n' "interview" "regimes" "one list, $implemented"
+printf '  ✓ %-24s %-10s %s\n' "interview" "no regime" "the auditor's choice, not theirs"
 rm -rf "$ask"
 
 # --- the third factor, counted rather than estimated ----------------------------

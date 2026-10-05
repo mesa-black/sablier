@@ -977,6 +977,36 @@ des réponses ; `--import` les fait passer par le même code qu'un entretien tap
 bien qu'un nom donné deux fois veut dire la même chose — un seul domaine, les deux
 chemins, la durée la plus longue — où qu'il ait été donné.
 
+### Ce que la personne lit, et son budget
+
+Trois séances avec le même dirigeant se sont terminées par *« c'est du charabia
+pour moi, je ne comprends pas les phrases, je suis perdu »*. La troisième fois,
+le document avait atteint **986 mots** à traverser pour répondre à deux
+questions par sujet — avec *empreinte* cinq fois, et *algorithme*, *échéance*,
+*régime*, *déclaration*, *plomberie* sur le chemin. Presque tout avait été
+ajouté de bonne foi, un paragraphe défendable à la fois, chacun expliquant ce
+que l'outil ne pouvait pas savoir ou pourquoi une question était posée.
+
+Tout ce qui a été retiré est toujours dit — dans le rapport d'audit, là où une
+réserve appartient : il est lu par qui doit peser les chiffres, pas par qui en
+fournit un. Il reste **235 mots**, et un test échoue au-delà de 260. Un budget
+plutôt qu'une relecture, parce que la prose arrive un paragraphe justifié à la
+fois et que rien d'autre ne l'aurait attrapée. Un second test échoue si un mot
+de métier revient sur le chemin.
+
+Deux questions sont parties aussi. La cryptographie trouvée à un endroit est
+maintenant derrière un pli, avec les noms de fichiers : vrai, et sans usage pour
+qui répond sur des données. Et **le régime réglementaire n'est plus demandé** —
+personne hors du domaine ne choisit entre NIST IR 8547, CNSA 2.0 et un avis de
+l'ANSSI, et la question affichait cinq lignes d'acronymes, puis des échéances de
+2030 et 2035 sous une année que la personne venait de donner à 2029. C'est à
+l'auditeur de le fixer, dans la déclaration, où il est relisible ; l'import le
+dit quand il est resté au défaut.
+
+Ce qui survit est la seule chose dont la personne en face est l'autorité : de
+quelles données il s'agit, dans ses mots, et ce que ça coûterait si elles
+sortaient.
+
 ## Sur un réseau qui n'en a pas
 
 ```bash

@@ -658,6 +658,12 @@ if ($command === 'declare') {
         if ($imported->audit['client'] === '' && Value::string(Value::map($payload['context'] ?? null)['who'] ?? null) === '') {
             printf("\n  ⚠ %s\n", wordwrap(Lang::t('worksheet.nobody'), 76, "\n    "));
         }
+        // The regime is not asked of the person being interviewed: nobody
+        // outside the field picks between NIST IR 8547, CNSA 2.0 and an ANSSI
+        // position. It is the auditor's to set, so the auditor is told.
+        if ($imported->regime === 'general') {
+            printf("\n  · %s\n", wordwrap(Lang::t('cli.regime_yours', $imported->expiryYear), 76, "\n    "));
+        }
         printf("\n");
         exit(0);
     }

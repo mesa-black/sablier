@@ -954,6 +954,35 @@ answers; `--import` runs them through the same code a typed interview uses, so
 a name given twice means the same thing — one domain, both paths, the longer
 lifetime — wherever it was given.
 
+### What the person reads, and its budget
+
+Three sessions with the same company director ended in *"it is gibberish to me,
+I do not understand the sentences, I am lost"*. The third time, the document had
+grown to **986 words** of text he had to get through to answer two questions per
+subject — with *fingerprint* five times, and *algorithm*, *deadline*, *regime*,
+*declaration*, *plumbing* on the way. Almost all of it had been added in good
+faith, one defensible paragraph at a time, each explaining what the tool could
+not know or why a question was being asked.
+
+Everything that was removed is still said — in the audit report, which is where
+a caveat belongs: it is read by the person who has to weigh the figures, not by
+the person supplying one of them. What is left is **235 words**, and a test
+fails over 260. A budget rather than a review, because prose arrives one
+justified paragraph at a time and nothing else would have caught it. A second
+test fails if any trade word returns to the path.
+
+Two questions also left it. The cryptography found at a place is now behind a
+fold with the file names: true, and no use to somebody answering about data.
+And **which regulatory regime applies is not asked at all** — nobody outside the
+field picks between NIST IR 8547, CNSA 2.0 and an ANSSI position, and the
+question printed five lines of acronyms, then deadlines of 2030 and 2035 under a
+year the person had just given as 2029. It is the auditor's to set, in the
+declaration, where it is reviewable; the import says so when it is left at the
+default.
+
+What survives is the only thing the person in the room is the authority on:
+what the data is, in their words, and what it would cost if it got out.
+
 ## On a network that has none
 
 ```bash

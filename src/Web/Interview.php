@@ -103,36 +103,22 @@ final class Interview
     {
         $this->session->set('served_at', microtime(true));
 
-        // Read off the regimes the tool actually implements, never a list typed
-        // here: the two drifted, and the interview offered a health regime that
-        // the handler below then discarded in silence. A person chose it, the
-        // session kept "general", and nothing anywhere said so.
-        $regimes = '';
-        foreach (array_keys(Declaration::REGIMES) as $key) {
-            $regimes .= \sprintf(
-                '<label class="choice"><input type="radio" name="regime" value="%s"%s> %s</label>',
-                htmlspecialchars($key),
-                $key === 'general' ? ' checked' : '',
-                htmlspecialchars(Lang::t("web.regime.$key")),
-            );
-        }
-
+        // Two questions, both of them theirs. Which regulatory regime applies is
+        // not: nobody outside the field chooses between NIST IR 8547, CNSA 2.0
+        // and an ANSSI position, and asking put five lines of acronyms in front
+        // of a person who was already lost — then printed deadlines of 2030 and
+        // 2035 under a year they had just given as 2029. The auditor sets it in
+        // the declaration, which is versioned and reviewable; this screen asks
+        // only what the person in the room is the authority on.
         return $this->page(
             Lang::t('web.context.title'),
             '<form method="post" action="/subject">'
             .'<input type="hidden" name="step" value="context">'
-            .'<p class="lead">'.htmlspecialchars(Lang::t('web.context.lead')).'</p>'
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.q.who')).'</span>'
             .'<span class="hint">'.htmlspecialchars(Lang::t('web.q.who.hint')).'</span>'
             .'<input type="text" name="who" autofocus autocomplete="off"></label>'
-            .($this->session->int('started_in') > 0
-                ? '<p class="technical">'.htmlspecialchars(Lang::t('web.context.started', $this->session->int('started_in'))).'</p>'
-                : '')
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('declare.q.service')).'</span>'
             .'<input type="text" name="service_until" inputmode="numeric" placeholder="2032"></label>'
-            .'<fieldset><legend>'.htmlspecialchars(Lang::t('web.context.regime')).'</legend>'
-            .'<span class="hint">'.htmlspecialchars(Lang::t('web.context.regime.hint')).'</span>'
-            .$regimes.'</fieldset>'
             .'<button type="submit">'.htmlspecialchars(Lang::t('web.next')).'</button>'
             .'</form>',
         );
@@ -217,12 +203,11 @@ final class Interview
                 \count($places) > 1 => Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($places)),
                 default => Lang::t('web.subject.title', $index + 1, \count($areas), $place),
             },
-            // Once, on the first subject: what the two context answers imply.
-            // The deadlines listed with the regimes belong to the algorithms and
-            // not to the application, and somebody who answers 2029 and reads
-            // 2035 under it is owed the arithmetic.
-            ($index === 0 ? '<p class="technical">'.htmlspecialchars($this->implication()).'</p>' : '')
-            .'<p class="found">'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
+            // Nothing between the heading and the questions. What the tool found
+            // here, and where, is true and belongs to whoever reads the report;
+            // in front of the person answering about data it is noise, and three
+            // sessions of it ended in "I do not understand the sentences".
+            ''
             // Plumbing, and whoever is in the room may not be the person who
             // answers for it. Said before the questions rather than after.
             .($technical ? '<p class="technical">'.htmlspecialchars(Lang::t('web.subject.technical')).'</p>' : '')
@@ -260,31 +245,12 @@ final class Interview
             // — who answers about data, not about files. Closed by default:
             // present for whoever wants it, absent from the conversation.
             .'<details class="where"><summary>'.htmlspecialchars(Lang::t('web.details')).'</summary>'
+            .'<p>'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
             .'<p>'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', \count($places) > 1
                 ? $places
                 : Value::strings($area['names'] ?? null)))).'</p></details>',
             timer: true,
         );
-    }
-
-    /** The sentence that follows from the end of the system and the regime. */
-    private function implication(): string
-    {
-        $context = $this->session->map('context');
-        $regime = Value::string($context['regime'] ?? null, 'general');
-        $regime = isset(Declaration::REGIMES[$regime]) ? $regime : 'general';
-        $expiry = Declaration::REGIMES[$regime]['expiry'];
-        [$key, $gap] = Questions::margin(
-            Value::int($context['service_until'] ?? null),
-            $expiry,
-            (Declaration::REGIMES[$regime]['graded'] ?? false) === true,
-        );
-
-        return $key === 'web.context.implies.unknown'
-            ? Lang::t($key)
-            : ($gap === 0
-                ? Lang::t($key, Value::int($context['service_until'] ?? null), $expiry)
-                : Lang::t($key, Value::int($context['service_until'] ?? null), $expiry, $gap));
     }
 
     /** What the client calls the thing being audited, on every screen. */
@@ -311,10 +277,6 @@ final class Interview
             $project = [];
             if ($year !== null) {
                 $project['service_until'] = $year;
-            }
-            $regime = $post['regime'] ?? 'general';
-            if (isset(Declaration::REGIMES[$regime])) {
-                $project['regime'] = $regime;
             }
             $this->session->set('who', trim($post['who'] ?? ''));
             $this->session->set('context', $project);
