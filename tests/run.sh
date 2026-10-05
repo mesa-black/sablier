@@ -1376,6 +1376,33 @@ for needle in "ne changera pas le résultat" "de la plomberie"; do
 done
 printf '  ✓ %-24s %-10s %s\n' "interview" "says why" "inert and technical both flagged"
 
+# No path and no file name in front of the person answering. Both were there —
+# the agenda carried the paths, the question carried the file names — and the
+# first reader said the thing was still too technical. They are kept, in a fold
+# somebody has to open: an auditor checks them, a developer recognises them, and
+# the person answering about data has no use for either.
+visible=$(php -r '
+	$h = file_get_contents($argv[1]);
+	// Everything the reader is shown, minus what is folded away.
+	$h = preg_replace("#<details class=\"where\">.*?</details>#s", "", $h);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	$seen = [];
+	foreach ($d["subjects"] as $s) {
+		foreach ([$s["title"], $s["label"], $s["found"], $s["suggested"]] as $text) {
+			foreach (["composer.lock", "Invoice.php", "backup.sh", "src/", "deploy/"] as $needle) {
+				if (str_contains($text, $needle)) { $seen[$needle] = true; }
+			}
+		}
+	}
+	echo implode(",", array_keys($seen));
+' "$ask/w.html")
+if [ -n "$visible" ]; then
+	echo "✗ interview: a path or a file name is shown unasked ($visible)"
+	rm -rf "$ask"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "no paths" "folded, not in the conversation"
+
 # The regimes offered are the regimes implemented. These two lists were typed
 # separately and drifted: the served interview offered a health regime that its
 # own handler then discarded in silence.

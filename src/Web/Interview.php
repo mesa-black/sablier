@@ -57,23 +57,19 @@ final class Interview
     {
         $areas = $this->session->map('areas');
 
+        // The agenda lists places, and nothing else. It used to print the
+        // family of algorithms as the heading and the paths beside it: a
+        // reader who does not write the code learns nothing from either, and
+        // the first person asked said so.
         $subjects = '';
         foreach ($areas as $area) {
             $area = Value::map($area);
-            $places = Value::strings($area['paths'] ?? null);
-            $paths = array_map(
-                static fn (string $path): string => '<code>'.htmlspecialchars($path).'</code>',
-                $places,
-            );
-            $many = \count($places) > 1;
             $subjects .= \sprintf(
-                '<li%s><strong>%s</strong><span>%s · %s</span></li>',
-                $many ? ' class="many"' : '',
-                htmlspecialchars(Lang::t(Questions::label(Value::strings($area['algorithms'] ?? null)))),
-                htmlspecialchars($many
-                    ? Lang::t('web.intro.places', \count($places))
-                    : Lang::t('web.intro.files', Value::int($area['files'] ?? null))),
-                implode(' ', $paths),
+                '<li%s><strong>%s</strong></li>',
+                \count(Value::strings($area['paths'] ?? null)) > 1 ? ' class="many"' : '',
+                htmlspecialchars(Value::bool($area['technical'] ?? null)
+                    ? Lang::t('web.subject.label.technical')
+                    : self::humanise(Value::string($area['path'] ?? null))),
             );
         }
 
@@ -251,10 +247,14 @@ final class Interview
             .'<button type="submit" name="action" value="unknown" class="ghost">'.htmlspecialchars(Lang::t('web.unknown')).'</button>'
             .'<button type="submit" name="action" value="skip" class="ghost">'.htmlspecialchars(Lang::t('web.skip')).'</button></div>'
             .'</form>'
-            // Several places: name the places. One place: name the files in it.
-            .'<p class="where">'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', \count($places) > 1
+            // Where exactly, folded. It is what an auditor checks and what a
+            // developer recognises, and it is noise to the person being asked
+            // — who answers about data, not about files. Closed by default:
+            // present for whoever wants it, absent from the conversation.
+            .'<details class="where"><summary>'.htmlspecialchars(Lang::t('web.details')).'</summary>'
+            .'<p>'.htmlspecialchars(Lang::t('declare.area.where', implode(', ', \count($places) > 1
                 ? $places
-                : Value::strings($area['names'] ?? null)))).'</p>',
+                : Value::strings($area['names'] ?? null)))).'</p></details>',
             timer: true,
         );
     }
@@ -605,7 +605,9 @@ final class Interview
             .year{border:1px solid var(--line);border-radius:3px;padding:.45rem .8rem;cursor:pointer;background:#fff}
             .year:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
             .year input{margin-right:.35rem}
-            .where{color:var(--muted);font-size:.85rem;font-family:ui-monospace,Menlo,monospace;margin:0 0 1.8rem}
+            .where{color:var(--muted);font-size:.85rem;margin:2rem 0 1.8rem}
+            .where summary{cursor:pointer;font-family:inherit}
+            .where p{margin:.5rem 0 0;font-family:ui-monospace,Menlo,monospace;font-size:.85rem}
             .field{display:block;margin:1.4rem 0}
             .field span{display:block;margin-bottom:.4rem}
             input[type=text],textarea{width:100%;padding:.7rem .8rem;font-size:1rem;font-family:inherit;line-height:1.5;

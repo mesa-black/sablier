@@ -59,9 +59,6 @@ final class Worksheet
                     $many => Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($area['paths'])),
                     default => Lang::t('web.subject.title', $index + 1, \count($areas), $place),
                 },
-                'count' => $many
-                    ? Lang::t('web.intro.places', \count($area['paths']))
-                    : Lang::t('web.intro.files', $area['files']),
                 'found' => Lang::t(Interview::subject($area['algorithms'])),
                 // What the agenda lists. The place for business data, a plain
                 // word for plumbing — never a family of algorithms.
@@ -134,6 +131,7 @@ final class Worksheet
                 'missing' => Lang::t('web.feedback.missing'),
                 'unclear' => Lang::t('web.feedback.unclear'),
                 'finish' => Lang::t('worksheet.finish'),
+                'details' => Lang::t('web.details'),
                 'technicalNote' => Lang::t('web.subject.technical'),
                 'noopNote' => Lang::t('web.subject.noop'),
                 'doneTitle' => Lang::t('worksheet.done.title'),
@@ -236,10 +234,12 @@ final class Worksheet
               }, 1000);
 
               function intro() {
+                // Places, and nothing else. The agenda used to carry a count of
+                // files and the paths themselves, which tell a reader who does
+                // not write the code nothing at all.
                 var rows = D.subjects.map(function (s) {
-                  var paths = s.paths.map(function (p) { return '<code>' + esc(p) + '</code>'; }).join(' ');
-                  return '<li' + (s.paths.length > 1 ? ' class="many"' : '') + '><strong>' + esc(s.label) +
-                         '</strong><span>' + esc(s.count) + ' · ' + paths + '</span></li>';
+                  return '<li' + (s.paths.length > 1 ? ' class="many"' : '') +
+                         '><strong>' + esc(s.label) + '</strong></li>';
                 }).join('');
                 main.innerHTML = '<h1>' + esc(T.introTitle) + '</h1>' +
                   '<p class="purpose">' + esc(T.purpose) + '</p>' +
@@ -321,7 +321,10 @@ final class Worksheet
                   '<div class="actions"><button type="button" id="answer">' + esc(T.next) + '</button>' +
                   '<button type="button" id="unknown" class="ghost">' + esc(T.unknown) + '</button>' +
                   '<button type="button" id="skip" class="ghost">' + esc(T.skip) + '</button></div>' +
-                  '<p class="where">' + esc(fmt(T.where, where)) + '</p>';
+                  // Folded: what an auditor checks and a developer recognises,
+                  // and noise to the person answering about data.
+                  '<details class="where"><summary>' + esc(T.details) + '</summary>' +
+                  '<p>' + esc(fmt(T.where, where)) + '</p></details>';
 
                 Array.prototype.forEach.call(document.querySelectorAll('.reuse'), function (b) {
                   b.addEventListener('click', function () { document.getElementById('name').value = b.dataset.name; });
