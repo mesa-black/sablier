@@ -1298,6 +1298,75 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- consequences, not spans of years ------------------------------------------
+# Asked "how many years would this still hurt" over 0/1/3/5/10/20/30, the first
+# respondent picked the middle button seven times. That is a defect of the
+# question: somebody who does not think in spans of years has no way to answer
+# it, and the shape of the choices invited the default. The choices are
+# consequences now, and the arithmetic is ours.
+cons=$(mktemp -d)
+./bin/sablier worksheet tests/fixtures/order --out="$cons/w.html" >/dev/null 2>&1 || true
+offered=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	$rows = [];
+	foreach ($d["years"] as $choice) { $rows[] = $choice["value"]; }
+	echo implode(",", $rows);
+' "$cons/w.html")
+if [ "$offered" != "0,1,3,10" ]; then
+	echo "✗ consequences: the choices offered are $offered"
+	rm -rf "$cons"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "consequences" "four" "far enough apart to tell apart"
+
+# Not one of them may read as a number of years: that is the question that failed.
+if ! php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	foreach ($d["years"] as $choice) {
+		foreach ([$choice["harm"], $choice["trust"]] as $label) {
+			if (preg_match("/\d+\s*(ans|an|years|year|años|año)\b/u", $label) === 1) { exit(1); }
+		}
+	}
+' "$cons/w.html"; then
+	echo "✗ consequences: a choice is still worded as a span of years"
+	rm -rf "$cons"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "consequences" "wording" "a sentence, never a span"
+
+# The two ends have to be unmistakable: published content and a day in court.
+said=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	echo $d["years"][0]["harm"]." | ".$d["years"][3]["harm"];
+' "$cons/w.html")
+case "$said" in
+	*"public"*"tribunal"*) ;;
+	*) echo "✗ consequences: the two ends are not the ones that decide ($said)"; rm -rf "$cons"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "consequences" "ends" "public, and a day in court"
+
+# One list, shared with the served interview — the two drifted once already.
+if ! ./bin/sablier serve --help >/dev/null 2>&1; then :; fi
+same=$(php -r '
+	foreach (["Lang", "Value", "Assessor", "Catalogue", "Finding", "SourceFile", "Signature", "MlDsa", "Declaration", "Interview"] as $class) {
+		require "src/$class.php";
+	}
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$embedded = json_decode(str_replace("<\\/", "</", $m[1]), true)["years"];
+	echo $embedded === Sablier\Interview::consequences() ? "ok" : "no";
+' "$cons/w.html")
+if [ "$same" != "ok" ]; then
+	echo "✗ consequences: the offline file does not offer what the interview offers"
+	rm -rf "$cons"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "consequences" "one list" "offline and served agree"
+rm -rf "$cons"
+
 # --- a default clicked seven times is not a declaration -------------------------
 # The first real session came back with seven subjects, seven identical durations,
 # no justification on any of them, and no name for who answered. Three minutes,

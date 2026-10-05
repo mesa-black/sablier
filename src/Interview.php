@@ -224,6 +224,42 @@ final class Interview
     }
 
     /**
+     * What the person is offered instead of a number of years.
+     *
+     * The first session came back with the same duration seven times, and the
+     * middle button of 0/1/3/5/10/20/30 was exactly that duration. Asked for a
+     * span of years, somebody who does not think in spans of years picks the
+     * middle one and moves on — which is a defect of the question, not of the
+     * person answering.
+     *
+     * So the choices are consequences, and the tool does the arithmetic. The
+     * four are deliberately far apart: they are meant to be distinguishable at
+     * a glance, not to be precise. Precision comes from the two fields below
+     * them — a legal retention, and a sentence of justification — and from the
+     * person who reads the declaration afterwards.
+     *
+     * Twenty and thirty years left the list with the other numbers. The cases
+     * that need them — health records, pharmacovigilance, defence — are
+     * written in law rather than guessed in a meeting, and the retention field
+     * takes any number.
+     *
+     * @return list<array{value:int, harm:string, trust:string}>
+     */
+    public static function consequences(): array
+    {
+        $out = [];
+        foreach ([0, 1, 3, 10] as $years) {
+            $out[] = [
+                'value' => $years,
+                'harm' => Lang::t("web.harm.$years"),
+                'trust' => Lang::t("web.trust.$years"),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * Whether a set of answers looks like one answer given several times.
      *
      * The first real session came back with seven subjects, seven identical

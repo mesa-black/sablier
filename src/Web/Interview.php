@@ -183,13 +183,11 @@ final class Interview
         // would cost but how long the proof has to hold.
         $signature = Questions::isSignature($algorithms);
         $years = '';
-        foreach ([0, 1, 3, 5, 10, 20, 30] as $value) {
+        foreach (Questions::consequences() as $choice) {
             $years .= \sprintf(
                 '<label class="year"><input type="radio" name="harm" value="%d"> %s</label>',
-                $value,
-                htmlspecialchars($value === 0
-                    ? Lang::t($signature ? 'web.trust.none' : 'web.harm.none')
-                    : Lang::t('web.harm.years', $value)),
+                $choice['value'],
+                htmlspecialchars($signature ? $choice['trust'] : $choice['harm']),
             );
         }
 

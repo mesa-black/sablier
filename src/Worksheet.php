@@ -75,11 +75,7 @@ final class Worksheet
             ];
         }
 
-        $years = [];
-        foreach ([0, 1, 3, 5, 10, 20, 30] as $value) {
-            $years[] = ['value' => $value, 'harm' => $value === 0 ? Lang::t('web.harm.none') : Lang::t('web.harm.years', $value),
-                'trust' => $value === 0 ? Lang::t('web.trust.none') : Lang::t('web.harm.years', $value)];
-        }
+        $years = Interview::consequences();
 
         $data = [
             'format' => self::FORMAT,
