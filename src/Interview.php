@@ -239,11 +239,17 @@ final class Interview
      */
     public static function startedIn(string $root): int
     {
+        // The oldest author year, not the first line of the log. `git log
+        // --reverse` orders by commit date, and a rebase rewrites those while
+        // keeping the author's: the earliest work then prints last, and reading
+        // the first line makes a ten-year-old project look new. Author dates
+        // survive a rebase, a graft and a merged older branch.
         $command = \sprintf(
-            'git -C %s log --reverse --format=%%ad --date=format:%%Y 2>/dev/null',
+            'git -C %s log --format=%%ad --date=format:%%Y 2>/dev/null',
             escapeshellarg($root),
         );
-        $year = (int) trim(explode("\n", (string) @shell_exec($command))[0]);
+        $years = array_filter(array_map('intval', explode("\n", (string) @shell_exec($command))));
+        $year = $years === [] ? 0 : min($years);
 
         return $year > 1990 && $year <= (int) date('Y') ? $year : 0;
     }

@@ -1322,6 +1322,30 @@ if [ "$started" != "2019" ]; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "anchor" "history" "first commit, from the repository"
 
+# And the oldest work, not the first line of the log. A rebase rewrites commit
+# dates and keeps author dates, so the earliest work can print last: reading the
+# first line would make a six-year-old project look like this year's.
+rb=$(mktemp -d)
+cd "$rb"
+git init -q . && git config user.email t@t && git config user.name t
+echo a > a.txt && git add -A
+GIT_AUTHOR_DATE="2024-01-01T10:00:00" GIT_COMMITTER_DATE="2024-01-01T10:00:00" git commit -qm root
+echo b > b.txt && git add -A
+GIT_AUTHOR_DATE="2020-05-05T10:00:00" GIT_COMMITTER_DATE="2026-10-05T10:00:00" git commit -qm replayed
+cd - >/dev/null
+rebased=$(php -r '
+	foreach (["Lang", "Value", "Assessor", "Catalogue", "Finding", "SourceFile", "Signature", "MlDsa", "Declaration", "Interview"] as $class) {
+		require "src/$class.php";
+	}
+	echo Sablier\Interview::startedIn($argv[1]);
+' "$rb")
+if [ "$rebased" != "2020" ]; then
+	echo "✗ anchor: a rewritten history was read as $rebased rather than 2020"
+	rm -rf "$rb"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "anchor" "rebased" "the oldest work, not the first line"
+rm -rf "$rb"
+
 ./bin/sablier worksheet "$anc" --out="$anc/w.html" >/dev/null 2>&1 || true
 anchored=$(php -r '
 	$h = file_get_contents($argv[1]);
