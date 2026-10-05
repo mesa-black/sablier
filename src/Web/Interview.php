@@ -107,8 +107,12 @@ final class Interview
     {
         $this->session->set('served_at', microtime(true));
 
+        // Read off the regimes the tool actually implements, never a list typed
+        // here: the two drifted, and the interview offered a health regime that
+        // the handler below then discarded in silence. A person chose it, the
+        // session kept "general", and nothing anywhere said so.
         $regimes = '';
-        foreach (['general' => '1', 'anssi' => '2', 'nss' => '3', 'hds' => '4'] as $key => $value) {
+        foreach (array_keys(Declaration::REGIMES) as $key) {
             $regimes .= \sprintf(
                 '<label class="choice"><input type="radio" name="regime" value="%s"%s> %s</label>',
                 htmlspecialchars($key),
@@ -168,9 +172,16 @@ final class Interview
         $algorithms = Value::strings($area['algorithms'] ?? null);
         $path = Value::string($area['path'] ?? null);
         $places = Value::strings($area['paths'] ?? null);
-        $suggested = Lang::has(Questions::label($algorithms).'.name')
-            ? Lang::t(Questions::label($algorithms).'.name')
-            : '';
+        // The place names the subject; the cryptography only explains what
+        // happens there. A suggestion taken from the algorithm family offered
+        // "content digests" as the name of a kind of data, which is a mechanism
+        // answering a question about data — and the one thing a person outside
+        // the team cannot make sense of.
+        $technical = Value::bool($area['technical'] ?? null);
+        $place = self::humanise($path);
+        // Never pre-filled: `Entity` is a word from the code, and a reader
+        // accepts whatever is already in the box.
+        $suggested = '';
 
         // Signatures are published on purpose: the question is not what a leak
         // would cost but how long the proof has to hold.
@@ -202,10 +213,20 @@ final class Interview
             // One place is named; several are counted, and listed under the
             // form. "The « Billing » part" is a heading somebody recognises;
             // "the « Billing » part and four others" is a riddle.
-            \count($places) > 1
-                ? Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($places))
-                : Lang::t('web.subject.title', $index + 1, \count($areas), self::humanise($path)),
+            match (true) {
+                $technical => Lang::t('web.subject.title.technical', $index + 1, \count($areas)),
+                \count($places) > 1 => Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($places)),
+                default => Lang::t('web.subject.title', $index + 1, \count($areas), $place),
+            },
             '<p class="found">'.htmlspecialchars(Lang::t(Questions::subject($algorithms))).'</p>'
+            // Plumbing, and whoever is in the room may not be the person who
+            // answers for it. Said before the questions rather than after.
+            .($technical ? '<p class="technical">'.htmlspecialchars(Lang::t('web.subject.technical')).'</p>' : '')
+            // Nothing said here changes today's verdict, and a person asked a
+            // question that cannot change an outcome deserves to know it.
+            .(!$technical && !Value::bool($area['decides'] ?? null)
+                ? '<p class="technical">'.htmlspecialchars(Lang::t('web.subject.noop')).'</p>'
+                : '')
             .'<form method="post" action="/subject">'
             .'<input type="hidden" name="step" value="subject">'
             .'<label class="field"><span class="q">'.htmlspecialchars(Lang::t('web.q.name')).'</span>'
@@ -264,7 +285,7 @@ final class Interview
                 $project['service_until'] = $year;
             }
             $regime = $post['regime'] ?? 'general';
-            if (\in_array($regime, ['general', 'anssi', 'nss'], true)) {
+            if (isset(Declaration::REGIMES[$regime])) {
                 $project['regime'] = $regime;
             }
             $this->session->set('who', trim($post['who'] ?? ''));
@@ -572,6 +593,7 @@ final class Interview
             h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:2.2rem 0 .6rem}
             .lead{font-size:1.05rem}
             .found{border-left:3px solid var(--accent);padding:.5rem 0 .5rem 1rem;margin:1.4rem 0 1.8rem;font-size:1.05rem}
+            .technical{margin:-1rem 0 1.8rem;padding:.6rem .9rem;border:1px dashed var(--line);border-radius:4px;color:var(--muted);font-size:.95rem}
             .purpose{background:#00000008;border-radius:3px;padding:.9rem 1.1rem;margin:0 0 1.6rem}
             .q{font-weight:600}
             .reuses{margin:-.8rem 0 1.6rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;font-size:.85rem;color:var(--muted)}

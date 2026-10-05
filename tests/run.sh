@@ -1298,6 +1298,108 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- the subject is a place, never a family of algorithms -----------------------
+# The CEO of the first company this was pointed at read the questionnaire and
+# said he understood nothing of it. He was right, and the cause was structural:
+# subjects were merged by the cryptography they held, so a subject could only be
+# named after it — a person was asked how long "public-key encryption" and
+# "content digests" had to stay confidential. Those are mechanisms, not data.
+# Worse, the one subject he could have answered well, five business directories,
+# had been collapsed into one of them.
+ask=$(mktemp -d)
+mkdir -p "$ask/src/Billing" "$ask/deploy"
+cat >"$ask/src/Billing/Invoice.php" <<'BILLING'
+<?php
+final class Invoice
+{
+    public function reference(string $payload): string
+    {
+        return hash('sha256', $payload);
+    }
+}
+BILLING
+cat >"$ask/deploy/backup.sh" <<'BACKUP'
+#!/bin/sh
+openssl genrsa -out /etc/backup/key.pem 2048
+pg_dump -Fc app | openssl enc -aes-256-cbc -pbkdf2 -pass env:BACKUP_KEY > dump.enc
+BACKUP
+# A lock file, which is what the dependency detector reads: it names versions,
+# and a version is what an advisory is published against.
+cat >"$ask/composer.lock" <<'COMPOSER'
+{ "packages": [
+  { "name": "firebase/php-jwt", "version": "6.10.0" },
+  { "name": "phpseclib/phpseclib", "version": "3.0.37" }
+] }
+COMPOSER
+./bin/sablier worksheet "$ask" --out="$ask/w.html" >/dev/null 2>&1 || true
+shape=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	$rows = [];
+	foreach ($d["subjects"] as $s) {
+		$rows[] = $s["label"]."/".($s["technical"] ? "technique" : "métier")."/".count($s["paths"]);
+	}
+	echo implode(" ", $rows);
+' "$ask/w.html")
+
+# `deploy` is plumbing by location and holds the whole database: it decides
+# something, so it is asked first and never marked skippable. `src/Billing` is
+# named after itself. `composer` declares what libraries can do and observes
+# nothing, so there is no data there to put a duration on.
+if [ "$shape" != "deploy/métier/1 Billing/métier/1 Réglages techniques/technique/1" ]; then
+	echo "✗ interview: the subjects are not places, or the plumbing is misjudged ($shape)"
+	rm -rf "$ask"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "subjects" "named by place, plumbing last"
+
+# Nothing is pre-filled in the field that names the data: a reader accepts
+# whatever is in the box, and "Billing" is a word from the code.
+if ! php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	foreach ($d["subjects"] as $s) { if ($s["suggested"] !== "") { exit(1); } }
+' "$ask/w.html"; then
+	echo "✗ interview: a name was suggested where only the person can name the data"
+	rm -rf "$ask"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "no guess" "the data name is theirs to give"
+
+# A question that cannot change today's verdict says so, and so does one whose
+# answer belongs to the technical team.
+for needle in "ne changera pas le résultat" "de la plomberie"; do
+	if ! grep -q "$needle" "$ask/w.html"; then
+		echo "✗ interview: the questionnaire does not say \"$needle\""
+		rm -rf "$ask"; exit 1
+	fi
+done
+printf '  ✓ %-24s %-10s %s\n' "interview" "says why" "inert and technical both flagged"
+
+# The regimes offered are the regimes implemented. These two lists were typed
+# separately and drifted: the served interview offered a health regime that its
+# own handler then discarded in silence.
+offered=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<script id=\"data\"[^>]*>(.*?)</script>#s", $h, $m);
+	$d = json_decode(str_replace("<\\/", "</", $m[1]), true);
+	$keys = array_map(static fn (array $r): string => $r["key"], $d["regimes"]);
+	sort($keys);
+	echo implode(",", $keys);
+' "$ask/w.html")
+implemented=$(php -r '
+	foreach (["Lang", "Value", "Signature", "MlDsa", "Declaration"] as $class) { require "src/$class.php"; }
+	$keys = array_keys(Sablier\Declaration::REGIMES);
+	sort($keys);
+	echo implode(",", $keys);
+')
+if [ "$offered" != "$implemented" ]; then
+	echo "✗ interview: regimes offered ($offered) are not those implemented ($implemented)"
+	rm -rf "$ask"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "interview" "regimes" "one list, $implemented"
+rm -rf "$ask"
+
 # --- the third factor, counted rather than estimated ----------------------------
 # The EU roadmap's quantum risk rests on three factors, and the one a team plans
 # against is the migration effort. This counts places; it must never print a

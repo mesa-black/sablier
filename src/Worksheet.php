@@ -28,7 +28,7 @@ final class Worksheet
     public const int FORMAT = 1;
 
     /**
-     * @param list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, files:int, names:list<string>, algorithms:list<string>}> $areas
+     * @param list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, decides:bool, technical:bool, files:int, names:list<string>, algorithms:list<string>}> $areas
      */
     public static function render(string $project, array $areas, string $generatedOn): string
     {
@@ -37,22 +37,44 @@ final class Worksheet
         // from a format string and a regular expression.
         $subjects = [];
         foreach ($areas as $index => $area) {
-            $suggestion = Interview::label($area['algorithms']).'.name';
             $many = \count($area['paths']) > 1;
+            // The place names the subject, and the cryptography only explains
+            // what happens there. A label taken from the algorithm family put
+            // "content digests" where a data name belongs, which is a mechanism
+            // offered as an answer to "what data is this?".
+            $place = self::humanise($area['path']);
             $subjects[] = [
                 'paths' => $area['paths'],
                 'patterns' => $area['patterns'],
                 'names' => $area['names'],
-                'title' => $many
-                    ? Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($area['paths']))
-                    : Lang::t('web.subject.title', $index + 1, \count($areas), self::humanise($area['path'])),
+                'technical' => $area['technical'],
+                // Whether anything they say here can change today's verdict.
+                // Five subjects in a row made only of digests was what SMTR
+                // actually looked like, and a person asked five questions that
+                // cannot change an outcome, without being told so, concludes
+                // the whole exercise is theatre.
+                'decides' => $area['decides'],
+                'title' => match (true) {
+                    $area['technical'] => Lang::t('web.subject.title.technical', $index + 1, \count($areas)),
+                    $many => Lang::t('web.subject.title.places', $index + 1, \count($areas), \count($area['paths'])),
+                    default => Lang::t('web.subject.title', $index + 1, \count($areas), $place),
+                },
                 'count' => $many
                     ? Lang::t('web.intro.places', \count($area['paths']))
                     : Lang::t('web.intro.files', $area['files']),
                 'found' => Lang::t(Interview::subject($area['algorithms'])),
-                'label' => Lang::t(Interview::label($area['algorithms'])),
+                // What the agenda lists. The place for business data, a plain
+                // word for plumbing — never a family of algorithms.
+                'label' => $area['technical'] ? Lang::t('web.subject.label.technical') : $place,
                 'signature' => Interview::isSignature($area['algorithms']),
-                'suggested' => Lang::has($suggestion) ? Lang::t($suggestion) : '',
+                // Never pre-filled. The field used to arrive carrying a
+                // crypto family, then the directory name — and `Entity` or
+                // `Billing` is a word from the code, not a kind of data. A
+                // tired reader accepts whatever is in the box, so a wrong
+                // suggestion here becomes a domain called "Entity" in a
+                // declaration somebody signs. The place is in the heading and
+                // the files are listed below; the name is theirs to give.
+                'suggested' => '',
             ];
         }
 
@@ -70,9 +92,12 @@ final class Worksheet
             'subjects' => $subjects,
             'years' => $years,
             'regimes' => [
-                ['key' => 'general', 'label' => Lang::t('web.regime.general')],
-                ['key' => 'anssi', 'label' => Lang::t('web.regime.anssi')],
-                ['key' => 'nss', 'label' => Lang::t('web.regime.nss')],
+                // Off the regimes the tool implements, so this list cannot
+                // drift from them the way the served interview's did.
+                ...array_map(
+                    static fn (string $key): array => ['key' => $key, 'label' => Lang::t("web.regime.$key")],
+                    array_keys(Declaration::REGIMES),
+                ),
             ],
             't' => [
                 'introTitle' => Lang::t('web.intro.title'),
@@ -109,6 +134,8 @@ final class Worksheet
                 'missing' => Lang::t('web.feedback.missing'),
                 'unclear' => Lang::t('web.feedback.unclear'),
                 'finish' => Lang::t('worksheet.finish'),
+                'technicalNote' => Lang::t('web.subject.technical'),
+                'noopNote' => Lang::t('web.subject.noop'),
                 'doneTitle' => Lang::t('worksheet.done.title'),
                 'doneLead' => Lang::t('worksheet.done.lead'),
                 'download' => Lang::t('worksheet.download'),
@@ -276,6 +303,8 @@ final class Worksheet
 
                 main.innerHTML = '<h1>' + esc(s.title) + '</h1>' +
                   '<p class="found">' + esc(s.found) + '</p>' +
+                  (s.technical ? '<p class="technical">' + esc(T.technicalNote) + '</p>' : '') +
+                  (!s.technical && !s.decides ? '<p class="technical">' + esc(T.noopNote) + '</p>' : '') +
                   '<label class="field"><span class="q">' + esc(T.name) + '</span>' +
                   '<span class="hint">' + esc(T.nameHint) + '</span>' +
                   '<input type="text" id="name" value="' + esc(s.suggested) + '" autocomplete="off" autofocus></label>' +

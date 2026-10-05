@@ -60,7 +60,7 @@ final class Interview
      *
      * @param list<Finding> $findings
      *
-     * @return list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, decides:bool, files:int, names:list<string>, algorithms:list<string>}>
+     * @return list<array{path:string, paths:list<string>, pattern:string, patterns:list<string>, decides:bool, observed:bool, technical:bool, files:int, names:list<string>, algorithms:list<string>}>
      */
     public static function areas(array $findings, Declaration $declaration): array
     {
@@ -86,6 +86,12 @@ final class Interview
                 || $finding->verdict !== Assessor::CLEAR;
             $areas[$path]['files'][$finding->file] = true;
             $areas[$path]['algorithms'][$finding->algorithm] = true;
+            // Whether anything here was observed protecting anything. A
+            // dependency manifest and a capability table say what a library
+            // *can* do; the report prints "declared and not observed, to be
+            // confirmed" next to them. There is no data in such a place, so
+            // there is no confidentiality duration to ask anybody for.
+            $areas[$path]['observed'] = ($areas[$path]['observed'] ?? false) || !$finding->inventory;
         }
 
         $out = [];
@@ -96,6 +102,7 @@ final class Interview
                 'path' => $path,
                 'pattern' => $area['pattern'],
                 'decides' => $area['decides'],
+                'observed' => $area['observed'],
                 'files' => \count($names),
                 'names' => \array_slice($names, 0, 3),
                 'algorithms' => array_keys($area['algorithms']),
@@ -105,37 +112,67 @@ final class Interview
         usort($out, static fn (array $a, array $b): int => [$b['decides'], $b['files']] <=> [$a['decides'], $a['files']]
             ?: strcmp($a['path'], $b['path']));
 
-        // One subject per sentence. The label is what the agenda prints, so two
-        // areas sharing it are, to the person being asked, the same question.
-        $merged = [];
+        // One subject per place, and never one subject per algorithm family.
+        //
+        // These areas used to be merged by the crypto they hold, so that the
+        // agenda and the interview counted the same subjects. The CEO of the
+        // first company pointed at a real application said he understood
+        // nothing of it, and he was right: merging by family means the subject
+        // can only be *named* after a family, so a person was asked how long
+        // "public-key encryption" or "content digests" had to stay
+        // confidential. Those are mechanisms, not data. Nobody can answer
+        // that, and the one subject he could have answered well — five
+        // business directories — had been collapsed into it.
+        //
+        // The place is the business unit: `src/Billing/Application/Foo.php` is
+        // billing, and that is the word used in the room. Two places answered
+        // with the same name still become one domain — Interview::merge does
+        // that afterwards, from what the person actually said, which is the
+        // only authority on whether two places are the same thing.
+        // What decides something first, then size.
+        $out = array_map(static fn (array $area): array => [
+            ...$area,
+            'paths' => [$area['path']],
+            'patterns' => [$area['pattern']],
+            // Plumbing *and* nothing hinging on the answer. The cost of the
+            // two mistakes is not symmetric: a technical subject offered to
+            // the business wastes a minute, while a consequential one hidden
+            // as skippable loses the single duration that decided the report.
+            // `deploy/backup.sh` is plumbing by location and holds ten years
+            // of accounting, and the person who knows that is not on the team.
+            //
+            // A place where nothing was observed is the other case, and it
+            // needs no such caution: there is no data there to put a duration
+            // on, only a list of what some library could do.
+            'technical' => !$area['observed']
+                || (!$area['decides'] && self::technical($area['path'], $area['pattern'])),
+        ], $out);
+
+        // The plumbing becomes one subject, however many places it sits in.
+        // Three subjects in a row titled "technical settings" are three
+        // identical headings a reader cannot tell apart — and to the person
+        // being asked they are one thing, to skip or to hand to the team.
+        $plumbing = null;
+        $kept = [];
         foreach ($out as $area) {
-            $key = self::label($area['algorithms']);
-            if (!isset($merged[$key])) {
-                $merged[$key] = [
-                    'path' => $area['path'],
-                    'paths' => [$area['path']],
-                    'pattern' => $area['pattern'],
-                    'patterns' => [$area['pattern']],
-                    'decides' => $area['decides'],
-                    'files' => $area['files'],
-                    'names' => $area['names'],
-                    'algorithms' => $area['algorithms'],
-                ];
+            if (!$area['technical']) {
+                $kept[] = $area;
 
                 continue;
             }
+            if ($plumbing === null) {
+                $plumbing = $area;
 
-            $merged[$key]['paths'][] = $area['path'];
-            $merged[$key]['patterns'][] = $area['pattern'];
-            $merged[$key]['decides'] = $merged[$key]['decides'] || $area['decides'];
-            $merged[$key]['files'] += $area['files'];
-            $merged[$key]['names'] = \array_slice([...$merged[$key]['names'], ...$area['names']], 0, 3);
-            $merged[$key]['algorithms'] = array_values(array_unique([...$merged[$key]['algorithms'], ...$area['algorithms']]));
+                continue;
+            }
+            $plumbing['paths'][] = $area['path'];
+            $plumbing['patterns'][] = $area['pattern'];
+            $plumbing['decides'] = $plumbing['decides'] || $area['decides'];
+            $plumbing['files'] += $area['files'];
+            $plumbing['names'] = \array_slice([...$plumbing['names'], ...$area['names']], 0, 3);
+            $plumbing['algorithms'] = array_values(array_unique([...$plumbing['algorithms'], ...$area['algorithms']]));
         }
-
-        $out = array_values($merged);
-        usort($out, static fn (array $a, array $b): int => [$b['decides'], $b['files']] <=> [$a['decides'], $a['files']]
-            ?: strcmp($a['path'], $b['path']));
+        $out = $plumbing === null ? $kept : [...$kept, $plumbing];
 
         return $out;
     }
@@ -242,6 +279,49 @@ final class Interview
     public static function label(array $algorithms): string
     {
         return self::subject($algorithms).'.label';
+    }
+
+    /**
+     * Places that hold plumbing rather than data.
+     *
+     * A directory of the application is business: somebody in the company can
+     * say what is in it and how long it must stay secret. A dependency
+     * manifest, a secrets vault, a deployment script or an environment file is
+     * not — it is how the system is wired, and the person who answers for it
+     * is on the team. Asking a company director how long `composer` must stay
+     * confidential is not a hard question, it is the wrong one.
+     *
+     * Matched on the place, not on a guess about content. Anything unlisted is
+     * treated as business, because the cost of the two mistakes is not
+     * symmetric: a technical subject shown to the business wastes a minute,
+     * while a business subject hidden as technical loses a duration nobody
+     * will declare.
+     */
+    private const array TECHNICAL = [
+        '.env', '.github', '.gitlab-ci', 'composer', 'package', 'requirements', 'Gemfile', 'go', 'Cargo',
+        'config', 'conf', 'etc', 'deploy', 'deployment', 'ops', 'infra', 'infrastructure', 'terraform',
+        'docker', 'docker-compose', 'compose', 'Dockerfile', 'Caddyfile', 'nginx', 'httpd', 'apache',
+        'vendor', 'node_modules', 'bin', 'scripts', 'tools', 'build', 'dist', 'public', 'web',
+        'ansible', 'helm', 'k8s', 'kubernetes', 'ci', '.circleci', 'Makefile',
+    ];
+
+    /**
+     * Whether a place is plumbing, and so not the business's to answer for.
+     *
+     * The pattern is what separates a directory from a file at the root:
+     * `area()` returns `src/Billing` with `src/Billing/*`, and `.env` with
+     * `.env*`. A lone file at the root of a repository is configuration until
+     * proven otherwise — an application's data does not live beside its README.
+     */
+    public static function technical(string $path, string $pattern): bool
+    {
+        foreach (explode('/', $path) as $segment) {
+            if (\in_array($segment, self::TECHNICAL, true)) {
+                return true;
+            }
+        }
+
+        return !str_ends_with($pattern, '/*');
     }
 
     /**
