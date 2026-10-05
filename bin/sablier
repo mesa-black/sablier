@@ -635,7 +635,25 @@ if ($command === 'declare') {
         ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
 
         printf("\n  %s\n", Lang::t('worksheet.imported', \count($answers), basename($import)));
-        printf("  → %s\n  → %s\n\n", $out, $log);
+        printf("  → %s\n  → %s\n", $out, $log);
+
+        // What the answers look like, said out loud rather than filed. An
+        // import that prints "7 answers taken" and nothing else turns seven
+        // clicks into a declaration somebody will be held to.
+        if (Interview::uniform($answers)) {
+            printf("\n  ⚠ %s\n", wordwrap(Lang::t('worksheet.uniform', \count($answers), $answers[0]['lifetime']), 76, "\n    "));
+        }
+        $imported = Declaration::load($out);
+        foreach ($imported->overlaps() as $overlap) {
+            printf("\n  ⚠ %s\n", wordwrap(Lang::t(
+                'declare.overlap',
+                $overlap['shadowed'], $overlap['glob'], $overlap['kept'], $overlap['shadowed'],
+            ), 76, "\n    "));
+        }
+        if ($imported->audit['client'] === '' && Value::string(Value::map($payload['context'] ?? null)['who'] ?? null) === '') {
+            printf("\n  ⚠ %s\n", wordwrap(Lang::t('worksheet.nobody'), 76, "\n    "));
+        }
+        printf("\n");
         exit(0);
     }
 

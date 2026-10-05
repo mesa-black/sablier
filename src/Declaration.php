@@ -444,6 +444,44 @@ final class Declaration
         ];
     }
 
+    /**
+     * Domains whose paths another domain already caught.
+     *
+     * `resolve()` returns the first glob that matches, which makes a second
+     * domain over the same path dead: its lifetime is never read, and the
+     * report is computed against a duration nobody would recognise as the
+     * answer they gave.
+     *
+     * This happened on the first real import. An earlier declaration held
+     * `config/secrets/*` at twenty years under one name; the answers came back
+     * naming the same place differently at five. The merge kept both, the older
+     * one won, and the document would have printed somebody else's name beside
+     * a duration the new respondent never gave. Nothing in the output said so.
+     *
+     * @return list<array{glob:string, shadowed:string, kept:string}>
+     */
+    public function overlaps(): array
+    {
+        $out = [];
+        foreach ($this->domains as $index => $domain) {
+            foreach ($domain['paths'] as $glob) {
+                foreach (\array_slice($this->domains, 0, $index) as $earlier) {
+                    foreach ($earlier['paths'] as $first) {
+                        // The same glob twice, or an earlier one that already
+                        // swallows this one: `src/*` hides `src/Billing/*`.
+                        if ($first === $glob || fnmatch($first, rtrim($glob, '*'), \FNM_NOESCAPE)) {
+                            $out[] = ['glob' => $glob, 'shadowed' => $domain['name'], 'kept' => $earlier['name']];
+
+                            continue 3;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $out;
+    }
+
     /** Whether this regime reads the deadline off the data rather than a row. */
     public function graded(): bool
     {

@@ -66,6 +66,18 @@ final class BlindSpots
                 Declaration::REGIMES[$analysis->declaration->regime]['source'] ?? '?',
             );
 
+        // A declaration whose domains cover one another is wrong whoever wrote
+        // it: resolve() keeps the first match, so the second domain's lifetime
+        // is never read and every figure below rests on a duration its author
+        // would not recognise. Said here rather than left for somebody to
+        // notice, because nothing else in the output would show it.
+        foreach ($analysis->declaration->overlaps() as $overlap) {
+            $lines[] = Lang::t(
+                'declare.overlap',
+                $overlap['shadowed'], $overlap['glob'], $overlap['kept'], $overlap['shadowed'],
+            );
+        }
+
         if ($analysis->declaration->rejectedAcceptances !== []) {
             $lines[] = Lang::t('accepted.rejected', \count($analysis->declaration->rejectedAcceptances));
         }

@@ -224,6 +224,42 @@ final class Interview
     }
 
     /**
+     * Whether a set of answers looks like one answer given several times.
+     *
+     * The first real session came back with seven subjects, seven identical
+     * durations, no justification on any of them and no name for who answered.
+     * Three minutes, and the time per subject fell as it went. The tool printed
+     * "7 answers taken" and wrote a declaration, which is the one thing it must
+     * never do: a declaration is what makes a person accountable for a figure,
+     * and laundering a default into one costs more than having no declaration
+     * at all.
+     *
+     * Narrow on purpose. Three subjects or more, every lifetime the same, and
+     * not one note — a project where every domain genuinely shares a duration
+     * says so in a note. This reports; it does not refuse. Whether those
+     * answers mean anything is for the person who ran the session to say, and
+     * the tool's job is to make sure they are asked.
+     *
+     * @param list<array{lifetime?:int, note?:string}> $answers
+     */
+    public static function uniform(array $answers): bool
+    {
+        if (\count($answers) < 3) {
+            return false;
+        }
+
+        $lifetimes = [];
+        foreach ($answers as $answer) {
+            if (trim($answer['note'] ?? '') !== '') {
+                return false;
+            }
+            $lifetimes[$answer['lifetime'] ?? -1] = true;
+        }
+
+        return \count($lifetimes) === 1;
+    }
+
+    /**
      * How long a declared lifetime goes unquestioned before it is stale.
      *
      * Two years: long enough that nobody is asked the same question twice a

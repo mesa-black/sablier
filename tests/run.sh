@@ -1298,6 +1298,82 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- a default clicked seven times is not a declaration -------------------------
+# The first real session came back with seven subjects, seven identical durations,
+# no justification on any of them, and no name for who answered. Three minutes,
+# and the time per subject fell as it went. The tool printed "7 answers taken",
+# wrote a declaration and said nothing else — which is the one thing it must never
+# do, because a declaration is what makes a person accountable for a figure.
+unc=$(mktemp -d)
+cat >"$unc/clicked.json" <<'CLICKED'
+{ "format": 1, "project": "p", "generated_on": "2026-10-05", "answered_on": "2026-10-05",
+  "context": { "who": "" },
+  "answers": [
+    { "name": "Facturation", "paths": ["src/Billing/*"], "lifetime": 5, "note": "" },
+    { "name": "REX", "paths": ["src/Feedback/*"], "lifetime": 5, "note": "" },
+    { "name": "Profil", "paths": ["src/Identity/*"], "lifetime": 5, "note": "" }
+  ], "record": [], "feedback": {} }
+CLICKED
+said=$(./bin/sablier declare tests/fixtures/order --import="$unc/clicked.json" \
+	--out="$unc/d.json" --log="$unc/s.json" 2>&1)
+case "$said" in
+	*"même durée"*"aucune n'est justifiée"*) ;;
+	*) echo "✗ import: seven clicks were taken for a declaration"; echo "$said"; rm -rf "$unc"; exit 1 ;;
+esac
+case "$said" in
+	*"Personne n'est nommé"*) ;;
+	*) echo "✗ import: a declaration with no author was written without a word"; rm -rf "$unc"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "import" "clicked" "uniform answers, said out loud"
+
+# One justified answer is enough to make it a considered set: a project where
+# every domain really shares a duration writes that down.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$d["answers"][0]["note"] = "Dix ans d archivage comptable, et le reste suit.";
+	$d["context"]["who"] = "A. Durand, DPO";
+	file_put_contents($argv[1], json_encode($d));
+' "$unc/clicked.json"
+said=$(./bin/sablier declare tests/fixtures/order --import="$unc/clicked.json" \
+	--out="$unc/d2.json" --log="$unc/s2.json" 2>&1)
+case "$said" in
+	*"même durée"*) echo "✗ import: a justified set was still called clicked"; rm -rf "$unc"; exit 1 ;;
+	*"Personne n'est nommé"*) echo "✗ import: a named respondent was still reported as absent"; rm -rf "$unc"; exit 1 ;;
+esac
+printf '  ✓ %-24s %-10s %s\n' "import" "considered" "a note and a name are enough"
+rm -rf "$unc"
+
+# --- a domain another domain already caught -------------------------------------
+# resolve() keeps the first glob that matches, so a second domain over the same
+# path is dead: its lifetime is never read. It happened on the first import —
+# an older declaration held config/secrets at twenty years, the answers named the
+# same place at five, the merge kept both and the older one won. Nothing in the
+# output said so.
+ov=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$ov/"
+cat >"$ov/sablier.json" <<'OVERLAP'
+{ "domains": {
+  "tout le code": { "paths": ["src/*"], "lifetime_years": 3 },
+  "jetons de session": { "paths": ["src/Tokens.php"], "lifetime_years": 1 },
+  "sauvegardes": { "paths": ["deploy/*"], "lifetime_years": 10 }
+} }
+OVERLAP
+./bin/sablier scan "$ov" --out="$ov/r.html" --no-probe --quiet >/dev/null 2>&1 || true
+if ! grep -q "ne sera jamais lue" "$ov/r.html"; then
+	echo "✗ overlap: a shadowed domain is not reported in the scan"
+	rm -rf "$ov"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "overlap" "shadowed" "named, with what to do"
+
+# And a declaration whose domains do not cover one another says nothing.
+if ./bin/sablier scan tests/fixtures/sample --out="$ov/clean.html" --no-probe --quiet >/dev/null 2>&1; then :; fi
+if grep -q "ne sera jamais lue" "$ov/clean.html"; then
+	echo "✗ overlap: a sound declaration was reported as overlapping"
+	rm -rf "$ov"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "overlap" "silent" "nothing said when nothing overlaps"
+rm -rf "$ov"
+
 # --- the subject is a place, never a family of algorithms -----------------------
 # The CEO of the first company this was pointed at read the questionnaire and
 # said he understood nothing of it. He was right, and the cause was structural:
