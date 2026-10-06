@@ -5,6 +5,8 @@ Lo que está cifrado en su proyecto, y **cuánto tiempo aguanta**.
 *[English](README.md) · [Français](README.fr.md) — la versión inglesa es la que da
 fe; esta es una traducción, y la desviación se detecta en integración continua.*
 
+*Cómo funciona, en tres esquemas: [docs/how-it-works.md](docs/how-it-works.md)*
+
 *Estudio de alcance: [docs/scoping.md](docs/scoping.md)*
 
 Sablier lee un proyecto, inventaría su criptografía y cruza ese inventario con el
@@ -1107,7 +1109,64 @@ Aquí no hay cadena de bloques y no la habrá. Una cadena propia es un nodo, es 
 persona: no más digna de confianza que la firma que sustituiría. Una cadena pública
 significa que la huella sale de la máquina, lo que rompe la promesa del pie de página
 del propio informe. Cuando una fecha debe ser oponible a alguien que no confía en usted,
-una autoridad de sellado de tiempo lo resuelve en una petición.
+una autoridad de sellado de tiempo lo resuelve en una petición — que es la sección
+siguiente.
+
+### Una fecha atestiguada por otro
+
+Todas las firmas anteriores prueban dos cosas y no una tercera: **qué clave firmó y qué
+hallazgos firmó.** El campo `signed_at` está cubierto por la firma, así que no se puede
+editar después — y se lee del reloj de la máquina que firmó, la suya. Antedatar un
+informe no cuesta nada, y el encadenamiento no ayuda: una sola clave sostiene todos los
+eslabones, así que la cadena entera puede reconstruirse en orden y se comprobará
+perfectamente. Estos sellos responden a *quién* y a *qué*. Nada en ellos responde a
+*cuándo*.
+
+```bash
+sablier scan . --sign=sablier.key --timestamp=https://tsa.ejemplo.org/tsr
+```
+
+Una autoridad de sellado de tiempo recibe la huella, nunca el documento, y devuelve un
+token firmado que dice que esa huella le fue presentada en ese instante. No tiene
+ningún interés en sus conclusiones, y ahí está todo el interés.
+
+**Lo que se atestigua es la huella** — no la firma, no el archivo. Está impresa en el
+informe, así que la atestiguación se comprueba sin referencia alguna a esta herramienta:
+
+```bash
+openssl ts -verify -digest <la huella impresa en el informe> \
+  -in report.html.tsr -CAfile <la raíz de la autoridad>
+```
+
+Por eso también el token es un archivo aparte, en DER puro junto al `.sig`: es
+exactamente lo que lee el comando `openssl ts` de serie. Y sobrevive a una clave
+efímera — la clave se destruye, la fecha atestiguada no.
+
+**No hay autoridad por omisión.** Quién atestigua sus fechas es una decisión, como el
+régimen y las duraciones, y un valor por omisión la tomaría por usted en una
+jurisdicción que no eligió. La opción toma una URL o no hace nada.
+
+`sablier verify` recoge el token por su cuenta cuando está depositado junto a la firma,
+e informa de cuatro estados en lugar de dos, porque confundirlos sería mentir:
+
+| | sentido |
+|---|---|
+| fecha atestiguada, comprobada | la firma de la autoridad aguanta, hasta una raíz de confianza de esta máquina |
+| fecha atestiguada, cadena no comprobada | la huella corresponde a este informe; no se pudo construir ninguna cadena hasta una raíz de confianza — autoridad autofirmada o intermedio ausente, no una falsificación. Pase `--timestamp-ca=<archivo>` |
+| inválido | el token atestigua otra huella, o fue manipulado. Esto hace fallar el comando |
+| no comprobable aquí | sin openssl, o sin almacén de certificados contra el que comprobar |
+
+La huella se compara **antes** de cualquier cuestión de confianza, y ese orden es el
+punto: `openssl ts -verify` se detiene ante una cadena que no sabe construir, así que
+sin esa comparación «no logro establecer la cadena» y «este token habla de otro
+documento» volvían como la misma respuesta.
+
+**El límite, impreso en el informe en vez de dejarse para descubrir.** Una autoridad de
+sellado de tiempo firma con RSA o ECDSA, que el propio catálogo de esta herramienta
+clasifica como vulnerables al cuántico. Un token es prueba para un litigio en los
+próximos años, no para 2040; conservar una fecha más allá significa volver a
+atestiguarla mientras el esquema aguante. Una herramienta que dedica cuarenta páginas a
+decir que las firmas caducan no se concede una excepción para aquella de la que depende.
 
 ### Firmar la entrada, no solo la salida
 

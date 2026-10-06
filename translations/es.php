@@ -130,6 +130,8 @@ return [
     'risk.low' => 'riesgo bajo',
     'timeline.graded.expiry' => 'riesgo medio',
     'label.replacement' => 'Sustitución',
+    'confidence.high' => 'alta',
+    'confidence.medium' => 'media',
     'label.medium_confidence' => 'confianza media',
     'label.fingerprint' => 'huella',
     'label.references' => 'Referencias',
@@ -168,6 +170,7 @@ return [
     --baseline=ARCHIVO  comparar con un inventario JSON de referencia (salida 2 si hay que decidir)
     --breached=FECHA    una fuga constatada el AAAA-MM-DD: contar lo que queda legible
     --incident=ARCHIVO  documento posfuga: lo que salió, y cuánto tiempo hace daño
+    --timestamp=URL     hacer atestiguar la fecha de la huella por una autoridad RFC 3161 (con --sign)
     --lang=fr|en|es     idioma del informe
     --no-probe          no sondear los hosts declarados
     --quiet             sin resumen en el terminal',
@@ -318,6 +321,26 @@ Primera acción: %s',
     'seal.proves.ephemeral' => "Lo que la firma establece: esa huella fue firmada por una clave creada para este informe y después destruida. Por sí sola no ata el documento a nadie: lo hace el canal que llevó la huella de las claves anterior, y solo él.",
     'seal.proves.unvouched' => "Lo que la firma establece: esa huella fue firmada por la clave entregada con ella. Ninguna declaración designa la clave esperada, así que esto prueba que existe una clave y no quién la posee.",
     'seal.caveat' => 'Esta firma es Ed25519, que este mismo informe clasifica como vulnerable a lo cuántico. Una firma no se recolecta: aguanta mientras aguante la curva. Así que la única pregunta que importa es esta: ¿tendrá que demostrar la autenticidad de este informe después de %d? Si es así, Ed25519 no bastará y hará falta una firma basada en funciones hash.',
+    // --- fecha atestiguada por un tercero (RFC 3161) ---
+    'timestamp.no_openssl' => 'sin sellado de tiempo: no se encuentra el binario openssl, y es el que construye la solicitud y lee el token.',
+    'timestamp.bad_digest' => 'sin sellado de tiempo: %s no es una huella SHA-256.',
+    'timestamp.bad_url' => 'sin sellado de tiempo: %s no es una dirección http o https.',
+    'timestamp.query_failed' => 'sin sellado de tiempo: openssl no produjo ninguna solicitud.',
+    'timestamp.unreachable' => 'autoridad de sellado de tiempo inalcanzable: %s. El informe está firmado, pero nadie atestigua su fecha.',
+    'timestamp.refused' => 'la autoridad %s rechazó la solicitud: no se escribió ningún token.',
+    'cli.timestamp_needs_sign' => '--timestamp necesita --sign: un token atestigua la huella firmada y se deposita junto a la firma.',
+    'cli.timestamped' => '%s — fecha atestiguada el %s por %s',
+    'verify.timestamp.valid' => 'fecha atestiguada el %1$s por %2$s, comprobada hasta una raíz de confianza de esta máquina.',
+    'verify.timestamp.untrusted' => 'fecha atestiguada el %1$s por %2$s — la huella del token corresponde a este informe, pero la cadena no se pudo comprobar aquí: %3$s',
+    'verify.timestamp.invalid' => 'token de sellado de tiempo inválido (%3$s): no atestigua la huella de este informe.',
+    'verify.timestamp.unchecked' => 'fecha atestiguada el %1$s por %2$s — no comprobable aquí: no se encontró ningún almacén de certificados.',
+    'verify.timestamp.unreadable' => 'token de sellado de tiempo ilegible: %s',
+    'verify.timestamp.hint' => 'para comprobar la cadena, aporte el certificado raíz de la autoridad con --timestamp-ca=<archivo>.',
+    'verify.timestamp.limit' => 'lo que el token no prueba: nada más allá del fin de %s, el esquema que lo firma. Una fecha que haya de oponerse más tarde debe volver a atestiguarse mientras ese esquema aguante.',
+    'seal.timestamp' => 'fecha atestiguada',
+    'seal.timestamp.proves' => 'Lo que el sellado de tiempo establece: la huella anterior existía en esa fecha, según un tercero sin interés alguno en estas conclusiones. Ninguna firma de este informe puede probarlo, porque la fecha que lleva sale del reloj de la máquina que firmó. Su límite: el token está firmado con %s, que este mismo informe clasifica como vulnerable al cuántico — es una prueba para un litigio en los próximos años, no para 2040.',
+    'seal.timestamp.verify' => 'La fecha se comprueba sin esta herramienta, con el token depositado junto al informe:',
+    'seal.timestamp.command' => 'openssl ts -verify -digest <huella> -in <informe>.tsr -CAfile <raíz de la autoridad>',
     'verify.previous' => 'este informe sucede a la huella %s…: pase la firma anterior con --previous= para comprobar el eslabón.',
     'verify.previous.match' => 'eslabón verificado: este informe sucede efectivamente a %s…',
     'verify.previous.mismatch' => 'eslabón roto: este informe dice suceder a %s…, que no es la firma aportada.',

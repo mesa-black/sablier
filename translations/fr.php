@@ -138,6 +138,8 @@ return [
     'risk.low' => 'risque faible',
     'timeline.graded.expiry' => 'risque moyen',
     'label.replacement' => 'Remplacement',
+    'confidence.high' => 'haute',
+    'confidence.medium' => 'moyenne',
     'label.medium_confidence' => 'confiance moyenne',
     'label.fingerprint' => 'empreinte',
     'label.references' => 'Références',
@@ -177,6 +179,7 @@ return [
     --baseline=FICHIER  comparer à un inventaire JSON de référence (sortie 2 s\'il faut décider)
     --breached=DATE     une fuite constatée le AAAA-MM-JJ : compter ce qui reste lisible
     --incident=FICHIER  document post-fuite : ce qui est sorti, et combien de temps ça nuit
+    --timestamp=URL     faire attester la date de l\'empreinte par une autorité RFC 3161 (avec --sign)
     --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
     --quiet             pas de résumé au terminal',
@@ -327,6 +330,26 @@ Première action : %s',
     'seal.proves.ephemeral' => "Ce que la signature établit : cette empreinte a été signée par une clé créée pour ce rapport puis détruite. Elle ne rattache le document à personne par elle-même : c'est le canal qui a porté l'empreinte des clés ci-dessus qui le fait, et lui seul.",
     'seal.proves.unvouched' => "Ce que la signature établit : cette empreinte a été signée par la clé livrée avec elle. Aucune déclaration ne désigne la clé attendue, donc cela prouve qu'une clé existe et pas qui la détient.",
     'seal.caveat' => 'Cette signature est en Ed25519 — que ce rapport classe lui-même comme vulnérable au quantique. Une signature ne se récolte pas : elle tient aussi longtemps que la courbe. La seule question qui compte est donc celle-ci : devez-vous encore prouver l\'authenticité de ce rapport après %d ? Si oui, Ed25519 ne suffira pas, et il faut une signature fondée sur des fonctions de hachage.',
+    // --- date attestée par un tiers (RFC 3161) ---
+    'timestamp.no_openssl' => 'horodatage impossible : le binaire openssl est introuvable, et c\'est lui qui construit la requête et lit le jeton.',
+    'timestamp.bad_digest' => 'horodatage impossible : %s n\'est pas une empreinte SHA-256.',
+    'timestamp.bad_url' => 'horodatage impossible : %s n\'est pas une adresse http ou https.',
+    'timestamp.query_failed' => 'horodatage impossible : openssl n\'a produit aucune requête.',
+    'timestamp.unreachable' => 'autorité d\'horodatage injoignable : %s. Le rapport est signé, mais sa date n\'est attestée par personne.',
+    'timestamp.refused' => 'l\'autorité %s a refusé la requête : aucun jeton n\'a été écrit.',
+    'cli.timestamp_needs_sign' => '--timestamp attend --sign : un jeton atteste l\'empreinte signée et se dépose à côté de la signature.',
+    'cli.timestamped' => '%s — date attestée le %s par %s',
+    'verify.timestamp.valid' => 'date attestée le %1$s par %2$s, vérifiée jusqu\'à une racine de confiance de cette machine.',
+    'verify.timestamp.untrusted' => 'date attestée le %1$s par %2$s — l\'empreinte du jeton correspond à ce rapport, mais la chaîne n\'a pas pu être vérifiée ici : %3$s',
+    'verify.timestamp.invalid' => 'jeton d\'horodatage invalide (%3$s) : il n\'atteste pas l\'empreinte de ce rapport.',
+    'verify.timestamp.unchecked' => 'date attestée le %1$s par %2$s — invérifiable ici : aucun magasin de certificats trouvé.',
+    'verify.timestamp.unreadable' => 'jeton d\'horodatage illisible : %s',
+    'verify.timestamp.hint' => 'pour vérifier la chaîne, fournissez le certificat racine de l\'autorité avec --timestamp-ca=<fichier>.',
+    'verify.timestamp.limit' => 'ce que le jeton ne prouve pas : rien au-delà de %s, le schéma qui le signe. Une date à opposer plus tard doit être réattestée tant que ce schéma tient.',
+    'seal.timestamp' => 'date attestée',
+    'seal.timestamp.proves' => 'Ce que l\'horodatage établit : l\'empreinte ci-dessus existait à cette date, selon un tiers qui n\'a aucun intérêt dans ces conclusions. Aucune signature de ce rapport ne peut le prouver, puisque la date qu\'elle porte sort de l\'horloge de la machine qui a signé. Sa limite : le jeton est signé en %s, que ce rapport classe lui-même comme vulnérable au quantique — c\'est une preuve pour un litige dans les prochaines années, pas pour 2040.',
+    'seal.timestamp.verify' => 'La date se vérifie sans cet outil, avec le jeton déposé à côté du rapport :',
+    'seal.timestamp.command' => 'openssl ts -verify -digest <empreinte> -in <rapport>.tsr -CAfile <racine de l\'autorité>',
     'verify.previous' => 'ce rapport succède à l\'empreinte %s… : fournissez la signature précédente avec --previous= pour vérifier le maillon.',
     'verify.previous.match' => 'maillon vérifié : ce rapport succède bien à %s…',
     'verify.previous.mismatch' => 'maillon rompu : ce rapport annonce succéder à %s…, ce n\'est pas la signature fournie.',

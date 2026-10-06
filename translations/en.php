@@ -130,6 +130,8 @@ return [
     'risk.low' => 'low risk',
     'timeline.graded.expiry' => 'medium risk',
     'label.replacement' => 'Replacement',
+    'confidence.high' => 'high',
+    'confidence.medium' => 'medium',
     'label.medium_confidence' => 'medium confidence',
     'label.fingerprint' => 'fingerprint',
     'label.references' => 'References',
@@ -168,6 +170,7 @@ return [
     --baseline=FILE     compare against a reference JSON inventory (exit 2 when a decision is due)
     --breached=DATE     a breach was declared on YYYY-MM-DD: count what stays readable
     --incident=FILE     post-breach document: what left, and how long it keeps hurting
+    --timestamp=URL     have the digest\'s date attested by an RFC 3161 authority (with --sign)
     --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
     --quiet             no terminal summary',
@@ -318,6 +321,26 @@ First action: %s',
     'seal.proves.ephemeral' => "What the signature establishes: that digest was signed by a key made for this report and then destroyed. It ties the document to nobody on its own: the channel that carried the key fingerprint above does that, and only it.",
     'seal.proves.unvouched' => "What the signature establishes: that digest was signed by the key shipped with it. No declaration designates the expected key, so this proves a key exists and not who holds it.",
     'seal.caveat' => 'This signature is Ed25519 — which this very report classifies as quantum-vulnerable. A signature cannot be harvested: it holds as long as the curve does. So the only question that matters is this one: will you still need to prove this report genuine after %d? If so, Ed25519 will not do, and a hash-based signature is required.',
+    // --- a date attested by a third party (RFC 3161) ---
+    'timestamp.no_openssl' => 'no timestamp: the openssl binary is nowhere to be found, and it is what builds the request and reads the token.',
+    'timestamp.bad_digest' => 'no timestamp: %s is not a SHA-256 digest.',
+    'timestamp.bad_url' => 'no timestamp: %s is not an http or https address.',
+    'timestamp.query_failed' => 'no timestamp: openssl produced no request.',
+    'timestamp.unreachable' => 'timestamping authority unreachable: %s. The report is signed, but nobody attests its date.',
+    'timestamp.refused' => 'authority %s refused the request: no token was written.',
+    'cli.timestamp_needs_sign' => '--timestamp needs --sign: a token attests the signed digest and is filed beside the signature.',
+    'cli.timestamped' => '%s — date attested on %s by %s',
+    'verify.timestamp.valid' => 'date attested on %1$s by %2$s, checked up to a root this machine trusts.',
+    'verify.timestamp.untrusted' => 'date attested on %1$s by %2$s — the token\'s imprint matches this report, but the chain could not be checked here: %3$s',
+    'verify.timestamp.invalid' => 'invalid timestamp token (%3$s): it does not attest this report\'s digest.',
+    'verify.timestamp.unchecked' => 'date attested on %1$s by %2$s — not checkable here: no certificate store found.',
+    'verify.timestamp.unreadable' => 'unreadable timestamp token: %s',
+    'verify.timestamp.hint' => 'to check the chain, pass the authority\'s root certificate with --timestamp-ca=<file>.',
+    'verify.timestamp.limit' => 'what the token does not prove: anything past the end of %s, the scheme that signs it. A date to be relied on later has to be re-attested while that scheme still holds.',
+    'seal.timestamp' => 'date attested',
+    'seal.timestamp.proves' => 'What the timestamp establishes: the digest above existed on that date, according to a third party with no stake in these conclusions. No signature on this report can prove that, because the date it carries comes from the clock of the machine that signed. Its limit: the token is signed with %s, which this report itself classes as quantum vulnerable — it is evidence for a dispute in the next few years, not for 2040.',
+    'seal.timestamp.verify' => 'The date is checked without this tool, with the token filed beside the report:',
+    'seal.timestamp.command' => 'openssl ts -verify -digest <digest> -in <report>.tsr -CAfile <authority root>',
     'verify.previous' => 'this report succeeds digest %s… — pass the earlier signature with --previous= to check the link.',
     'verify.previous.match' => 'link verified: this report does succeed %s…',
     'verify.previous.mismatch' => 'broken link: this report claims to succeed %s…, which is not the signature supplied.',

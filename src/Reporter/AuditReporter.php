@@ -14,6 +14,7 @@ use Sablier\Declaration;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Signature;
+use Sablier\Timestamp;
 use Sablier\Version;
 
 /**
@@ -239,7 +240,7 @@ final class AuditReporter implements ReporterInterface
                 htmlspecialchars(Catalogue::label($finding->algorithm)),
                 htmlspecialchars($finding->file.($finding->line > 0 ? ':'.$finding->line : '')),
                 htmlspecialchars($evidence),
-                htmlspecialchars($finding->confidence),
+                htmlspecialchars(Lang::t('confidence.'.$finding->confidence)),
             );
         }
 
@@ -427,6 +428,19 @@ final class AuditReporter implements ReporterInterface
                     Lang::t('audit.s10.previous') => '<code>'.htmlspecialchars((string) $block['previous']).'</code>',
                 ]);
             }
+            // The attested date, when one was asked for. In this document more
+            // than in the other: it is the one that gets filed, and a filed
+            // document is read years later by somebody asking when it was
+            // written rather than whether it is pretty.
+            if ($this->analysis->timestamp !== null) {
+                $token = $this->analysis->timestamp;
+                $body .= self::definitions([
+                    Lang::t('seal.timestamp') => htmlspecialchars(Timestamp::readable($token['time'])
+                        .($token['authority'] !== '' ? ' · '.$token['authority'] : '')),
+                ]);
+                $body .= '<p>'.htmlspecialchars(Lang::t('seal.timestamp.proves', $token['algorithm'])).'</p>';
+            }
+
             // Which signatures the file carries. A report whose own signature
             // is quantum-vulnerable has no business advising anybody about
             // theirs without saying so in the same paragraph.

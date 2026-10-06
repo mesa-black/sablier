@@ -453,7 +453,7 @@ shape=$(php -r '
 	$payload = $byFile["banner-with-payload.png"] ?? [];
 	$archive = $byFile["icon-is-an-archive.png"] ?? [];
 	echo count($key) === 1 && $key[0]["algorithm"] === "rsa"
-		&& count($payload) === 1 && $payload[0]["verdict"] === "declare" && $payload[0]["confidence"] !== "haute"
+		&& count($payload) === 1 && $payload[0]["verdict"] === "declare" && $payload[0]["confidence"] !== "high"
 		&& count($archive) === 1 && $archive[0]["verdict"] === "declare"
 		&& !isset($byFile["ordinary.png"])
 		? "ok" : "no";
@@ -1457,6 +1457,108 @@ if grep -q "Ce que cela établit" "$prv/none.html"; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
+
+# --- a machine field is never a translated word --------------------------------
+# A committed baseline carried "confidence": "haute" and "domain": "non déclaré"
+# beside English keys and English verdicts. Nobody noticed for weeks: the file is
+# generated, so it is read when somebody has a reason to, and the reason was a
+# diff that made no sense. The rule is the same one the digest already follows —
+# a value a machine compares cannot depend on a language — and `because` is the
+# single deliberate exception, because its job is to be read by a person.
+lang=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --json="$lang/fr.json" --out="$lang/fr.html" --no-probe --quiet --lang=fr >/dev/null 2>&1 || true
+./bin/sablier scan tests/fixtures/sample --json="$lang/en.json" --out="$lang/en.html" --no-probe --quiet --lang=en >/dev/null 2>&1 || true
+./bin/sablier scan tests/fixtures/sample --json="$lang/es.json" --out="$lang/es.html" --no-probe --quiet --lang=es >/dev/null 2>&1 || true
+SABLIER_LANG_DIR="$lang" php -r '
+	$dir = getenv("SABLIER_LANG_DIR");
+	$strip = static function (string $file): array {
+		$rows = json_decode(file_get_contents($file), true);
+		foreach ($rows as $i => $row) { unset($rows[$i]["because"]); }
+		return $rows;
+	};
+	$fr = $strip("$dir/fr.json");
+	foreach (["en", "es"] as $lang) {
+		if ($strip("$dir/$lang.json") !== $fr) {
+			fwrite(STDERR, "✗ json: the inventory differs between fr and $lang outside of `because`\n");
+			exit(1);
+		}
+	}
+	// And the exception has to actually be the exception: if `because` were also
+	// identical the test would be passing for the wrong reason — a catalogue
+	// that silently fell back to French would look like success.
+	$raw = static fn (string $f): array => array_column(json_decode(file_get_contents($f), true), "because");
+	if ($raw("$dir/fr.json") === $raw("$dir/en.json")) {
+		fwrite(STDERR, "✗ json: fr and en produced the same prose, so nothing was translated\n");
+		exit(1);
+	}
+	printf("  ✓ %-24s %-10s %s\n", "json", "fr en es", count($fr)." findings, identical but the prose");
+' || { rm -rf "$lang"; exit 1; }
+rm -rf "$lang"
+
+# --- a date somebody else attests ---------------------------------------------
+# Our own `signed_at` is covered by the signature and still worth nothing as
+# evidence: it comes from the clock of the machine that signed. These four checks
+# are about the ways an attested date could lie by omission instead.
+ts=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$ts/"
+./bin/sablier keygen --out="$ts/k.json" >/dev/null 2>&1
+
+# 1. A flag that cannot do anything says so. Without --sign there is no digest
+#    to attest and no file to sit beside, and silently ignoring the request
+#    would leave somebody believing their report carries a date.
+if ./bin/sablier scan "$ts" --out="$ts/a.html" --no-probe --quiet --timestamp=http://example.invalid/tsa >/dev/null 2>&1; then
+	echo "✗ timestamp: --timestamp without --sign was accepted"
+	rm -rf "$ts"; exit 1
+fi
+if [ -e "$ts/a.html.tsr" ]; then
+	echo "✗ timestamp: a refused request still wrote a token"
+	rm -rf "$ts"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "timestamp" "no --sign" "refused, nothing written"
+
+# 2. An authority nobody can reach must not cost the scan its verdicts, and must
+#    not pass quietly either: no token is written, so the report claims no date,
+#    and the reason goes to stderr where a build log keeps it.
+./bin/sablier scan "$ts" --out="$ts/b.html" --no-probe --quiet --sign="$ts/k.json" \
+	--timestamp=http://127.0.0.1:9/tsa 2>"$ts/err" >/dev/null || true
+if [ ! -s "$ts/b.html.sig" ]; then
+	echo "✗ timestamp: an unreachable authority cost the report its signature"
+	rm -rf "$ts"; exit 1
+fi
+if [ -e "$ts/b.html.tsr" ]; then
+	echo "✗ timestamp: a failed request wrote a token anyway"
+	rm -rf "$ts"; exit 1
+fi
+if ! grep -q "127.0.0.1:9" "$ts/err"; then
+	echo "✗ timestamp: an unreachable authority failed silently"
+	rm -rf "$ts"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "timestamp" "unreachable" "loud, and no date claimed"
+
+# 3. Without a token, the command says nothing about a date. The failure mode
+#    worth guarding is the opposite one: a verify that prints a reassuring line
+#    when there is nothing behind it.
+if ./bin/sablier verify "$ts/b.html.sig" 2>&1 | grep -qi "attest"; then
+	echo "✗ timestamp: verify talks about a date with no token beside the signature"
+	rm -rf "$ts"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "timestamp" "absent" "says nothing"
+
+# 4. A real token that attests something else. Filed beside this signature it
+#    reads exactly like a valid one — same authority, same structure, a date in
+#    it — and the only thing that separates the two is comparing the imprint,
+#    which is why that comparison happens before any question of trust.
+php -r 'echo base64_decode(file_get_contents("tests/fixtures/timestamp/other-digest.tsr.base64"));' > "$ts/b.html.tsr"
+if ./bin/sablier verify "$ts/b.html.sig" >"$ts/out" 2>&1; then
+	echo "✗ timestamp: a token attesting another digest was accepted"
+	rm -rf "$ts"; exit 1
+fi
+if ! grep -qi "invalid" "$ts/out"; then
+	echo "✗ timestamp: a foreign token was not reported as invalid"
+	cat "$ts/out"; rm -rf "$ts"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "timestamp" "foreign token" "imprint checked before trust"
+rm -rf "$ts"
 
 # --- a half not checked is not a half this machine cannot check ------------------
 # When the Ed25519 signature fails, the post-quantum half is never examined. The

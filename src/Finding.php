@@ -6,8 +6,13 @@ namespace Sablier;
 
 final class Finding
 {
-    public const string CONFIDENCE_HIGH = 'haute';
-    public const string CONFIDENCE_MEDIUM = 'moyenne';
+    // Stable tokens, not words. These values reach a JSON inventory, a CBOM
+    // property and a versioned baseline, where a French adjective sat beside
+    // English keys and English verdicts — and any machine comparing two runs was
+    // comparing a translation. The label a reader sees is looked up at render
+    // time, like every other sentence in this tool.
+    public const string CONFIDENCE_HIGH = 'high';
+    public const string CONFIDENCE_MEDIUM = 'medium';
 
     public string $domain = '';
     public bool $domainDeclared = false;

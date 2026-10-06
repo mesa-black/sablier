@@ -67,6 +67,7 @@ use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
 use Sablier\Scanner;
 use Sablier\Signature;
+use Sablier\Timestamp;
 use Sablier\Value;
 use Sablier\Version;
 use Sablier\Web\Session;
@@ -310,6 +311,48 @@ if ($command === 'verify') {
         printf("  %s\n", Lang::t('verify.hybrid.none'));
     }
 
+    // The date, when somebody else attested it. Found beside the signature
+    // without a flag, for the same reason the chain is: an artefact that has to
+    // be asked for is an artefact nobody checks.
+    $tokenPath = '';
+    $tokenCa = '';
+    foreach (\array_slice($argv, 3) as $argument) {
+        if (preg_match('/^--timestamp=(.+)$/', $argument, $m) === 1) {
+            $tokenPath = $m[1];
+        } elseif (preg_match('/^--timestamp-ca=(.+)$/', $argument, $m) === 1) {
+            $tokenCa = $m[1];
+        }
+    }
+    if ($tokenPath === '') {
+        $tokenPath = preg_replace('/\.sig$/', '', $signaturePath).'.tsr';
+    }
+    $attestedFailed = false;
+    if (is_file($tokenPath)) {
+        $token = (string) file_get_contents($tokenPath);
+        $read = Timestamp::read($token);
+        $state = Timestamp::verify($token, Value::string($block['digest'] ?? null), $tokenCa);
+        if ($read === null) {
+            printf("  %s\n", Lang::t('verify.timestamp.unreadable', $tokenPath));
+            $attestedFailed = true;
+        } else {
+            printf("  %s\n", Lang::t(
+                'verify.timestamp.'.$state['state'],
+                Timestamp::readable($read['time']),
+                $read['authority'] !== '' ? $read['authority'] : $tokenPath,
+                $state['detail'],
+            ));
+            // An unverifiable chain is not a forgery, so it does not fail the
+            // command — it prints what would make it checkable.
+            if ($state['state'] === 'untrusted') {
+                printf("  %s\n", Lang::t('verify.timestamp.hint'));
+            }
+            if ($state['state'] === 'valid') {
+                printf("  %s\n", Lang::t('verify.timestamp.limit', $read['algorithm']));
+            }
+            $attestedFailed = $state['state'] === 'invalid';
+        }
+    }
+
     // The link, when the block claims one. Given the earlier signature, it is
     // checked; given nothing, it is still printed, because a reader holding
     // one file should know another exists.
@@ -329,7 +372,7 @@ if ($command === 'verify') {
         }
     }
 
-    exit($result['valid'] ? 0 : 1);
+    exit($result['valid'] && !$attestedFailed ? 0 : 1);
 }
 
 // --- accept a finding: bin/sablier accept <fingerprint> -----------------
@@ -967,11 +1010,11 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'incident' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
+$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'incident' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'timestamp' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|cbom|audit|incident|calendar|pdf|year|sign|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|audit|incident|calendar|pdf|year|sign|timestamp|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
         $options[$m[1]] = $m[2];
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
@@ -1097,7 +1140,16 @@ $duration = microtime(true) - $startedAt;
 // Signing happens after the analysis and over the findings, never over the
 // rendered file: two runs of the same inventory differ byte for byte and say
 // exactly the same thing.
+// An attestation needs something to attest and a file to sit beside, and both
+// come from signing. Refused rather than ignored: a flag that does nothing is
+// worse than a flag that says why.
+if ($options['timestamp'] !== null && $options['sign'] === null) {
+    fwrite(\STDERR, '✗ '.Lang::t('cli.timestamp_needs_sign')."\n");
+    exit(1);
+}
+
 $signature = null;
+$timestamp = null;
 if ($options['sign'] !== null) {
     $preliminary = new Analysis($findings, $declaration, $label, $filesRead, $blind, $currentYear);
 
@@ -1143,6 +1195,31 @@ if ($options['sign'] !== null) {
         }
     }
     file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
+
+    // A date somebody else attests. Our own `signed_at` is covered by the
+    // signature, so it cannot be edited afterwards — but it is read off our own
+    // clock, so backdating a report costs nothing. The token answers the one
+    // question our seals do not.
+    //
+    // A failure here does not fail the scan: the verdicts are about somebody's
+    // cryptography, not about whether a network reached an authority. What it
+    // must never do is pass quietly — a document that lacks the guarantee the
+    // operator asked for, with nothing said, is the exact shape of false
+    // assurance this tool spends its pages refusing. So it is loud on stderr and
+    // no `.tsr` is written, which means the report claims nothing about a date.
+    if ($options['timestamp'] !== null) {
+        $attested = Timestamp::request($signature['digest'], $options['timestamp']);
+        if (isset($attested['token'])) {
+            $tokenPath = Timestamp::path($reportPath);
+            file_put_contents($tokenPath, $attested['token']);
+            $read = Timestamp::read($attested['token']);
+            if ($read !== null) {
+                $timestamp = [...$read, 'path' => $tokenPath];
+            }
+        } else {
+            fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
+        }
+    }
 }
 
 $cwd = getcwd();
@@ -1157,6 +1234,7 @@ $analysis = new Analysis(
     probes: $probes,
     projected: $currentYear !== $actualYear,
     signature: $signature,
+    timestamp: $timestamp,
     importedFrom: $importedFrom,
     // Printed in the audit report: a document that cannot be reproduced is an
     // assertion, not a finding. The binary is named relative to where it was
@@ -1326,6 +1404,9 @@ if ($auditPdfMessage !== null) {
 }
 if ($pdfMessage !== null) {
     printf("  → %s\n", $pdfMessage);
+}
+if ($timestamp !== null) {
+    printf("  → %s\n", Lang::t('cli.timestamped', $timestamp['path'], Timestamp::readable($timestamp['time']), $timestamp['authority']));
 }
 if ($signature !== null) {
     printf("  → %s\n", Lang::t('cli.signed', $reportPath.'.sig'));

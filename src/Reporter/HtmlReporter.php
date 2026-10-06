@@ -14,6 +14,7 @@ use Sablier\Effort;
 use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Signature;
+use Sablier\Timestamp;
 
 /**
  * The report is the product.
@@ -416,6 +417,17 @@ final class HtmlReporter implements ReporterInterface
                     )).'</code></dd></div>';
             }
 
+            // A date a third party attests, which is the one thing the seal
+            // above cannot establish on its own: `signed_at` is covered by the
+            // signature, so it cannot be edited afterwards, but it is read off
+            // the clock of the machine that signed — ours.
+            if ($this->analysis->timestamp !== null) {
+                $token = $this->analysis->timestamp;
+                $rows .= '<div><dt>'.htmlspecialchars(Lang::t('seal.timestamp')).'</dt><dd>'
+                    .htmlspecialchars(Timestamp::readable($token['time'])
+                        .($token['authority'] !== '' ? ' · '.$token['authority'] : '')).'</dd></div>';
+            }
+
             $caveat = '<p class="seal-caveat">'.htmlspecialchars(\is_array($hybrid)
                 ? Lang::t('seal.hybrid', $hybrid['algorithm'])
                 : Lang::t('seal.caveat', $this->analysis->declaration->expiryYear)).'</p>';
@@ -428,6 +440,15 @@ final class HtmlReporter implements ReporterInterface
             // they can admire and cannot use.
             $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.verify')).' <code>'
                 .htmlspecialchars(Lang::t('seal.verify.command')).'</code></p>';
+
+            // What the attested date establishes, and where it stops — next to
+            // the command that checks it without this tool, because a date
+            // nobody can check is a decoration.
+            if ($this->analysis->timestamp !== null) {
+                $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.proves', $this->analysis->timestamp['algorithm'])).'</p>'
+                    .'<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.verify')).' <code>'
+                    .htmlspecialchars(Lang::t('seal.timestamp.command')).'</code></p>';
+            }
 
             // What it does not cover, first, because the earlier version of this
             // paragraph said "the report has not changed since it was signed"

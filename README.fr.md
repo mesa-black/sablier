@@ -5,6 +5,8 @@ Ce qui est chiffré dans votre projet, et **combien de temps ça tient**.
 *[English](README.md) · [Español](README.es.md) — la version anglaise fait foi ;
 celle-ci est une traduction, et l'écart se voit en intégration continue.*
 
+*Comment ça marche, en trois schémas : [docs/how-it-works.md](docs/how-it-works.md)*
+
 *Étude de cadrage : [docs/scoping.md](docs/scoping.md)*
 
 Sablier lit un projet, inventorie sa cryptographie, et croise cet inventaire avec
@@ -1133,7 +1135,64 @@ nœud, c'est-à-dire une personne : pas plus digne de confiance que la signature
 remplacerait. Une chaîne publique veut dire que l'empreinte quitte la machine, ce qui
 casse la promesse du pied de page du rapport. Quand une date doit être opposable à
 quelqu'un qui ne vous fait pas confiance, une autorité d'horodatage y répond en une
-requête.
+requête — c'est la section suivante.
+
+### Une date attestée par quelqu'un d'autre
+
+Toutes les signatures ci-dessus prouvent deux choses et pas une troisième : **quelle
+clé a signé, et quels constats elle a signés.** Le champ `signed_at` est couvert par la
+signature, donc il n'est pas modifiable après coup — et il est lu sur l'horloge de la
+machine qui a signé, la vôtre. Antidater un rapport ne coûte rien, et le chaînage n'y
+change rien : une seule clé tient tous les maillons, donc la chaîne entière peut être
+reconstruite dans l'ordre et se vérifiera parfaitement. Ces sceaux répondent à *qui* et
+à *quoi*. Rien en eux ne répond à *quand*.
+
+```bash
+sablier scan . --sign=sablier.key --timestamp=https://tsa.exemple.org/tsr
+```
+
+Une autorité d'horodatage reçoit l'empreinte, jamais le document, et renvoie un jeton
+signé disant que cette empreinte lui a été présentée à cet instant. Elle n'a aucun
+intérêt dans vos conclusions, et c'est tout l'intérêt.
+
+**C'est l'empreinte qui est attestée** — pas la signature, pas le fichier. Elle est
+imprimée dans le rapport, donc l'attestation se vérifie sans aucune référence à cet
+outil :
+
+```bash
+openssl ts -verify -digest <l'empreinte imprimée dans le rapport> \
+  -in report.html.tsr -CAfile <la racine de l'autorité>
+```
+
+C'est aussi pourquoi le jeton est un fichier à part, en DER brut à côté du `.sig` :
+c'est exactement ce que lit la commande `openssl ts` d'origine. Et il survit à une clé
+éphémère — la clé est détruite, la date attestée non.
+
+**Il n'y a pas d'autorité par défaut.** Qui atteste vos dates est une décision, comme
+le régime et les durées, et un défaut la prendrait pour vous dans une juridiction que
+vous n'avez pas choisie. L'option prend une URL ou ne fait rien.
+
+`sablier verify` ramasse le jeton tout seul quand il est déposé à côté de la signature,
+et rapporte quatre états plutôt que deux, parce que les confondre serait mentir :
+
+| | sens |
+|---|---|
+| date attestée, vérifiée | la signature de l'autorité tient, jusqu'à une racine de confiance de cette machine |
+| date attestée, chaîne non vérifiée | l'empreinte correspond à ce rapport ; aucune chaîne vers une racine de confiance n'a pu être construite — autorité auto-signée ou intermédiaire manquant, pas une falsification. Passez `--timestamp-ca=<fichier>` |
+| invalide | le jeton atteste une autre empreinte, ou il a été modifié. Cela fait échouer la commande |
+| invérifiable ici | pas d'openssl, ou aucun magasin de certificats pour vérifier |
+
+L'empreinte est comparée **avant** toute question de confiance, et cet ordre est le
+point : `openssl ts -verify` s'arrête sur une chaîne qu'il ne sait pas construire, donc
+sans cette comparaison « je n'arrive pas à établir la chaîne » et « ce jeton parle d'un
+tout autre document » revenaient comme la même réponse.
+
+**La limite, imprimée dans le rapport plutôt que laissée à découvrir.** Une autorité
+d'horodatage signe en RSA ou en ECDSA, que le catalogue de cet outil classe comme
+vulnérables au quantique. Un jeton est une preuve pour un litige dans les prochaines
+années, pas pour 2040 ; conserver une date au-delà veut dire la réattester tant que le
+schéma tient. Un outil qui passe quarante pages à dire que les signatures périment ne
+s'accorde pas une exception pour celle dont il dépend.
 
 ### Signer l'entrée, pas seulement la sortie
 

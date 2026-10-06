@@ -5,6 +5,8 @@ What is encrypted in your project, and **how long it holds**.
 *[Français](README.fr.md) · [Español](README.es.md) — this English version is the
 one that governs; the others are translations, and the drift is checked in CI.*
 
+*How it works, in three diagrams: [docs/how-it-works.md](docs/how-it-works.md)*
+
 *Scoping study: [docs/scoping.md](docs/scoping.md)*
 
 Sablier reads a project, inventories its cryptography, and crosses that inventory
@@ -1107,7 +1109,65 @@ There is no blockchain here and there will not be one. A chain of your own is
 one node, which is one person: no more trustworthy than the signature it would
 replace. A public chain means the digest leaves the machine, which breaks the
 promise in the report's own footer. When a date has to be opposable to someone
-who does not trust you, a timestamping authority answers it in one request.
+who does not trust you, a timestamping authority answers it in one request —
+which is the next section.
+
+### A date somebody else attests
+
+Every signature above proves two things and not a third: **which key signed, and
+which findings it signed.** The `signed_at` field is covered by the signature, so
+it cannot be edited afterwards — and it is read off the clock of the machine that
+signed, which is yours. Backdating a report costs nothing, and the chain does not
+help: one key holds every link, so the whole chain can be rebuilt in order and
+will verify perfectly. These seals answer *who* and *what*. Nothing in them
+answers *when*.
+
+```bash
+sablier scan . --sign=sablier.key --timestamp=https://tsa.example.org/tsr
+```
+
+A timestamping authority is handed the digest, never the document, and returns a
+signed token saying that this digest was presented to it at this instant. It has
+no stake in your conclusions, which is the entire point.
+
+**The digest is what gets attested** — not the signature, not the file. It is
+printed in the report, so the attestation can be checked with no reference to
+this tool at all:
+
+```bash
+openssl ts -verify -digest <the digest printed in the report> \
+  -in report.html.tsr -CAfile <the authority's root>
+```
+
+That is also why the token is a file of its own, raw DER beside the `.sig`: it is
+exactly what the stock `openssl ts` command reads. And it survives an ephemeral
+key — the key is destroyed, the attested date is not.
+
+**There is no default authority.** Who attests your dates is a decision, like the
+regime and the lifetimes, and a default would make it for you in a jurisdiction
+you did not pick. The flag takes a URL or does nothing.
+
+`sablier verify` picks the token up on its own when it sits beside the signature,
+and reports four states rather than two, because collapsing them lies:
+
+| | meaning |
+|---|---|
+| attested, verified | the authority's signature holds, up to a root this machine trusts |
+| attested, chain unverified | the imprint matches this report; no chain to a trusted root could be built — a self-signed authority or a missing intermediate, not a forgery. Pass `--timestamp-ca=<file>` |
+| invalid | the token attests a different digest, or it was tampered with. This fails the command |
+| not checkable here | no openssl, or no certificate store to check against |
+
+The imprint is compared **before** any question of trust, and that ordering is
+the point: `openssl ts -verify` stops at a chain it cannot build, so without that
+comparison "I cannot establish the chain" and "this token is about another
+document entirely" came back as the same answer.
+
+**The limit, printed in the report rather than left to be discovered.** A
+timestamping authority signs with RSA or ECDSA, which this tool's own catalogue
+classes as quantum vulnerable. A token is evidence for a dispute in the next few
+years, not for 2040; keeping a date past that means re-attesting it while the
+scheme still holds. A tool that spends forty pages saying signatures expire does
+not get to make an exception for the one it relies on.
 
 ### Signing the input, not only the output
 
