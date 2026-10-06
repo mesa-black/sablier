@@ -1303,6 +1303,61 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- one inventory, one digest, whatever the language ---------------------------
+# The seal prints "the digest covers the findings, not this file: two renderings
+# of the same inventory, in two languages, give the same value". It did not. The
+# label of an undeclared domain is translated, and it went into the digest, so
+# three renderings of one scan produced three digests — under a paragraph saying
+# they would not. Found by publishing a report in three languages and reading the
+# three values side by side.
+lng=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$lng/"
+# An undeclared place, which is where the translated label came from.
+mkdir -p "$lng/orphan"
+cat >"$lng/orphan/Keys.php" <<'ORPHAN'
+<?php
+final class Keys
+{
+    public function issue(array $claims, string $key): string
+    {
+        return jwt_encode($claims, $key, 'RS256');
+    }
+}
+ORPHAN
+digests=''
+for lang in fr en es; do
+	./bin/sablier scan "$lng" --out="$lng/$lang.html" --lang="$lang" --no-probe --quiet >/dev/null 2>&1 || true
+	d=$(php -r '
+		$h = file_get_contents($argv[1]);
+		preg_match("#<dd><code>([0-9a-f]{64})</code>#", $h, $m);
+		echo $m[1] ?? "none";
+	' "$lng/$lang.html")
+	digests="$digests $d"
+done
+unique=$(printf '%s\n' $digests | sort -u | wc -l | tr -d ' ')
+if [ "$unique" != "1" ]; then
+	echo "✗ digest: $unique different values across three languages"
+	printf '   %s\n' $digests
+	rm -rf "$lng"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "digest" "languages" "one inventory, one value"
+
+# And it still separates two different inventories, which is the other half.
+printf 'sha1($x);\n' >> "$lng/orphan/Keys.php"
+./bin/sablier scan "$lng" --out="$lng/after.html" --no-probe --quiet >/dev/null 2>&1 || true
+after=$(php -r '
+	$h = file_get_contents($argv[1]);
+	preg_match("#<dd><code>([0-9a-f]{64})</code>#", $h, $m);
+	echo $m[1] ?? "none";
+' "$lng/after.html")
+first=$(printf '%s\n' $digests | head -1)
+if [ "$after" = "$first" ]; then
+	echo "✗ digest: a changed inventory kept the same value"
+	rm -rf "$lng"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "digest" "changes" "a new finding moves it"
+rm -rf "$lng"
+
 # --- a published report says how to check it, and what checking it proves --------
 # The audit document carried both and the technical report carried neither, which
 # was tolerable while reports travelled by hand and stopped being so the first

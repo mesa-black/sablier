@@ -45,7 +45,14 @@ final class Signature
                 $finding->algorithm,
                 $finding->file,
                 $finding->verdict,
-                $finding->domain,
+                // The declared name, which is the team's and the same in every
+                // language — but the label of an *undeclared* domain is
+                // translated, and putting it here made the digest depend on the
+                // language the report was rendered in. Three renderings of one
+                // inventory then produced three digests, while the seal printed
+                // underneath them claimed the opposite. Found by publishing the
+                // same report in three languages and reading the three values.
+                $finding->domainDeclared ? $finding->domain : '-',
             ]);
         }
         sort($rows);
