@@ -429,11 +429,21 @@ final class HtmlReporter implements ReporterInterface
             $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.verify')).' <code>'
                 .htmlspecialchars(Lang::t('seal.verify.command')).'</code></p>';
 
-            // And what it proves, which depends on where the expected key
-            // lives. A key declared in a versioned file is checkable by its
-            // own history; an ephemeral one rests entirely on the channel that
-            // carried its fingerprint. Saying neither invites the reader to
-            // believe the strongest of the two.
+            // What it does not cover, first, because the earlier version of this
+            // paragraph said "the report has not changed since it was signed"
+            // and that is false: a report displays its own signature, so it
+            // cannot contain it, and the signature covers the findings instead
+            // of these bytes. Published on a website and altered by hand, the
+            // page still verified — which is the exact kind of false assurance
+            // this document spends its other sections refusing.
+            $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.proves.bytes')).'</p>';
+
+            // Then what the key establishes, which depends on where the expected
+            // one lives. A key named in a versioned declaration is checkable by
+            // that file's history; an ephemeral one rests entirely on the
+            // channel that carried its fingerprint; none at all proves that a
+            // key exists. Saying nothing invites the reader to assume the
+            // strongest of the three.
             $caveat .= '<p class="legend">'.htmlspecialchars(($block['ephemeral'] ?? false) === true
                 ? Lang::t('seal.proves.ephemeral')
                 : ($this->analysis->declaration->signingPublicKey !== ''

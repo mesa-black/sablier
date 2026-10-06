@@ -1332,6 +1332,11 @@ php -r '
 ' "$prv/sablier.json"
 ./bin/sablier scan "$prv" --out="$prv/bare.html" --sign="$prv/k.key" --no-probe --quiet >/dev/null 2>&1 || true
 
+# The first version of these sentences said "the report has not changed since
+# it was signed". A published report was then altered by hand and still
+# verified: a report displays its own signature, so it cannot contain it, and
+# what is signed is the findings digest. Every one of the three has to say that
+# before saying anything about the key.
 for pair in "declared:historique du fichier qui la déclare" "eph:canal qui a porté l" "bare:qui la détient"; do
 	file=${pair%%:*}
 	needle=${pair#*:}
@@ -1341,6 +1346,14 @@ for pair in "declared:historique du fichier qui la déclare" "eph:canal qui a po
 	fi
 	if ! grep -q "sablier verify" "$prv/$file.html"; then
 		echo "✗ seal: $file.html carries no command to check it"
+		rm -rf "$prv"; exit 1
+	fi
+	if ! grep -q "ne couvre pas : les octets" "$prv/$file.html"; then
+		echo "✗ seal: $file.html does not say the signature misses the bytes of the page"
+		rm -rf "$prv"; exit 1
+	fi
+	if grep -q "n.a pas changé depuis sa signature" "$prv/$file.html"; then
+		echo "✗ seal: $file.html claims the page itself is covered, which it is not"
 		rm -rf "$prv"; exit 1
 	fi
 done
