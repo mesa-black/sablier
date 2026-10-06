@@ -1303,6 +1303,58 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- a published report says how to check it, and what checking it proves --------
+# The audit document carried both and the technical report carried neither, which
+# was tolerable while reports travelled by hand and stopped being so the first
+# time one was published on a website: a reader arriving at a signed page with no
+# command and no claim has a seal they can admire and cannot use.
+prv=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$prv/"
+./bin/sablier keygen --out="$prv/k.key" >/dev/null 2>&1
+
+# Declared key: the chain is the history of the file that declares it.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	$secret = trim(file_get_contents($argv[2]));
+	$d["signing_public_key"] = base64_encode(sodium_crypto_sign_publickey_from_secretkey(base64_decode($secret)));
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT));
+' "$prv/sablier.json" "$prv/k.key"
+./bin/sablier scan "$prv" --out="$prv/declared.html" --sign="$prv/k.key" --no-probe --quiet >/dev/null 2>&1 || true
+
+# Ephemeral: the chain is the channel that carried the fingerprint.
+./bin/sablier scan "$prv" --out="$prv/eph.html" --sign=ephemeral --no-probe --quiet >/dev/null 2>&1 || true
+
+# No declared key at all: the signature proves a key exists, and nothing else.
+php -r '
+	$d = json_decode(file_get_contents($argv[1]), true);
+	unset($d["signing_public_key"]);
+	file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT));
+' "$prv/sablier.json"
+./bin/sablier scan "$prv" --out="$prv/bare.html" --sign="$prv/k.key" --no-probe --quiet >/dev/null 2>&1 || true
+
+for pair in "declared:historique du fichier qui la déclare" "eph:canal qui a porté l" "bare:qui la détient"; do
+	file=${pair%%:*}
+	needle=${pair#*:}
+	if ! grep -q "$needle" "$prv/$file.html"; then
+		echo "✗ seal: $file.html does not say what its signature proves"
+		rm -rf "$prv"; exit 1
+	fi
+	if ! grep -q "sablier verify" "$prv/$file.html"; then
+		echo "✗ seal: $file.html carries no command to check it"
+		rm -rf "$prv"; exit 1
+	fi
+done
+printf '  ✓ %-24s %-10s %s\n' "seal" "provable" "three key models, three claims"
+
+# An unsigned report must claim nothing at all.
+./bin/sablier scan "$prv" --out="$prv/none.html" --no-probe --quiet >/dev/null 2>&1 || true
+if grep -q "Ce que cela établit" "$prv/none.html"; then
+	echo "✗ seal: an unsigned report claims what a signature would prove"
+	rm -rf "$prv"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
+rm -rf "$prv"
+
 # --- a half not checked is not a half this machine cannot check ------------------
 # When the Ed25519 signature fails, the post-quantum half is never examined. The
 # caller read the absence of a verdict as "unavailable" and printed that this

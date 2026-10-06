@@ -419,6 +419,26 @@ final class HtmlReporter implements ReporterInterface
             $caveat = '<p class="seal-caveat">'.htmlspecialchars(\is_array($hybrid)
                 ? Lang::t('seal.hybrid', $hybrid['algorithm'])
                 : Lang::t('seal.caveat', $this->analysis->declaration->expiryYear)).'</p>';
+
+            // How to check it, and what checking it establishes. The audit
+            // document carried both and this one carried neither, which was
+            // tolerable while reports travelled by hand and stopped being so
+            // the first time one was published on a website: a reader who
+            // arrives at a signed page with no command and no claim has a seal
+            // they can admire and cannot use.
+            $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.verify')).' <code>'
+                .htmlspecialchars(Lang::t('seal.verify.command')).'</code></p>';
+
+            // And what it proves, which depends on where the expected key
+            // lives. A key declared in a versioned file is checkable by its
+            // own history; an ephemeral one rests entirely on the channel that
+            // carried its fingerprint. Saying neither invites the reader to
+            // believe the strongest of the two.
+            $caveat .= '<p class="legend">'.htmlspecialchars(($block['ephemeral'] ?? false) === true
+                ? Lang::t('seal.proves.ephemeral')
+                : ($this->analysis->declaration->signingPublicKey !== ''
+                    ? Lang::t('seal.proves.declared')
+                    : Lang::t('seal.proves.unvouched'))).'</p>';
         }
 
         return '<section class="seal"><h2>'.htmlspecialchars(Lang::t('seal.title')).'</h2>'
