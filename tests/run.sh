@@ -1098,7 +1098,14 @@ for forbidden in probe advisories; do
 		exit 1
 	fi
 done
-printf '  ✓ %-24s %-10s %s\n' "airgap" "refuses" "probe and advisories stop, loudly"
+# --timestamp reaches an authority over HTTP. It was written after the airgap
+# switch and was not wired into it, so on a closed site it would have tried.
+if SABLIER_AIRGAP=1 ./bin/sablier scan tests/fixtures/sample --out=/tmp/sablier-gap.html \
+	--sign=ephemeral --timestamp=http://example.org/tsa --quiet >/dev/null 2>&1; then
+	echo "✗ airgap: --timestamp reached for an authority anyway"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "airgap" "refuses" "probe, advisories and --timestamp stop, loudly"
 
 gap=$(mktemp -d)
 SABLIER_AIRGAP=1 ./bin/sablier scan tests/fixtures/sample --out="$gap/r.html" \

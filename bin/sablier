@@ -1177,6 +1177,15 @@ if ($advisories !== null) {
 // Signing happens after the analysis and over the findings, never over the
 // rendered file: two runs of the same inventory differ byte for byte and say
 // exactly the same thing.
+// A timestamping authority is on the network, and the airgap switch refuses
+// rather than skips. It was added after that switch existed and was not wired
+// into it, so on a closed site this flag would have reached for an authority
+// that is not supposed to be reachable — found while writing down, line by
+// line, everything this tool can send.
+if ($options['timestamp'] !== null && Airgap::on()) {
+    Airgap::refuse('--timestamp');
+}
+
 // An attestation needs something to attest and a file to sit beside, and both
 // come from signing. Refused rather than ignored: a flag that does nothing is
 // worse than a flag that says why.
