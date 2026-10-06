@@ -689,9 +689,17 @@ signcheck "$keydir/tampered.sig" "" rejected "tampered digest"
 # A chain nobody has to ask for: a second run over the same output path names
 # the digest it replaces, inside what is signed. A pile of reports becomes an
 # audit trail, and a missing link shows.
+#
+# The second run is given something to find. It used to be the identical scan,
+# which linked a digest to itself and passed — a chain of links that said
+# nothing, which is what a seal does when it moves and the findings do not.
 cp "$keydir/r.html.sig" "$keydir/first.sig"
-./bin/sablier scan tests/fixtures/sample --declare="$keydir/right.json" --sign="$keydir/a.key" \
+chainsrc=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$chainsrc/"
+printf '<?php\n$x = md5("a second run with something new in it");\n' > "$chainsrc/added.php"
+./bin/sablier scan "$chainsrc" --declare="$keydir/right.json" --sign="$keydir/a.key" \
 	--out="$keydir/r.html" --quiet >/dev/null || true
+rm -rf "$chainsrc"
 chain=$(php -r '
 	$first = json_decode(file_get_contents($argv[1]), true);
 	$second = json_decode(file_get_contents($argv[2]), true);
@@ -1462,6 +1470,49 @@ if grep -q "Ce que cela établit" "$prv/none.html"; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
+
+# --- a seal that moves when nothing moved says nothing --------------------------
+# Re-running an unchanged analysis used to produce a new signed_at, a new
+# signature over the same digest, and a chain link from a digest to itself.
+# Published daily, that is a document whose date changes every morning while its
+# content does not. The same rule matters more for the attested date, which this
+# cannot test without a network: re-requesting a token destroys the earliest one,
+# and the earliest is the only one that supports "we had inventoried before the
+# deadline".
+seal=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$seal/"
+./bin/sablier keygen --out="$seal/k.json" >/dev/null 2>&1
+./bin/sablier scan "$seal" --out="$seal/r.html" --sign="$seal/k.json" --no-probe --quiet >/dev/null 2>&1 || true
+first=$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["signed_at"];' "$seal/r.html.sig")
+sleep 1
+./bin/sablier scan "$seal" --out="$seal/r.html" --sign="$seal/k.json" --no-probe --quiet >/dev/null 2>&1 || true
+second=$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["signed_at"];' "$seal/r.html.sig")
+if [ "$first" != "$second" ]; then
+	echo "✗ seal: an unchanged analysis was signed again, at $second instead of $first"
+	rm -rf "$seal"; exit 1
+fi
+if php -r '
+	$b = json_decode(file_get_contents($argv[1]), true);
+	exit(isset($b["previous"]) && $b["previous"] === $b["digest"] ? 0 : 1);
+' "$seal/r.html.sig"; then
+	echo "✗ seal: the chain gained a link from a digest to itself"
+	rm -rf "$seal"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "seal" "unchanged" "same findings, same seal, same date"
+
+# And the other half: when the findings move, so does the seal, and the link
+# between the two digests is then worth something.
+printf '<?php\n$x = md5("something new");\n' > "$seal/extra.php"
+./bin/sablier scan "$seal" --out="$seal/r.html" --sign="$seal/k.json" --no-probe --quiet >/dev/null 2>&1 || true
+if ! php -r '
+	$b = json_decode(file_get_contents($argv[1]), true);
+	exit(isset($b["previous"]) && $b["previous"] !== $b["digest"] && $b["signed_at"] !== $argv[2] ? 0 : 1);
+' "$seal/r.html.sig" "$first"; then
+	echo "✗ seal: findings changed and the seal did not follow"
+	rm -rf "$seal"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "seal" "changed" "new date, and a link that means something"
+rm -rf "$seal"
 
 # --- what it looked for and did not find ---------------------------------------
 # The report has always printed what it could not see. That is half a sentence:

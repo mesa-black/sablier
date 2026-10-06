@@ -1164,6 +1164,7 @@ if ($options['timestamp'] !== null && $options['sign'] === null) {
 
 $signature = null;
 $timestamp = null;
+$kept = false;
 if ($options['sign'] !== null) {
     // --sign gives the run an output path a hundred lines above, so this is
     // never null here. Written as code rather than as a comment: a comment does
@@ -1195,25 +1196,67 @@ if ($options['sign'] !== null) {
         $pqSecret = is_file($hybridKey) ? (string) file_get_contents($hybridKey) : '';
     }
 
-    $signature = Signature::sign(
-        Signature::digest($preliminary),
-        $secret,
-        // Whatever was signed at this path before. No flag: a second run over
-        // the same output succeeds the first, and a chain nobody has to ask
-        // for is a chain that exists.
-        Signature::previousDigest($reportPath.'.sig'),
-        $pqSecret,
-    );
+    $digest = Signature::digest($preliminary);
+
+    // A seal that moves when nothing moved is a seal that says nothing.
+    //
+    // Re-running an unchanged analysis used to produce a new `signed_at`, a new
+    // signature over the same digest, and a chain link from a digest to itself.
+    // Published daily, that is a document whose date changes every morning while
+    // its content does not — and a chain of identical links, which is noise
+    // dressed as history. Worse for the attestation below: re-requesting a token
+    // destroys the earliest one, and the earliest is the only one that supports
+    // "we had inventoried before the deadline".
+    //
+    // So an existing signature is kept when it covers the same findings and the
+    // same key. A different key is a deliberate act — a rotation — and signs
+    // again; an ephemeral run always signs, since its key exists for one
+    // document and cannot be the one in the file.
+    $existing = is_file($reportPath.'.sig')
+        ? Value::map(json_decode((string) file_get_contents($reportPath.'.sig'), true))
+        : [];
+    // Only to compare with what the existing file claims: a secret that does not
+    // decode is a problem for Signature::sign() to report, not a reason to crash
+    // here, so it simply fails the comparison and the run signs again.
+    $raw = $ephemeral ? false : base64_decode($secret, true);
+    $publicKey = \is_string($raw) && \strlen($raw) === \SODIUM_CRYPTO_SIGN_SECRETKEYBYTES
+        ? base64_encode(sodium_crypto_sign_publickey_from_secretkey($raw))
+        : '';
+    $unchanged = !$ephemeral
+        && $publicKey !== ''
+        && Value::string($existing['digest'] ?? null) === $digest
+        && Value::string($existing['public_key'] ?? null) === $publicKey;
+
+    if ($unchanged) {
+        /** @var array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string} $signature */
+        $signature = $existing;
+        $kept = true;
+    } else {
+        $signature = Signature::sign(
+            $digest,
+            $secret,
+            // Whatever was signed at this path before. No flag: a second run
+            // over the same output succeeds the first, and a chain nobody has
+            // to ask for is a chain that exists.
+            Signature::previousDigest($reportPath.'.sig'),
+            $pqSecret,
+        );
+        $kept = false;
+    }
 
     // The private halves leave with the command that made them.
     if ($ephemeral) {
         $signature['ephemeral'] = true;
+    }
+    if (!$unchanged) {
         sodium_memzero($secret);
         if ($pqSecret !== '') {
             sodium_memzero($pqSecret);
         }
     }
-    file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
+    if (!$kept) {
+        file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
+    }
 
     // A date somebody else attests. Our own `signed_at` is covered by the
     // signature, so it cannot be edited afterwards — but it is read off our own
@@ -1227,16 +1270,28 @@ if ($options['sign'] !== null) {
     // assurance this tool spends its pages refusing. So it is loud on stderr and
     // no `.tsr` is written, which means the report claims nothing about a date.
     if ($options['timestamp'] !== null) {
-        $attested = Timestamp::request($signature['digest'], $options['timestamp']);
-        if (isset($attested['token'])) {
-            $tokenPath = Timestamp::path($reportPath);
-            file_put_contents($tokenPath, $attested['token']);
-            $read = Timestamp::read($attested['token']);
-            if ($read !== null) {
-                $timestamp = [...$read, 'path' => $tokenPath];
-            }
+        $tokenPath = Timestamp::path($reportPath);
+
+        // An existing token that attests this very digest is kept, and that is
+        // the whole point rather than an optimisation: the claim worth making is
+        // that these findings existed **as early as** some date, so overwriting
+        // the first attestation with a later one throws away the evidence the
+        // flag exists to produce.
+        $held = is_file($tokenPath) ? (string) file_get_contents($tokenPath) : '';
+        $previous = $held !== '' ? Timestamp::read($held) : null;
+        if ($previous !== null && hash_equals($previous['imprint'], $digest)) {
+            $timestamp = [...$previous, 'path' => $tokenPath];
         } else {
-            fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
+            $attested = Timestamp::request($digest, $options['timestamp']);
+            if (isset($attested['token'])) {
+                file_put_contents($tokenPath, $attested['token']);
+                $read = Timestamp::read($attested['token']);
+                if ($read !== null) {
+                    $timestamp = [...$read, 'path' => $tokenPath];
+                }
+            } else {
+                fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
+            }
         }
     }
 }
@@ -1429,7 +1484,7 @@ if ($timestamp !== null) {
     printf("  → %s\n", Lang::t('cli.timestamped', $timestamp['path'], Timestamp::readable($timestamp['time']), $timestamp['authority']));
 }
 if ($signature !== null) {
-    printf("  → %s\n", Lang::t('cli.signed', $reportPath.'.sig'));
+    printf("  → %s\n", Lang::t($kept ? 'cli.signed.kept' : 'cli.signed', $reportPath.'.sig'));
     if ($fingerprint !== '') {
         printf("\n  %s\n\n    %s\n\n  %s\n", Lang::t('seal.ephemeral.done'), $fingerprint, Lang::t('seal.ephemeral.send'));
     }
