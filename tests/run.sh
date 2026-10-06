@@ -1303,6 +1303,39 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- a half not checked is not a half this machine cannot check ------------------
+# When the Ed25519 signature fails, the post-quantum half is never examined. The
+# caller read the absence of a verdict as "unavailable" and printed that this
+# machine needs OpenSSL 3.5 — on the machine that had just verified ML-DSA two
+# lines earlier. A reader follows that message into installing a library they
+# already have, instead of looking at the key that did not match.
+if openssl list -signature-algorithms 2>/dev/null | grep -qi "ML-DSA-65"; then
+	st=$(mktemp -d)
+	cp -R tests/fixtures/sample/. "$st/"
+	./bin/sablier keygen --out="$st/mine.key" >/dev/null 2>&1
+	./bin/sablier keygen --out="$st/theirs.key" >/dev/null 2>&1
+	php -r '
+		$d = json_decode(file_get_contents($argv[1]), true);
+		$d["signing_public_key"] = trim(shell_exec("php -r \x27echo base64_encode(sodium_crypto_sign_publickey_from_secretkey(base64_decode(trim(file_get_contents(\"".$argv[2]."\")))));\x27"));
+		file_put_contents($argv[1], json_encode($d, JSON_PRETTY_PRINT));
+	' "$st/sablier.json" "$st/mine.key"
+	./bin/sablier scan "$st" --out="$st/r.html" --sign="$st/theirs.key" --quiet >/dev/null 2>&1 || true
+	said=$(./bin/sablier verify "$st/r.html.sig" --declare="$st/sablier.json" 2>&1 || true)
+	case "$said" in
+		*"autre clé"*) ;;
+		*) echo "✗ verify: a foreign key was not reported as such"; echo "$said"; rm -rf "$st"; exit 1 ;;
+	esac
+	case "$said" in
+		*"OpenSSL"*) echo "✗ verify: a skipped half is blamed on the local library"; rm -rf "$st"; exit 1 ;;
+		*"non vérifiée"*) ;;
+		*) echo "✗ verify: nothing said about the second half"; echo "$said"; rm -rf "$st"; exit 1 ;;
+	esac
+	printf '  ✓ %-24s %-10s %s\n' "verify" "unchecked" "not blamed on this machine"
+	rm -rf "$st"
+else
+	printf '  · %-24s %-10s %s\n' "verify" "unchecked" "skipped: no ML-DSA on this machine"
+fi
+
 # --- a host is not a path, so it cannot be declared ------------------------------
 # A probe finding carries `tls://host:443` where a file would be, and no glob can
 # ever cover it. Counting it as an undeclared domain asked every project with a

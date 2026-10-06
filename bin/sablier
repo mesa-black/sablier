@@ -303,6 +303,7 @@ if ($command === 'verify') {
         printf("  %s\n", Lang::t(match ($result['hybrid'] ?? '') {
             'valid' => 'verify.hybrid.valid',
             'invalid' => 'verify.hybrid.invalid',
+            'unchecked' => 'verify.hybrid.unchecked',
             default => 'verify.hybrid.unavailable',
         }, Value::string($hybridClaim['algorithm'] ?? null)));
     } else {

@@ -168,6 +168,12 @@ final class Signature
     /**
      * @param array{algorithm?:string, digest?:string, signed_at?:string, public_key?:string, signature?:string, previous?:string, hybrid?:array<string, mixed>} $block
      *
+     * The second half reports one of five states, and `unchecked` is not
+     * `unavailable`: when the Ed25519 half already failed there is nothing to
+     * learn from the other, and saying "this machine cannot verify ML-DSA" on a
+     * machine that can sends the reader to install an OpenSSL they already have
+     * instead of looking at the key that did not match.
+     *
      * @return array{valid:bool, reason:string, hybrid?:string}
      */
     public static function verify(array $block, ?string $expectedDigest = null, ?string $expectedPublicKey = null, ?string $expectedPqKey = null): array
@@ -179,17 +185,17 @@ final class Signature
         }
 
         if ($block['algorithm'] !== self::ALGORITHM) {
-            return ['valid' => false, 'reason' => 'verify.algorithm'];
+            return ['valid' => false, 'reason' => 'verify.algorithm', 'hybrid' => 'unchecked'];
         }
 
         // A signature that verifies against a key nobody vouched for proves
         // nothing: the expected key comes from the versioned declaration.
         if ($expectedPublicKey !== null && $expectedPublicKey !== '' && !hash_equals($expectedPublicKey, $block['public_key'])) {
-            return ['valid' => false, 'reason' => 'verify.wrong_key'];
+            return ['valid' => false, 'reason' => 'verify.wrong_key', 'hybrid' => 'unchecked'];
         }
 
         if ($expectedDigest !== null && !hash_equals($expectedDigest, $block['digest'])) {
-            return ['valid' => false, 'reason' => 'verify.changed'];
+            return ['valid' => false, 'reason' => 'verify.changed', 'hybrid' => 'unchecked'];
         }
 
         $key = base64_decode($block['public_key'], true);
@@ -200,7 +206,7 @@ final class Signature
         if ($key === false || $signature === false
             || \strlen($key) !== \SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
             || \strlen($signature) !== \SODIUM_CRYPTO_SIGN_BYTES) {
-            return ['valid' => false, 'reason' => 'verify.malformed'];
+            return ['valid' => false, 'reason' => 'verify.malformed', 'hybrid' => 'unchecked'];
         }
 
         $payload = self::payload($block['digest'], $block['signed_at'], $block['previous'] ?? '');
