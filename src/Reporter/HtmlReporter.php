@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sablier\Reporter;
 
 use Sablier\ActionPlan;
+use Sablier\Absences;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\BlindSpots;
@@ -106,16 +107,15 @@ final class HtmlReporter implements ReporterInterface
         $subtitle = Lang::t('report.subtitle', $actionable, $declaration->expiryYear)
             .' '.Lang::t('report.deadline_checked', $checked === false ? $declaration->deadlinesCheckedOn : $checked->format('d/m/Y'))
             .($declaration->deadlinesAreStale() ? ' <strong class="stale">'.htmlspecialchars(Lang::t('report.deadline_stale', $declaration->monthsSinceCheck())).'</strong>' : '');
-        // The version of the tool, in the report as well as in the audit
-        // document. Both carry a digest and a command to repeat the run, and a
-        // command repeated three years later with a different build is not the
-        // same command: naming the tool without naming its version makes a
-        // document reproducible in theory only.
-        $footer = htmlspecialchars(Version::label()).' · '.Lang::t('report.footer');
+        $footer = Lang::t('report.footer');
         $filesLabel = $this->analysis->importedFrom !== ''
             ? Lang::t('report.imported_from', $this->analysis->importedFrom, $this->analysis->filesRead)
             : Lang::t('report.files_read', $this->analysis->filesRead);
         $elapsedLabel = Lang::t('report.elapsed', $elapsed);
+        // Beside the name, where software puts its version and where a reader
+        // looks for it. It was in the footer, in front of a paragraph that also
+        // begins with the word "Sablier" — present, and invisible.
+        $build = htmlspecialchars(Version::NUMBER);
 
         return <<<HTML
             <!DOCTYPE html>
@@ -125,7 +125,7 @@ final class HtmlReporter implements ReporterInterface
             <style>$css</style></head>
             <body>
             <header>
-              <div class="brand">SABLIER</div>
+              <div class="brand">SABLIER <span class="build">$build</span></div>
               <div class="meta">$project · $date · $filesLabel · $elapsedLabel</div>
             </header>
 
@@ -595,8 +595,23 @@ final class HtmlReporter implements ReporterInterface
             BlindSpots::for($this->analysis),
         ));
 
-        return '<section class="blind"><h2>'.htmlspecialchars(Lang::t('blind.title')).'</h2><ul>'.$items.'</ul>
+        $box = '<section class="blind"><h2>'.htmlspecialchars(Lang::t('blind.title')).'</h2><ul>'.$items.'</ul>
             <p>'.htmlspecialchars(Lang::t('blind.motto')).'</p></section>';
+
+        // The other half of the sentence. "No private key in this repository"
+        // and "nobody looked for one" print as the same silence otherwise, and
+        // only one of them is what the reader came for.
+        $found = Absences::for($this->analysis);
+        if ($found !== []) {
+            $rows = '';
+            foreach ($found as $line) {
+                $rows .= '<li>'.htmlspecialchars($line).'</li>';
+            }
+            $box .= '<section class="blind absences"><h2>'.htmlspecialchars(Lang::t('absence.title')).'</h2>'
+                .'<p class="legend">'.htmlspecialchars(Lang::t('absence.intro')).'</p><ul>'.$rows.'</ul></section>';
+        }
+
+        return $box;
     }
 
     private function css(): string
@@ -611,6 +626,7 @@ final class HtmlReporter implements ReporterInterface
                  max-width:52rem;margin-inline:auto}
             header{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;
                    border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin-bottom:2rem}
+            .build{font-weight:400;font-size:.62em;letter-spacing:.04em;opacity:.55;vertical-align:.12em}
             .brand{font-weight:700;letter-spacing:.22em;font-size:.95rem}
             .meta{color:var(--muted);font-size:.82rem}
             .headline{font-size:1.5rem;line-height:1.32;font-weight:500;margin:0 0 .8rem;text-wrap:balance}
@@ -648,6 +664,7 @@ final class HtmlReporter implements ReporterInterface
             .fix span{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ok);margin-right:.4rem}
             .verdict.compromised h2 .count,.verdict.urgent h2 .count{background:var(--bad)}
             .verdict.migrate h2 .count{background:var(--warn)}
+            .absences{margin-top:1.2rem}
             .blind{border:1px solid var(--line);border-radius:3px;padding:1.1rem 1.3rem;margin-top:3rem;background:#00000004}
             .blind h2{margin-top:0}
             .blind ul{margin:0;padding-left:1.1rem}

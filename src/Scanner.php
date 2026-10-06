@@ -35,23 +35,47 @@ final class Scanner
     ) {
     }
 
-    /** @return array{findings: list<Finding>, files: int, blind: list<string>} */
+    /** @return array{findings: list<Finding>, files: int, blind: list<string>, searched: array<string, array{files:int, findings:int}>} */
     public function scan(string $root): array
     {
         $root = rtrim(realpath($root) ?: $root, '/');
         $findings = [];
         $files = 0;
 
+        // What each detector actually opened, and what it produced. A report
+        // that lists what it did not look at owes the other half of the
+        // sentence: the things it did look for and did not find. Without this
+        // tally, "no private key in this repository" and "nobody looked" print
+        // as the same silence.
+        //
+        // The names are resolved once: a reflection call per detector per file
+        // would make an honest claim cost a measurable part of the scan.
+        $names = [];
+        $opened = [];
+        $produced = [];
+        foreach ($this->detectors as $index => $detector) {
+            $names[$index] = (new \ReflectionClass($detector))->getShortName();
+            $opened[$names[$index]] = 0;
+            $produced[$names[$index]] = 0;
+        }
+
         foreach ($this->walk($root) as $file) {
             ++$files;
-            foreach ($this->detectors as $detector) {
+            foreach ($this->detectors as $index => $detector) {
                 if (!$detector->supports($file)) {
                     continue;
                 }
+                ++$opened[$names[$index]];
                 foreach ($detector->detect($file) as $finding) {
                     $findings[] = $finding;
+                    ++$produced[$names[$index]];
                 }
             }
+        }
+
+        $searched = [];
+        foreach ($opened as $name => $count) {
+            $searched[$name] = ['files' => $count, 'findings' => $produced[$name]];
         }
 
         $blind = [];
@@ -59,7 +83,12 @@ final class Scanner
             $blind = [...$blind, ...$detector->blindSpots()];
         }
 
-        return ['findings' => $findings, 'files' => $files, 'blind' => array_values(array_unique($blind))];
+        return [
+            'findings' => $findings,
+            'files' => $files,
+            'blind' => array_values(array_unique($blind)),
+            'searched' => $searched,
+        ];
     }
 
     /** @return \Generator<SourceFile> */

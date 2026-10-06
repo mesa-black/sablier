@@ -1074,6 +1074,10 @@ $startedAt = microtime(true);
 
 $probes = [];
 $importedFrom = '';
+// An imported inventory was not searched for by this tool, so the box that says
+// what it looked for and did not find stays empty rather than borrowing credit
+// for somebody else's scan.
+$searched = [];
 if ($command === 'scan') {
     // Composition happens here and nowhere else: the scanner receives what it
     // must run, instead of knowing the list itself.
@@ -1098,6 +1102,7 @@ if ($command === 'scan') {
     $inventory = [...$scan['findings'], ...$probeFindings];
     $filesRead = $scan['files'];
     $blind = $scan['blind'];
+    $searched = $scan['searched'];
     if (Airgap::on()) {
         $blind[] = $airgapSkippedProbe
             ? Lang::t('airgap.blind.skipped', \count($declaration->probe))
@@ -1254,6 +1259,7 @@ $analysis = new Analysis(
     // assertion, not a finding. The binary is named relative to where it was
     // run from — an absolute path says more about the machine that produced the
     // document than about the command a reader is meant to repeat.
+    searched: $searched,
     commandLine: implode(' ', array_map(
         static function (string $argument) use ($cwd): string {
             if ($cwd !== false && str_starts_with($argument, $cwd.'/')) {

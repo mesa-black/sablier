@@ -39,6 +39,13 @@ final readonly class Analysis
         public string $importedFrom = '',
         /** The command that produced this analysis, so a third party can repeat it. */
         public string $commandLine = '',
+        /**
+         * What each detector opened and what it produced, so the report can say
+         * what it looked for and did not find rather than only what it skipped.
+         *
+         * @var array<string, array{files:int, findings:int}>
+         */
+        public array $searched = [],
     ) {
     }
 }

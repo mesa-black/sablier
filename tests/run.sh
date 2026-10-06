@@ -1463,6 +1463,61 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
 
+# --- what it looked for and did not find ---------------------------------------
+# The report has always printed what it could not see. That is half a sentence:
+# "no private key in this repository" and "nobody looked for one" arrive on the
+# page as the same silence, and only one of them is what the reader came for.
+#
+# The box raises the stakes, which is the point and also the danger: a detector
+# that misses something used to print a silence, and now prints an assurance. It
+# caught one immediately — see the PKCS#8 test below.
+abs=$(mktemp -d)
+cp tests/fixtures/sample/sablier.json "$abs/"
+printf '<?php\n// nothing cryptographic here at all\necho 1;\n' > "$abs/plain.php"
+./bin/sablier scan "$abs" --out="$abs/r.html" --no-probe --quiet >/dev/null 2>&1 || true
+if ! grep -q "aucune clé privée" "$abs/r.html"; then
+	echo "✗ absence: a tree with no key does not say so"
+	rm -rf "$abs"; exit 1
+fi
+# A repository with no Terraform in it must not be told its Terraform is clean.
+if grep -q "Terraform" "$abs/r.html"; then
+	echo "✗ absence: claimed a result about files it never opened"
+	rm -rf "$abs"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "absence" "scope" "only what was opened"
+
+# --- a private key in the one format everybody actually produces ---------------
+# openssl genpkey, and openssl req since 3.0, write PKCS#8: `BEGIN PRIVATE KEY`,
+# with the algorithm inside the DER instead of in the header. The detector knew
+# the four legacy headers and walked straight past the common one, so an RSA key
+# dropped into a repository produced nothing — and the new box above turned that
+# silence into "no private key in the versioned tree".
+for algo in RSA EC ED25519; do
+	case $algo in
+		RSA) opt="-pkeyopt rsa_keygen_bits:2048" ;;
+		EC) opt="-pkeyopt ec_paramgen_curve:P-256" ;;
+		*) opt="" ;;
+	esac
+	# A machine whose OpenSSL cannot make this key is not a failing test.
+	openssl genpkey -algorithm $algo $opt -out "$abs/$algo.pem" 2>/dev/null || continue
+	./bin/sablier scan "$abs" --json="$abs/$algo.json" --out="$abs/$algo.html" --no-probe --quiet >/dev/null 2>&1 || true
+	if ! SABLIER_ABS_FILE="$abs/$algo.json" php -r '
+		$rows = json_decode(file_get_contents(getenv("SABLIER_ABS_FILE")), true);
+		foreach ($rows as $row) { if (str_ends_with($row["file"], ".pem")) { exit(0); } }
+		exit(1);
+	'; then
+		echo "✗ keys: a $algo private key in PKCS#8 was not found"
+		rm -rf "$abs"; exit 1
+	fi
+	if grep -q "aucune clé privée" "$abs/$algo.html"; then
+		echo "✗ keys: a tree holding a $algo private key still claims to hold none"
+		rm -rf "$abs"; exit 1
+	fi
+	rm -f "$abs/$algo.pem"
+done
+printf '  ✓ %-24s %-10s %s\n' "keys" "pkcs#8" "RSA, EC and Ed25519 all found"
+rm -rf "$abs"
+
 # --- the message the trusted channel carries -----------------------------------
 # The whole model for a signed report is that the file travels one way and the
 # fingerprint of the keys travels by a channel that already proves who is

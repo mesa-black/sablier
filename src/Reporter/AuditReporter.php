@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sablier\Reporter;
 
 use Sablier\ActionPlan;
+use Sablier\Absences;
 use Sablier\Analysis;
 use Sablier\Assessor;
 use Sablier\BlindSpots;
@@ -198,7 +199,23 @@ final class AuditReporter implements ReporterInterface
         }
         $items .= '<li>'.htmlspecialchars(Lang::t('audit.s3.confidence')).'</li>';
 
-        return $this->section(3, '<p>'.htmlspecialchars(Lang::t('audit.s3.intro')).'</p><ul>'.$items.'</ul>');
+        $body = '<p>'.htmlspecialchars(Lang::t('audit.s3.intro')).'</p><ul>'.$items.'</ul>';
+
+        // What was searched for and not found, under its own heading. In this
+        // document more than in the other: an auditor reading a list of limits
+        // and no list of negative results cannot tell a silence that was
+        // measured from one that was never attempted.
+        $found = Absences::for($this->analysis);
+        if ($found !== []) {
+            $rows = '';
+            foreach ($found as $line) {
+                $rows .= '<li>'.htmlspecialchars($line).'</li>';
+            }
+            $body .= '<h3>'.htmlspecialchars(Lang::t('absence.title')).'</h3>'
+                .'<p>'.htmlspecialchars(Lang::t('absence.intro')).'</p><ul>'.$rows.'</ul>';
+        }
+
+        return $this->section(3, $body);
     }
 
     private function references(): string
