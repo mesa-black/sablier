@@ -1326,7 +1326,19 @@ printf '  ✓ %-24s %-10s %s\n' "probe" "undeclared" "a host is not a missing de
 
 # But a file in no declared domain still is one.
 mkdir -p "$prb/legacy"
-printf '<?php\nfinal class Token\n{\n    public function issue(array $claims, string $key): string\n    {\n        return jwt_encode($claims, $key, \x27RS256\x27);\n    }\n}\n' > "$prb/legacy/Token.php"
+# A quoted heredoc rather than printf: \x27 is not portable — dash's printf does
+# not know hex escapes, so in CI the file kept the backslashes, the detector saw
+# nothing, and the assertion failed on a machine where the code was fine.
+cat >"$prb/legacy/Token.php" <<'LEGACY'
+<?php
+final class Token
+{
+    public function issue(array $claims, string $key): string
+    {
+        return jwt_encode($claims, $key, 'RS256');
+    }
+}
+LEGACY
 ./bin/sablier scan "$prb" --out="$prb/r2.html" --quiet >/dev/null 2>&1 || true
 if ! grep -q "Compléter la déclaration" "$prb/r2.html"; then
 	echo "✗ probe: a genuinely undeclared file no longer asks for a declaration"
