@@ -130,7 +130,7 @@ final class Probe
                         purpose: Catalogue::PURPOSE_CONFIDENTIALITY,
                         file: $label,
                         line: 0,
-                        evidence: Lang::t('probe.evidence.no_upgrade', $service['label']),
+                        evidence: $service['label'],
                         detail: Lang::t('probe.detail.no_upgrade'),
                     )],
                     'facts' => $facts,
@@ -164,7 +164,13 @@ final class Probe
                 algorithm: $hybrid ? 'ml-kem' : 'ecdh',
                 purpose: Catalogue::PURPOSE_CONFIDENTIALITY,
                 file: $label, line: 0,
-                evidence: Lang::t('probe.evidence.group', $group),
+                // The observed fact, untranslated. It used to be a sentence
+                // built with Lang::t, and the fingerprint is hashed from the
+                // evidence — so the same server produced a different
+                // fingerprint per report language, which silently detached
+                // every acceptance recorded against it. Elsewhere `evidence` is
+                // a line of source; here it is what the handshake returned.
+                evidence: $group,
                 detail: $hybrid
                     ? Lang::t('probe.detail.hybrid')
                     : Lang::t('probe.detail.classical'),
@@ -183,7 +189,7 @@ final class Probe
                 algorithm: str_contains(strtoupper($sig), 'ECDSA') ? 'ecdsa' : 'rsa-sign',
                 purpose: Catalogue::PURPOSE_AUTHENTICITY,
                 file: $label, line: 0,
-                evidence: Lang::t('probe.evidence.cert', $sig, $session['keyLabel']),
+                evidence: $sig.' · '.$session['keyToken'],
                 detail: Lang::t('probe.detail.certificate'),
             );
         }
@@ -195,7 +201,7 @@ final class Probe
             if (\in_array($version, ['TLSv1.0', 'TLSv1.1'], true)) {
                 $findings[] = new Finding(
                     algorithm: 'tls-obsolete', purpose: Catalogue::PURPOSE_CONFIDENTIALITY, file: $label, line: 0,
-                    evidence: Lang::t('probe.evidence.version_accepted', $version),
+                    evidence: $version,
                     detail: Lang::t('probe.detail.obsolete_version'),
                 );
             }
@@ -247,7 +253,7 @@ final class Probe
         ];
     }
 
-    /** @return array{protocol:string, cipher:string, bits:int, cert:array<array-key, mixed>|null, keyLabel:string, chain:int, validTo:string}|null */
+    /** @return array{protocol:string, cipher:string, bits:int, cert:array<array-key, mixed>|null, keyLabel:string, keyToken:string, chain:int, validTo:string}|null */
     private function connect(string $host, int $port, TransportInterface $transport): ?array
     {
         $context = stream_context_create(['ssl' => [
@@ -275,6 +281,11 @@ final class Probe
         $cert = \is_array($parsed) ? $parsed : null;
 
         $keyLabel = Lang::t('probe.unknown');
+        // The same key, twice: a sentence for the reader and a token for the
+        // machine. The token is what the fingerprint is hashed from, and a
+        // fingerprint that changes with the report's language detaches every
+        // acceptance recorded against it.
+        $keyToken = '?';
         $validTo = '?';
         if ($peer instanceof \OpenSSLCertificate) {
             $publicKey = @openssl_pkey_get_public($peer);
@@ -286,6 +297,11 @@ final class Probe
                     \OPENSSL_KEYTYPE_EC => Lang::t('probe.elliptic_curve').' '.$bits.' '.Lang::t('unit.bits'),
                     default => $bits.' '.Lang::t('unit.bits'),
                 };
+                $keyToken = match (Value::int($details['type'] ?? null, -1)) {
+                    \OPENSSL_KEYTYPE_RSA => 'RSA-'.$bits,
+                    \OPENSSL_KEYTYPE_EC => 'EC-'.$bits,
+                    default => (string) $bits,
+                };
             }
             $validTo = isset($cert['validTo_time_t']) ? date('d/m/Y', Value::int($cert['validTo_time_t'])) : '?';
         }
@@ -296,6 +312,7 @@ final class Probe
             'bits' => Value::int($crypto['cipher_bits'] ?? null),
             'cert' => $cert,
             'keyLabel' => $keyLabel,
+            'keyToken' => $keyToken,
             'chain' => \count(Value::map($options['peer_certificate_chain'] ?? null)),
             'validTo' => $validTo,
         ];

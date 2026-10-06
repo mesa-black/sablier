@@ -1303,6 +1303,41 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- a fingerprint is a handle, so it cannot move with the language -------------
+# `sablier accept <fingerprint>` writes a decision against a finding. The
+# fingerprint is hashed from the evidence, and the probe built its evidence out
+# of translated sentences — so the same server produced a different fingerprint
+# per report language, and an acceptance recorded in French silently stopped
+# applying to a scan run in English. Everywhere else `evidence` is a line of
+# source; from the probe it is now the fact the handshake returned.
+if command -v openssl >/dev/null 2>&1; then
+	fpr=$(mktemp -d)
+	cat >"$fpr/sablier.json" <<'DECL'
+{ "project": "Probe fingerprints", "probe": ["mesa.black"], "default_lifetime_years": 0 }
+DECL
+	seen=''
+	for lang in fr en es; do
+		./bin/sablier scan "$fpr" --json="$fpr/$lang.json" --lang="$lang" --quiet >/dev/null 2>&1 || true
+		seen="$seen $(php -r '
+			$rows = json_decode(file_get_contents($argv[1]), true) ?: [];
+			$out = [];
+			foreach ($rows as $r) { if (str_starts_with($r["file"], "tls://")) { $out[] = $r["fingerprint"]; } }
+			sort($out);
+			echo implode(",", $out) ?: "none";
+		' "$fpr/$lang.json")"
+	done
+	unique=$(printf '%s\n' $seen | sort -u | wc -l | tr -d ' ')
+	if [ "$unique" != "1" ]; then
+		echo "✗ fingerprint: a probe finding is identified differently per language"
+		printf '   %s\n' $seen
+		rm -rf "$fpr"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "fingerprint" "languages" "one finding, one handle"
+	rm -rf "$fpr"
+else
+	printf '  · %-24s %-10s %s\n' "fingerprint" "languages" "skipped: no openssl"
+fi
+
 # --- one inventory, one digest, whatever the language ---------------------------
 # The seal prints "the digest covers the findings, not this file: two renderings
 # of the same inventory, in two languages, give the same value". It did not. The
