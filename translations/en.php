@@ -248,12 +248,21 @@ return [
     'share.threema' => 'Send the summary on Threema',
     'share.note' => 'Opens Threema on a phone where the app is installed. On a desktop the scheme is usually not registered and the browser refuses the link: copy the text below instead. Nothing is sent to a third party.',
     'share.reveal' => 'Show the text it would send',
-    'share.text' => 'Sablier — cryptographic inventory of %s (%s)
+    'share.text' => '%s — cryptographic inventory of %s (%s)
 
 %s
 
 %d findings kept. Expiry date used: %d.
 First action: %s',
+    'share.text.sealed' => 'Digest of the findings
+%s
+
+Fingerprint of the keys that signed it
+%s
+
+These two lines are what this message exists to establish: the report and its signature can arrive by any route, this channel is what proves who is speaking. To check, with the .sig file filed beside the report:
+sablier verify <report>.sig --fingerprint="<the second line>"',
+    'share.text.attested' => 'Date attested on %s by %s.',
     'action.declare.plural.body' => '%d domains still run on the default lifetime. While that holds, the verdicts above are approximations delivered in a confident typeface. It is an hour of work with someone who knows the business rather than the technology: how long must each category of data stay secret? The file gets read, argued over and versioned.',
     'action.broken.plural.body' => '%d uses rest on a classically broken algorithm. No quantum reasoning is needed: the deadline was ten years ago, the replacement is known and does not need a project. Handle this before anything about the post-quantum transition, because it is cheaper and already exploitable.',
     'probe.fact.service' => 'service',

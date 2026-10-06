@@ -248,12 +248,21 @@ return [
     'share.threema' => 'Enviar el resumen por Threema',
     'share.note' => 'Abre Threema en un teléfono donde la aplicación esté instalada. En un ordenador el esquema no suele estar registrado y el navegador rechaza el enlace: copie el texto de abajo. No se envía nada a terceros.',
     'share.reveal' => 'Ver el texto que enviaría',
-    'share.text' => 'Sablier — inventario criptográfico de %s (%s)
+    'share.text' => '%s — inventario criptográfico de %s (%s)
 
 %s
 
 %d hallazgos retenidos. Fecha de caducidad empleada: %d.
 Primera acción: %s',
+    'share.text.sealed' => 'Huella de los hallazgos
+%s
+
+Huella de las claves que la firmaron
+%s
+
+Estas dos líneas son lo que este mensaje sirve para establecer: el informe y su firma pueden llegar por cualquier ruta, es este canal el que prueba quién habla. Para comprobar, con el archivo .sig depositado junto al informe:
+sablier verify <informe>.sig --fingerprint="<la segunda línea>"',
+    'share.text.attested' => 'Fecha atestiguada el %s por %s.',
     'action.declare.plural.body' => '%d dominios siguen con la duración por defecto. Mientras sea así, los veredictos anteriores son aproximaciones presentadas con aplomo. Es una hora de trabajo con alguien que conoce el negocio y no la técnica: ¿cuánto tiempo debe permanecer en secreto cada categoría de datos? El archivo se relee, se discute y se versiona.',
     'action.broken.plural.body' => '%d usos se apoyan en un algoritmo roto clásicamente. No hace falta ningún razonamiento cuántico: el plazo fue hace diez años, el reemplazo se conoce y no exige un proyecto. Hay que tratarlo antes que nada relacionado con la transición post-cuántica, porque es más barato y ya es explotable.',
     'probe.fact.service' => 'servicio',

@@ -179,13 +179,49 @@ final class HtmlReporter implements ReporterInterface
         // offer without contradicting its own footer.
         $summary = Lang::t(
             'share.text',
+            Version::label(),
             $project,
             (new \DateTimeImmutable())->format('d/m/Y'),
             strip_tags($headline),
             $actionable,
             $this->analysis->declaration->expiryYear,
-            $actions[0]['title'],
+            rtrim($actions[0]['title'], '.').'.',
         );
+
+        // The part that was missing, and the reason this button exists at all.
+        //
+        // This tool's whole model for a signed report is that the file travels
+        // one way and the fingerprint of the keys travels by a channel that
+        // already proves who is speaking — which is exactly what Threema is
+        // here. The message carried neither the fingerprint nor the digest, so
+        // the one channel built to establish them established nothing, and a
+        // recipient had no more than a sentence anybody could have typed.
+        //
+        // Appended rather than folded into the sentence above: an unsigned
+        // report must not grow a block of hashes that prove nothing.
+        if ($this->analysis->signature !== null) {
+            $hybrid = $this->analysis->signature['hybrid'] ?? null;
+            $summary .= "\n\n".Lang::t(
+                'share.text.sealed',
+                Signature::digest($this->analysis),
+                Signature::fingerprint(
+                    $this->analysis->signature['public_key'],
+                    \is_array($hybrid) ? $hybrid['public_key'] : '',
+                ),
+            );
+        }
+
+        // And the date a third party attests, when one was asked for: the one
+        // claim in the document that this message's own channel cannot make.
+        if ($this->analysis->timestamp !== null) {
+            $summary .= "\n\n".Lang::t(
+                'share.text.attested',
+                Timestamp::readable($this->analysis->timestamp['time']),
+                // An authority that names itself "S.A." already ends in a full
+                // stop, and the sentence added a second one.
+                rtrim($this->analysis->timestamp['authority'], '.'),
+            );
+        }
         // The scheme is the phone's. A desktop that has never registered it
         // answers with a browser error nobody can act on, so the text it would
         // have carried is printed right there, to be copied by hand.

@@ -257,12 +257,21 @@ return [
     'share.threema' => 'Envoyer le résumé sur Threema',
     'share.note' => "Ouvre Threema sur un téléphone où l'application est installée. Sur un ordinateur, le schéma n'est en général pas enregistré et le navigateur refuse le lien : copiez le texte ci-dessous. Rien n'est transmis à un serveur tiers.",
     'share.reveal' => 'Voir le texte à envoyer',
-    'share.text' => 'Sablier — inventaire cryptographique de %s (%s)
+    'share.text' => '%s — inventaire cryptographique de %s (%s)
 
 %s
 
 %d constats retenus. Échéance de péremption retenue : %d.
 Première action : %s',
+    'share.text.sealed' => 'Empreinte des constats
+%s
+
+Empreinte des clés qui l\'ont signée
+%s
+
+Ces deux lignes sont ce que ce message sert à établir : le rapport et sa signature peuvent arriver par n\'importe quelle route, c\'est ce canal-ci qui prouve qui parle. Vérifier, avec le fichier .sig déposé à côté du rapport :
+sablier verify <rapport>.sig --fingerprint="<la deuxième ligne>"',
+    'share.text.attested' => 'Date attestée le %s par %s.',
     'action.declare.plural.body' => '%d domaines tournent encore avec la durée par défaut. Tant que c\'est le cas, les verdicts ci-dessus sont des approximations présentées avec assurance. C\'est une heure de travail avec quelqu\'un qui connaît le métier et non la technique : combien de temps chaque catégorie de donnée doit-elle rester secrète ? Le fichier se relit, se discute et se versionne.',
     'action.broken.plural.body' => '%d usages reposent sur un algorithme cassé classiquement. Aucun raisonnement quantique n\'est nécessaire : l\'échéance était il y a dix ans, le remplacement est connu et ne demande pas un projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c\'est moins cher et déjà exploitable.',
     'probe.fact.service' => 'service',

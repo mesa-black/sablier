@@ -1463,6 +1463,54 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
 
+# --- the message the trusted channel carries -----------------------------------
+# The whole model for a signed report is that the file travels one way and the
+# fingerprint of the keys travels by a channel that already proves who is
+# speaking. The report builds a button for exactly that channel, and the message
+# it composed carried neither the fingerprint nor the digest — so the one channel
+# built to establish them established nothing, and the recipient had a sentence
+# anybody could have typed. Found by somebody reading the message before sending
+# it.
+share=$(mktemp -d)
+./bin/sablier keygen --out="$share/k.json" >/dev/null 2>&1
+./bin/sablier scan tests/fixtures/sample --out="$share/signed.html" --sign="$share/k.json" \
+	--no-probe --quiet >/dev/null 2>&1 || true
+./bin/sablier scan tests/fixtures/sample --out="$share/plain.html" --no-probe --quiet >/dev/null 2>&1 || true
+SABLIER_SHARE_DIR="$share" php -r '
+	$dir = getenv("SABLIER_SHARE_DIR");
+	$text = static function (string $file): string {
+		$html = file_get_contents($file);
+		preg_match("#<details class=\"share-text\">.*?<pre>(.*?)</pre>#s", $html, $m);
+		return html_entity_decode($m[1] ?? "", ENT_QUOTES | ENT_HTML5);
+	};
+	$signed = $text("$dir/signed.html");
+	$plain = $text("$dir/plain.html");
+	$digest = json_decode(file_get_contents("$dir/signed.html.sig"), true)["digest"];
+
+	if (!str_contains($signed, $digest)) {
+		fwrite(STDERR, "✗ share: the message does not carry the digest it was signed over\n");
+		exit(1);
+	}
+	if (preg_match("/\b[0-9A-F]{4}(?: [0-9A-F]{4}){7}\b/", $signed) !== 1) {
+		fwrite(STDERR, "✗ share: the message does not carry the fingerprint of the signing keys\n");
+		exit(1);
+	}
+	// And the other half of the rule: an unsigned report has nothing to prove and
+	// must not grow a block of hashes that look like proof.
+	if (str_contains($plain, $digest) || preg_match("/\b[0-9A-F]{4}(?: [0-9A-F]{4}){7}\b/", $plain) === 1) {
+		fwrite(STDERR, "✗ share: an unsigned report put hashes in a message that proves nothing\n");
+		exit(1);
+	}
+	// A Threema link carries its text in the URL. Measured rather than assumed:
+	// a message nobody can open is worse than a short one.
+	if (strlen(rawurlencode($signed)) > 1800) {
+		fwrite(STDERR, "✗ share: the composed link is ".strlen(rawurlencode($signed))." characters, too long to open\n");
+		exit(1);
+	}
+	printf("  ✓ %-24s %-10s %s\n", "share", "threema", strlen($signed)." characters, digest and fingerprint both in it");
+' || { rm -rf "$share"; exit 1; }
+rm -rf "$share"
+
 # --- the version a document names is the version that produced it --------------
 # Version::NUMBER said 0.5.0 for three releases. Every audit document produced in
 # between named a build that had not produced it, and one of them is published on
