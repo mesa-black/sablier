@@ -3,6 +3,10 @@ name: tests
 on:
   push:
     branches: [main]
+    # A tag runs the same three jobs, and then publishes. Eight tags existed and
+    # four of them had a release: a tag is a git object, a release is a GitHub
+    # one, and the second had been made by hand until it was forgotten.
+    tags: ['v*']
   pull_request:
   # A container with no known vulnerability today is not a container with no
   # known vulnerability in March. The claim is re-made every week.
@@ -60,3 +64,37 @@ jobs:
       # shipping known holes would be the exact failure this project is about.
       - name: No known high or critical CVE in the images we ask you to run
         run: make cve
+
+  # A tag becomes a release, and only after the other three jobs have passed:
+  # publishing a version whose own tests are red would be this project failing at
+  # the one thing it sells.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [tests, static-analysis, containers]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # fetch-depth: 0 — the release notes are the annotated tag's own message,
+      # which lives in the tag object and not in the files.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Publish the release from the tag's own message
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$GITHUB_REF_NAME"
+          # Re-pushing a tag is not a reason to fail a build, and a release that
+          # already exists is left exactly as it is rather than overwritten.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "  release $tag already exists, nothing to do"
+            exit 0
+          fi
+          git tag -l --format='%(contents:subject)' "$tag" > title.txt
+          git tag -l --format='%(contents:body)' "$tag" > notes.md
+          test -s title.txt || { echo "✗ $tag carries no message: annotate it with -a"; exit 1; }
+          gh release create "$tag" --verify-tag \
+            --title "$(cat title.txt)" --notes-file notes.md
+          echo "  published $tag — $(cat title.txt)"
