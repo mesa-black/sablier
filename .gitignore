@@ -6,3 +6,4 @@
 /vendor/
 /*.sig
 /sablier.key
+/sablier-*.tar.gz

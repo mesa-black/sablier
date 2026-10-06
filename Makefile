@@ -7,7 +7,7 @@
 PHP_IMAGE ?= php:8.4-cli-alpine
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
 TRIVY_IMAGE ?= aquasec/trivy:0.75.0
-.PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples
+.PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples release
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
@@ -108,3 +108,26 @@ judge: ## Judge another tool's CBOM: make judge CBOM=cbom.json [DECLARE=file.jso
 	@test -n "$(CBOM)" || { echo "make judge CBOM=cbom.json"; exit 1; }
 	@./sablier judge "$(CBOM)" $(if $(DECLARE),--declare=$(DECLARE),) \
 		$(if $(LANG),--lang=$(LANG),) --out=report.html
+
+# --- releases anybody can rebuild ----------------------------------------------
+# A tag is a promise about bytes, and a promise nobody can check is a decoration.
+# This builds the archive from the tag — never from the working tree — and prints
+# its digest. Run it on your own machine, against the same tag, and you must get
+# the same line; that is the whole claim, and it is one command to refuse it.
+#
+# `gzip -n` is not a detail: without it gzip stores the current time in the
+# header and two archives of the same tree differ. Measured — with it, two runs
+# a second apart gave 5fbd3a5c…; without it, ddceae9d… then 465632e8….
+#
+# GitHub's own "Source code (tar.gz)" is not this file. Its bytes have changed
+# before, under everybody, when their compression changed; ours is attached to
+# the release and its digest is in the notes.
+VERSION := $(shell php -r 'require "src/Version.php"; echo Sablier\Version::NUMBER;')
+ARCHIVE := sablier-$(VERSION).tar.gz
+
+release: ## Build the release archive for the current version, reproducibly
+	@git rev-parse "v$(VERSION)" >/dev/null 2>&1 \
+		|| { echo "✗ no tag v$(VERSION): the archive is built from the tag, not from this tree"; exit 1; }
+	@git archive --format=tar --prefix=sablier-$(VERSION)/ "v$(VERSION)" | gzip -n -9 > "$(ARCHIVE)"
+	@printf '  %s\n' "$(ARCHIVE)"
+	@openssl dgst -sha256 -r "$(ARCHIVE)" | awk '{printf "  sha256  %s\n", $$1}'

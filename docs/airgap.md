@@ -114,6 +114,47 @@ report says so rather than leaving a gap for the reader to discover. If a date
 has to be opposable, the digest — and only the digest — can be carried out to a
 timestamping authority by hand, and the token carried back.
 
+## Getting the tool in, and knowing you got the right one
+
+A closed site does not `git clone`. Every release carries an archive built from
+its tag with its digest in the notes:
+
+```
+sablier-0.8.0.tar.gz
+    sha256  5fbd3a5c3234264b3f5edf11a4c448d53154c28979b6c42f2d37789ef19cffe3
+```
+
+Check it on the machine that will run it, with nothing but the digest you were
+given through whatever channel you already trust:
+
+```sh
+openssl dgst -sha256 sablier-0.8.0.tar.gz
+```
+
+That digest is reproducible, which is the part that matters: anybody can rebuild
+the same bytes from the same tag and get the same line, so the file does not have
+to be taken on trust from whoever handed it over.
+
+```sh
+git clone https://github.com/mesa-black/sablier && cd sablier
+git archive --format=tar --prefix=sablier-0.8.0/ v0.8.0 | gzip -n -9 \
+  | openssl dgst -sha256
+```
+
+That is the whole mechanism, written out rather than hidden behind a target: the
+repository has `make release`, but these two commands work against any tag,
+including the ones cut before that target existed. Checked from a fresh clone of
+this repository against `v0.8.0`: `5fbd3a5c…`, the same line.
+
+`gzip -n` is not a detail. Without it gzip writes the current time into the
+header and two archives of the same tree differ — measured rather than assumed:
+with `-n`, two runs a second apart both gave `5fbd3a5c…`; without it,
+`ddceae9d…` then `465632e8…`.
+
+Note that this is **not** GitHub's "Source code (tar.gz)" link. Those bytes have
+changed before, under everybody, when their compression changed. The file to
+check is the one attached to the release, named above.
+
 ## What this does not claim
 
 Classification applies to information, not to software. If this tool reads

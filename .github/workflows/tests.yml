@@ -81,6 +81,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # `make release` reads the version from the source to name the archive,
+      # and the step below reads it to compare with the tag.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
       # A release whose tool announces a different version than the tag it is
       # cut from is the first thing this project tells people not to ship.
       - name: The constant agrees with the tag
