@@ -58,6 +58,11 @@ final class Catalogue
         // stop believing the red ones.
         'hmac-md5' => ['label' => 'HMAC-MD5', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
         'hmac-sha1' => ['label' => 'HMAC-SHA-1', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
+        // What HS256 and HS512 are, which is what a JWT configuration names. A
+        // shared secret rather than a key pair: nothing to migrate for quantum,
+        // and worth saying so rather than leaving the reader to wonder.
+        'hmac-sha256' => ['label' => 'HMAC-SHA-256', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
+        'hmac-sha512' => ['label' => 'HMAC-SHA-512', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => false],
 
         'md5' => ['label' => 'MD5', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
         'sha1' => ['label' => 'SHA-1', 'purpose' => self::PURPOSE_INTEGRITY, 'quantum' => false, 'broken' => true],
@@ -133,6 +138,33 @@ final class Catalogue
         $label = self::ALGORITHMS[$algorithm]['label'] ?? $algorithm;
 
         return str_starts_with($label, '@') ? Lang::t(substr($label, 1)) : $label;
+    }
+
+    /**
+     * A JOSE algorithm name, as a JWT header or a framework's configuration
+     * writes it, mapped to what it actually is.
+     *
+     * The distinction the rest of this tool turns on is in these two letters:
+     * `HS` is a shared secret and survives a quantum computer, `RS`, `PS` and
+     * `ES` are public-key signatures and do not. A report that prints "RS256"
+     * and stops has told the reader nothing they can act on.
+     *
+     * `none` is absent on purpose: an unsigned token is a defect of today with
+     * no algorithm to inventory, and naming it here would file it under a
+     * heading about 2035.
+     */
+    public static function fromJose(string $algorithm): ?string
+    {
+        $algorithm = strtoupper(trim($algorithm));
+
+        return match (true) {
+            $algorithm === 'HS256', $algorithm === 'HS384' => 'hmac-sha256',
+            $algorithm === 'HS512' => 'hmac-sha512',
+            str_starts_with($algorithm, 'RS'), str_starts_with($algorithm, 'PS') => 'rsa-sign',
+            str_starts_with($algorithm, 'ES') => 'ecdsa',
+            $algorithm === 'EDDSA' => 'ed25519',
+            default => null,
+        };
     }
 
     /** Normalises what a scanner found (a cipher string, a constant) to a catalogue key. */

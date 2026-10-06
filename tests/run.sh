@@ -1458,6 +1458,65 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
 
+# --- framework configuration, in four frameworks and two file formats ----------
+# Until now nothing here opened a YAML file looking for cryptography, which meant
+# walking past the whole security configuration of the most widely deployed PHP
+# framework in Europe: Symfony declares its password hashers, its login flows and
+# its token signatures in `config/packages/*.yaml`, and those are declared
+# algorithms rather than call sites — the clearest input this tool can get.
+./bin/sablier scan tests/fixtures/frameworks --json=/tmp/sablier-fw.json \
+	--out=/tmp/sablier-fw.html --no-probe --quiet >/dev/null 2>&1 || true
+SABLIER_TEST_JSON=/tmp/sablier-fw.json
+export SABLIER_TEST_JSON
+check clear       argon2       2   # argon2id written out, and `auto` resolved
+check urgent      sha1         1   # a legacy hasher nobody removed
+check watch       ecdsa        1   # ES256, beside an RS256 in the same list
+check clear       hmac-sha256  2   # HS256 is a shared secret: nothing to migrate
+check declare     undetermined 2   # oidc_login, and an algorithm read from the environment
+check clear       sha512       1   # CodeIgniter's digest
+check watch       rsa-sign     4   # OIDC handler, LexikJWT, and Passport's two keys
+check watch       ecdh         3   # sslmode in YAML and in PHP, and Pusher over TLS
+check urgent      plaintext    2   # the connection that disables it, and useTLS: false
+check clear       aes-256      4   # CodeIgniter, S3, and two Laravel call sites
+check clear       bcrypt       4   # an inline mapping, and three Laravel call sites
+unset SABLIER_TEST_JSON
+
+# A call site does not name an algorithm — the cipher is in config/app.php and
+# the hashing driver in config/hashing.php — so Laravel's are recorded at medium
+# confidence. They are recorded at all because the day that cipher has to change,
+# what matters is how many places depend on it, and that is the third factor of
+# the risk model: counted in places rather than estimated in days.
+php -r '
+	$rows = json_decode(file_get_contents("/tmp/sablier-fw.json"), true);
+	$calls = array_filter($rows, static fn (array $r): bool => str_contains($r["file"], "VaultController"));
+	if (count($calls) !== 5) {
+		fwrite(STDERR, "✗ laravel: expected 5 call sites, got ".count($calls)."\n");
+		exit(1);
+	}
+	foreach ($calls as $call) {
+		if ($call["confidence"] !== "medium") {
+			fwrite(STDERR, "✗ laravel: a call site that names no algorithm was recorded at high confidence\n");
+			exit(1);
+		}
+	}
+	printf("  ✓ %-24s %-10s %s\n", "laravel", "call sites", "5 places, none of them claiming to name the cipher");
+' || exit 1
+
+# The trap in the fixture: `cookie_secure: auto` in a file that declares no
+# hashers. `auto` is also the name of a Symfony password hasher, and the first
+# version of the shorthand pattern reported one — in a real application, which is
+# where it was found. A pattern whose only context is its value will meet that
+# value somewhere else eventually.
+if php -r '
+	$rows = json_decode(file_get_contents("/tmp/sablier-fw.json"), true);
+	foreach ($rows as $row) { if (str_contains($row["file"], "framework.yaml")) { exit(0); } }
+	exit(1);
+'; then
+	echo "✗ yaml: cookie_secure: auto was read as a password hasher"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "yaml" "context" "a value is not a context"
+
 # --- a label that is a sentence is translated, in every document ---------------
 # Most labels in the algorithm catalogue are proper nouns and travel as they are.
 # Two families are not — "no encryption", and the two regimes whose source names

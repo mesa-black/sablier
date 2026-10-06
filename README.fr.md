@@ -188,6 +188,69 @@ $ make probe HOST=example.org
 
 La sonde n'a sa place que contre des hôtes dont vous êtes responsable.
 
+## Ce qu'un framework déclare
+
+L'essentiel de cet outil lit du code. Les faits cryptographiques les plus utiles
+d'une application web ne sont pas dans son code : personne n'écrit `RS256` dans un
+contrôleur. On l'écrit une fois dans un pare-feu, et toutes les connexions des cinq
+années suivantes s'en servent.
+
+```
+config/packages/security.yaml      hachage des mots de passe · OIDC · jetons
+config/packages/lexik_jwt_*.yaml   la signature derrière chaque jeton d'API
+config/packages/doctrine.yaml      si la connexion à la base est chiffrée
+config/app.php · hashing.php       le chiffre et le hachage de Laravel
+config/jwt.php · database.php      tymon/jwt-auth, et sslmode
+config/filesystems.php             le chiffrement au repos demandé au stockage
+config/passport.php                les clés RSA qui signent les jetons OAuth2
+config/broadcasting.php            si le temps réel passe en TLS
+app/Config/Encryption.php          le chiffre et le digest de CodeIgniter
+config/web.php                     les cookies signés de Yii
+```
+
+Laravel a droit à une chose de plus, et elle parle d'effort plutôt que
+d'algorithmes. `Crypt::encryptString()`, `Hash::make()` et l'aide nue `encrypt()`
+ne nomment aucun algorithme — le chiffre est dans `config/app.php`, le pilote dans
+`config/hashing.php` — donc la configuration seule donne un constat par
+application et ne dit rien de ce qui en dépend. Ces appels sont relevés aussi, en
+**confiance moyenne** et sans jamais prétendre nommer le chiffre, parce que le
+jour où il doit changer, ce qui compte est le nombre d'endroits à rouvrir. C'est
+le troisième facteur du modèle de risque, compté en endroits plutôt qu'estimé en
+jours. Les aides nues ne sont lues que dans un fichier qui importe
+`Illuminate` : `encrypt()` est le nom de fonction le plus générique du langage, et
+hors de Laravel il appartient à quelqu'un d'autre.
+
+Symfony a demandé un détecteur à lui, parce que c'est le seul framework ici à
+mettre sa configuration de sécurité en YAML — et tant que celui-ci n'existait pas,
+un outil qui n'ouvrait que des `.php` passait devant sans la voir.
+
+**C'est la valeur qui décide, pas la clé.** `algorithm:` apparaît dans une douzaine
+d'endroits sans rapport dans une configuration Symfony, donc un motif ne
+correspond que si la valeur est un algorithme de hachage ou un algorithme JOSE que
+cet outil connaît. Le coût d'une erreur là-dessus a été mesuré plutôt
+qu'imaginé : une première version a lu `cookie_secure: auto` dans une vraie
+application et a signalé un hachage de mot de passe qui n'existe pas, parce que
+`auto` est aussi le nom de l'un d'eux. La fixture contient maintenant cette ligne
+exacte, dans un fichier qui ne déclare aucun hachage, et un test échoue si elle
+est un jour relue comme tel.
+
+**`HS256` et `RS256` ne sont pas la même chose**, et un rapport qui imprime le nom
+JOSE et s'arrête n'a rien dit à son lecteur. Le premier est un secret partagé et
+survit à un calculateur quantique ; le second est une signature RSA et non.
+
+**OIDC est le cas qui justifie à lui seul ce détecteur.** Un pare-feu qui délègue
+la connexion à un fournisseur d'identité nomme le fournisseur et jamais la
+signature : l'algorithme vient des clés que ce fournisseur publie, donc il n'est
+pas dans le dépôt et ne peut pas y être. C'est toute la thèse de cet outil énoncée
+par le format de configuration de quelqu'un d'autre — tout le chemin
+d'authentification repose sur un algorithme que personne ici n'a choisi — donc
+c'est signalé comme indéterminé et ça demande à être déclaré.
+
+Et il reste dans son couloir. `verify_peer: false` sous `http_client` est un vrai
+défaut et n'est délibérément pas signalé : c'est un problème de l'authentification
+d'aujourd'hui, pas du moment où un chiffre cesse de tenir, et un outil qui se met
+à signaler toutes les odeurs de sécurité perd le droit d'être cru sur 2035.
+
 ## Déclarer les durées de confidentialité
 
 ```bash
@@ -392,8 +455,10 @@ réellement croître — et rien d'autre n'obtient une interface.
 
 ```
 DetectorInterface   une façon de trouver de la cryptographie dans un type de fichier
-  PhpDetector · ShellDetector · KeyMaterialDetector
-  ServerConfigDetector · DependencyDetector
+  PhpDetector · ShellDetector · KeyMaterialDetector · AssetDetector
+  EnvDetector · ServerConfigDetector · SshConfigDetector · TerraformDetector
+  FrameworkConfigDetector · FrameworkYamlDetector · LaravelDetector
+  SymfonyVaultDetector · DependencyDetector
 
 ReporterInterface   une façon de rendre une analyse
   HtmlReporter · AuditReporter · CbomReporter · JsonReporter

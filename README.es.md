@@ -186,6 +186,68 @@ $ make probe HOST=example.org
 
 La sonda solo tiene sentido contra equipos de los que usted es responsable.
 
+## Lo que declara un framework
+
+La mayor parte de esta herramienta lee código. Los hechos criptográficos más
+útiles de una aplicación web no están en su código: nadie escribe `RS256` en un
+controlador. Se escribe una vez en un cortafuegos, y todos los inicios de sesión
+de los cinco años siguientes lo usan.
+
+```
+config/packages/security.yaml      hash de contraseñas · OIDC · tokens
+config/packages/lexik_jwt_*.yaml   la firma detrás de cada token de API
+config/packages/doctrine.yaml      si la conexión a la base está cifrada
+config/app.php · hashing.php       el cifrado y el hash de Laravel
+config/jwt.php · database.php      tymon/jwt-auth, y sslmode
+config/filesystems.php             el cifrado en reposo pedido al almacenamiento
+config/passport.php                las claves RSA que firman los tokens OAuth2
+config/broadcasting.php            si el tiempo real va por TLS
+app/Config/Encryption.php          el cifrado y el digest de CodeIgniter
+config/web.php                     las cookies firmadas de Yii
+```
+
+Laravel recibe una cosa más, y habla de esfuerzo más que de algoritmos.
+`Crypt::encryptString()`, `Hash::make()` y la función suelta `encrypt()` no
+nombran ningún algoritmo — el cifrado está en `config/app.php`, el driver en
+`config/hashing.php` — así que la configuración por sí sola da un hallazgo por
+aplicación y no dice nada de cuánto depende de ella. Esas llamadas también se
+registran, con **confianza media** y sin pretender nunca nombrar el cifrado,
+porque el día en que haya que cambiarlo lo que cuenta es cuántos sitios hay que
+abrir. Ese es el tercer factor del modelo de riesgo, contado en sitios en lugar de
+estimado en días. Las funciones sueltas solo se leen en un archivo que importa
+`Illuminate`: `encrypt()` es el nombre de función más genérico del lenguaje, y
+fuera de Laravel pertenece a otro.
+
+Symfony necesitó un detector propio, porque es el único framework aquí que pone su
+configuración de seguridad en YAML — y mientras este no existió, una herramienta
+que solo abría archivos `.php` pasaba de largo por toda ella.
+
+**Decide el valor, no la clave.** `algorithm:` aparece en una docena de sitios sin
+relación en una configuración de Symfony, así que un patrón solo coincide cuando
+el valor es un algoritmo de hash o un algoritmo JOSE que esta herramienta conoce.
+El coste de equivocarse ahí se midió en vez de imaginarse: una primera versión
+leyó `cookie_secure: auto` en una aplicación real e informó de un hash de
+contraseñas que no existe, porque `auto` es también el nombre de uno. La fixture
+contiene ahora esa línea exacta, en un archivo que no declara ningún hash, y una
+prueba falla si alguna vez se vuelve a leer como tal.
+
+**`HS256` y `RS256` no son lo mismo**, y un informe que imprime el nombre JOSE y
+se detiene no le ha dicho nada a su lector. El primero es un secreto compartido y
+sobrevive a un computador cuántico; el segundo es una firma RSA y no.
+
+**OIDC es el caso que justifica por sí solo este detector.** Un cortafuegos que
+delega el inicio de sesión en un proveedor de identidad nombra al proveedor y
+nunca la firma: el algoritmo viene de las claves que ese proveedor publica, así
+que no está en el repositorio ni puede estarlo. Es toda la tesis de esta
+herramienta enunciada por el formato de configuración de otro — todo el camino de
+autenticación descansa en un algoritmo que nadie aquí eligió — así que se informa
+como indeterminado y pide ser declarado.
+
+Y se queda en su carril. `verify_peer: false` bajo `http_client` es un defecto real
+y deliberadamente no se informa: es un problema de la autenticación de hoy, no de
+cuándo deja de aguantar un cifrado, y una herramienta que empieza a informar de
+todos los olores de seguridad pierde el derecho a ser creída sobre 2035.
+
 ## Declarar las duraciones de confidencialidad
 
 ```bash
@@ -384,8 +446,10 @@ van a crecer — y nada más recibe una interfaz.
 
 ```
 DetectorInterface   una manera de encontrar criptografía en un tipo de archivo
-  PhpDetector · ShellDetector · KeyMaterialDetector
-  ServerConfigDetector · DependencyDetector
+  PhpDetector · ShellDetector · KeyMaterialDetector · AssetDetector
+  EnvDetector · ServerConfigDetector · SshConfigDetector · TerraformDetector
+  FrameworkConfigDetector · FrameworkYamlDetector · LaravelDetector
+  SymfonyVaultDetector · DependencyDetector
 
 ReporterInterface   una manera de representar un análisis
   HtmlReporter · AuditReporter · CbomReporter · JsonReporter

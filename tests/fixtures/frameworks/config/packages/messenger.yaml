@@ -1,0 +1,6 @@
+framework:
+    messenger:
+        transports:
+            async:
+                options:
+                    algorithm: '%env(QUEUE_SIGN_ALGO)%'

@@ -46,6 +46,8 @@ use Sablier\Detector\AssetDetector;
 use Sablier\Detector\DependencyDetector;
 use Sablier\Detector\EnvDetector;
 use Sablier\Detector\FrameworkConfigDetector;
+use Sablier\Detector\FrameworkYamlDetector;
+use Sablier\Detector\LaravelDetector;
 use Sablier\Detector\KeyMaterialDetector;
 use Sablier\Detector\PhpDetector;
 use Sablier\Detector\ServerConfigDetector;
@@ -114,6 +116,8 @@ function sablier_scanner(Declaration $declaration): Scanner
         new SshConfigDetector(),
         new EnvDetector(),
         new FrameworkConfigDetector(),
+        new FrameworkYamlDetector(),
+        new LaravelDetector(),
         new SymfonyVaultDetector(),
         new DependencyDetector(),
         new TerraformDetector(),

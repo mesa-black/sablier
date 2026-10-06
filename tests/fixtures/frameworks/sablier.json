@@ -1,0 +1,8 @@
+{
+  "project": "frameworks",
+  "regime": "general",
+  "default_lifetime_years": 3,
+  "domains": [
+    { "name": "configuration", "paths": ["config/**", "app/**"], "lifetime_years": 3 }
+  ]
+}

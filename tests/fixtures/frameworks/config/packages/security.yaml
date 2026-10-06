@@ -1,0 +1,18 @@
+security:
+    password_hashers:
+        App\Entity\User:
+            algorithm: argon2id
+        App\Entity\Admin: { algorithm: bcrypt, cost: 15 }
+        App\Entity\Legacy: sha1
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+    firewalls:
+        api:
+            access_token:
+                token_handler:
+                    oidc:
+                        algorithms: ['ES256', 'RS256']
+                        audience: api
+        main:
+            oidc_login:
+                provider: 'https://id.example.org/realms/app'
+                client_id: example

@@ -187,6 +187,65 @@ $ make probe HOST=example.org
 
 The probe only belongs against hosts you are responsible for.
 
+## What a framework declares
+
+Most of this tool reads code. The most useful cryptographic facts about a web
+application are not in its code: nobody writes `RS256` in a controller. They write
+it once in a firewall, and every login for the next five years uses it.
+
+```
+config/packages/security.yaml      password hashers · OIDC · token handlers
+config/packages/lexik_jwt_*.yaml   the signature behind every API token
+config/packages/doctrine.yaml      whether the database connection is encrypted
+config/app.php · hashing.php       Laravel's cipher and password driver
+config/jwt.php · database.php      tymon/jwt-auth, and sslmode
+config/filesystems.php             server-side encryption asked of an object store
+config/passport.php                the RSA keys signing Laravel's OAuth2 tokens
+config/broadcasting.php            whether real-time traffic is over TLS
+app/Config/Encryption.php          CodeIgniter's cipher and digest
+config/web.php                     Yii's signed cookies
+```
+
+Laravel gets one more thing, and it is about effort rather than algorithms.
+`Crypt::encryptString()`, `Hash::make()` and the bare `encrypt()` helper name no
+algorithm — the cipher is in `config/app.php`, the driver in
+`config/hashing.php` — so the configuration alone gives one finding per
+application and says nothing about how much of it depends on that line. Those
+call sites are recorded too, at **medium confidence** and never claiming to name
+the cipher, because the day it has to change what matters is how many places have
+to be opened. That is the third factor of the risk model, counted in places
+rather than estimated in days. The bare helpers are read only in a file that
+imports `Illuminate`: `encrypt()` is the most generic function name in the
+language, and outside Laravel it belongs to somebody else.
+
+Symfony needed a detector of its own, because it is the one framework here that
+puts its security configuration in YAML — and until this existed, a tool that only
+opened `.php` files walked past all of it.
+
+**The value decides, not the key.** `algorithm:` appears in a dozen unrelated
+places in a Symfony configuration, so a pattern matches only when the value is a
+hasher or a JOSE algorithm this tool recognises. The cost of getting that wrong
+was measured rather than imagined: a first version read `cookie_secure: auto` in a
+real application and reported a password hasher that does not exist, because
+`auto` is also the name of one. The fixture now contains that exact line, in a
+file that declares no hashers, and a test fails if it is ever read as one.
+
+**`HS256` and `RS256` are not the same kind of thing**, and a report that prints
+the JOSE name and stops has told the reader nothing. The first is a shared secret
+and survives a quantum computer; the second is an RSA signature and does not.
+
+**OIDC is the case worth having built this for.** A firewall that delegates login
+to an identity provider names the provider and never the signature: the algorithm
+comes from the keys that provider publishes, so it is not in the repository and
+cannot be. That is this tool's whole argument stated by somebody else's
+configuration format — the entire authentication path rests on an algorithm nobody
+here chose — so it is reported as undetermined and asks to be declared.
+
+And it stays in its lane. `verify_peer: false` under `http_client` is a real
+defect and is deliberately not reported: it is a problem of today's
+authentication, not of when a cipher stops holding, and a tool that starts
+reporting every security smell loses the right to be believed about 2035.
+
 ## Declaring confidentiality lifetimes
 
 ```bash
@@ -384,8 +443,10 @@ actually grow — and nothing else gets an interface.
 
 ```
 DetectorInterface   one way of finding cryptography in one kind of file
-  PhpDetector · ShellDetector · KeyMaterialDetector
-  ServerConfigDetector · DependencyDetector
+  PhpDetector · ShellDetector · KeyMaterialDetector · AssetDetector
+  EnvDetector · ServerConfigDetector · SshConfigDetector · TerraformDetector
+  FrameworkConfigDetector · FrameworkYamlDetector · LaravelDetector
+  SymfonyVaultDetector · DependencyDetector
 
 ReporterInterface   one way of rendering an analysis
   HtmlReporter · AuditReporter · CbomReporter · JsonReporter

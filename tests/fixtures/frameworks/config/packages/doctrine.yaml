@@ -1,0 +1,3 @@
+doctrine:
+    dbal:
+        url: 'postgresql://app:pw@db:5432/app?sslmode=verify-full'
