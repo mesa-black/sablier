@@ -23,6 +23,10 @@ final class DependencyDetector implements DetectorInterface
         'firebase/php-jwt' => ['rsa-sign', 'detail.pkg.jwt'],
         'lcobucci/jwt' => ['rsa-sign', 'detail.pkg.jwt'],
         'web-token/jwt-framework' => ['rsa-sign', 'detail.pkg.jose'],
+        // The library split out of that framework, and the one Symfony's OIDC
+        // login requires: a project can depend on it without ever naming the
+        // framework package, and did.
+        'web-token/jwt-library' => ['rsa-sign', 'detail.pkg.jose'],
         'phpseclib/phpseclib' => ['rsa', 'detail.pkg.phpseclib'],
         'paragonie/halite' => ['chacha20', 'detail.pkg.halite'],
         'defuse/php-encryption' => ['aes-256', 'detail.pkg.symmetric'],
