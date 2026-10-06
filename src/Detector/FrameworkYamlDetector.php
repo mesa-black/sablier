@@ -192,7 +192,7 @@ final class FrameworkYamlDetector implements DetectorInterface
         }
 
         foreach ($matches as $match) {
-            $value = Value::string($match['inline'][0]).' '.Value::string($match['block'][0] ?? '');
+            $value = Value::string($match['inline'][0]).' '.Value::string($match['block'][0]);
             $offset = Value::int($match[0][1]);
             $line = $file->lineAt($offset);
             $evidence = trim(Value::string($match['key'][0]).':'.Value::string($match['inline'][0]));

@@ -1160,6 +1160,11 @@ if ($options['timestamp'] !== null && $options['sign'] === null) {
 $signature = null;
 $timestamp = null;
 if ($options['sign'] !== null) {
+    // --sign gives the run an output path a hundred lines above, so this is
+    // never null here. Written as code rather than as a comment: a comment does
+    // not survive the next edit, and a static analyser cannot read one.
+    $reportPath ??= 'report.html';
+
     $preliminary = new Analysis($findings, $declaration, $label, $filesRead, $blind, $currentYear);
 
     // Two ways to hold a signing key, and the second is the one an auditor
