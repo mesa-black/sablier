@@ -38,8 +38,8 @@ flowchart TB
     verdicts --> ics["calendar.ics<br/>the crossing dates"]
 ```
 
-The left column is measured. The right column is declared, and it is the half
-every other tool leaves out: *how long does this data have to stay confidential?*
+The first group is measured. The second is declared, and it is the half every
+other tool leaves out: *how long does this data have to stay confidential?*
 Without it an inventory is a list of algorithms, and a list of algorithms has no
 deadline in it.
 
@@ -102,18 +102,18 @@ flowchart LR
     end
 
     tsr["report.html.tsr<br/>RFC 3161 token"]
-    end2["sablier.json.sig<br/>endorsement"]
+    endorse["sablier.json.sig<br/>endorsement"]
 
     digest["Digest of the findings<br/>same inventory, same value,<br/>in any language"]
 
     digest --> sig
     sig --- prev
     digest --> tsr
-    decisions["The decisions<br/>regime, lifetimes, anchors, authors"] --> end2
+    decisions["The decisions<br/>regime, lifetimes, anchors, authors"] --> endorse
 
     sig --> q1["who signed, and what"]
     tsr --> q2["when — attested by a third party<br/>with no stake in the conclusions"]
-    end2 --> q3["who committed to the durations<br/>the verdicts rest on"]
+    endorse --> q3["who committed to the durations<br/>the verdicts rest on"]
 ```
 
 - **The signature covers a digest of the findings, never the rendered page.** Two
