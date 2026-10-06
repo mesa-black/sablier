@@ -15,6 +15,7 @@ use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Signature;
 use Sablier\Timestamp;
+use Sablier\Version;
 
 /**
  * The report is the product.
@@ -105,7 +106,12 @@ final class HtmlReporter implements ReporterInterface
         $subtitle = Lang::t('report.subtitle', $actionable, $declaration->expiryYear)
             .' '.Lang::t('report.deadline_checked', $checked === false ? $declaration->deadlinesCheckedOn : $checked->format('d/m/Y'))
             .($declaration->deadlinesAreStale() ? ' <strong class="stale">'.htmlspecialchars(Lang::t('report.deadline_stale', $declaration->monthsSinceCheck())).'</strong>' : '');
-        $footer = Lang::t('report.footer');
+        // The version of the tool, in the report as well as in the audit
+        // document. Both carry a digest and a command to repeat the run, and a
+        // command repeated three years later with a different build is not the
+        // same command: naming the tool without naming its version makes a
+        // document reproducible in theory only.
+        $footer = htmlspecialchars(Version::label()).' · '.Lang::t('report.footer');
         $filesLabel = $this->analysis->importedFrom !== ''
             ? Lang::t('report.imported_from', $this->analysis->importedFrom, $this->analysis->filesRead)
             : Lang::t('report.files_read', $this->analysis->filesRead);

@@ -81,6 +81,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      # A release whose tool announces a different version than the tag it is
+      # cut from is the first thing this project tells people not to ship.
+      - name: The constant agrees with the tag
+        run: |
+          declared=$(php -r 'require "src/Version.php"; echo Sablier\\Version::NUMBER;')
+          test "v$declared" = "$GITHUB_REF_NAME" \
+            || { echo "✗ tag $GITHUB_REF_NAME, Version::NUMBER $declared"; exit 1; }
+
       - name: Publish the release from the tag's own message
         env:
           GH_TOKEN: ${{ github.token }}

@@ -256,7 +256,12 @@ printf '  ✓ %-24s %-10s %s\n' "provenance" "author" "named, and stale after 2 
 
 # A report that prints the command, the digest and a signature must say which
 # build produced it.
-if ! grep -q "Sablier 0.5.0" "$prov/audit.html"; then
+#
+# Read from the constant, never written out here. This line said "Sablier 0.5.0"
+# and so it kept passing while the tool shipped 0.6.0, 0.7.0 and 0.8.0 — a test
+# pinned to the value it was supposed to guard, which is a test that guards
+# nothing. What forces the constant to move is the tag comparison further down.
+if ! grep -q "Sablier $(php -r 'require "src/Version.php"; echo Sablier\Version::NUMBER;')" "$prov/audit.html"; then
 	echo "✗ provenance: the audit must name the build that produced it"
 	rm -rf "$prov"
 	exit 1
@@ -1457,6 +1462,41 @@ if grep -q "Ce que cela établit" "$prv/none.html"; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
+
+# --- the version a document names is the version that produced it --------------
+# Version::NUMBER said 0.5.0 for three releases. Every audit document produced in
+# between named a build that had not produced it, and one of them is published on
+# a public website. The docblock said "this constant is bumped with the tag",
+# which is a sentence and not a mechanism.
+#
+# Only on a commit that is exactly a tag: between releases the constant is ahead
+# of nothing and there is nothing to compare it to.
+tagged=$(git describe --tags --exact-match 2>/dev/null || true)
+if [ -n "$tagged" ]; then
+	declared=$(php -r 'require "src/Version.php"; echo Sablier\Version::NUMBER;')
+	if [ "v$declared" != "$tagged" ]; then
+		echo "✗ version: the tag says $tagged and Version::NUMBER says $declared"
+		exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "version" "tag" "$tagged matches the constant"
+else
+	printf '  ✓ %-24s %-10s %s\n' "version" "untagged" "nothing to compare, checked at the tag"
+fi
+
+# And both documents name it, not just the audit one: the technical report is the
+# one that gets published, and it carried a digest, a command to repeat the run
+# and no version at all.
+ver=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --out="$ver/r.html" --audit="$ver/a.html" \
+	--no-probe --quiet >/dev/null 2>&1 || true
+for doc in r a; do
+	if ! grep -q "Sablier $(php -r 'require "src/Version.php"; echo Sablier\Version::NUMBER;')" "$ver/$doc.html"; then
+		echo "✗ version: $doc.html does not name the build that produced it"
+		rm -rf "$ver"; exit 1
+	fi
+done
+printf '  ✓ %-24s %-10s %s\n' "version" "documents" "report and audit both name the build"
+rm -rf "$ver"
 
 # --- framework configuration, in four frameworks and two file formats ----------
 # Until now nothing here opened a YAML file looking for cryptography, which meant

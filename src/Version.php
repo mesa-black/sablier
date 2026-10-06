@@ -12,10 +12,16 @@ namespace Sablier;
  * version, is reproducible in theory only. This constant is bumped with the
  * tag, and it is printed wherever somebody might have to repeat the run three
  * years later.
+ *
+ * It said 0.5.0 for three releases, so every audit document produced in between
+ * named a build that had not produced it — including one published on a public
+ * website. A sentence in a docblock is not a mechanism: the test suite now
+ * refuses a tagged commit whose constant disagrees with its tag, and the release
+ * job refuses to publish one.
  */
 final class Version
 {
-    public const string NUMBER = '0.5.0';
+    public const string NUMBER = '0.8.0';
 
     public static function label(): string
     {

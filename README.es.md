@@ -190,7 +190,7 @@ La sonda solo tiene sentido contra equipos de los que usted es responsable.
 
 La mayor parte de esta herramienta lee código. Los hechos criptográficos más
 útiles de una aplicación web no están en su código: nadie escribe `RS256` en un
-controlador. Se escribe una vez en un cortafuegos, y todos los inicios de sesión
+controlador. Se escribe una vez en un firewall, y todos los inicios de sesión
 de los cinco años siguientes lo usan.
 
 ```
@@ -235,7 +235,7 @@ prueba falla si alguna vez se vuelve a leer como tal.
 se detiene no le ha dicho nada a su lector. El primero es un secreto compartido y
 sobrevive a un computador cuántico; el segundo es una firma RSA y no.
 
-**OIDC es el caso que justifica por sí solo este detector.** Un cortafuegos que
+**OIDC es el caso que justifica por sí solo este detector.** Un firewall que
 delega el inicio de sesión en un proveedor de identidad nombra al proveedor y
 nunca la firma: el algoritmo viene de las claves que ese proveedor publica, así
 que no está en el repositorio ni puede estarlo. Es toda la tesis de esta
@@ -1169,7 +1169,7 @@ es una sucesión de declaraciones autenticadas por separado que se citan entre s
 una clave que responde por todas. El destinatario necesita cada huella, y el informe de
 auditoría imprime la suya.
 
-Aquí no hay cadena de bloques y no la habrá. Una cadena propia es un nodo, es decir una
+Aquí no hay blockchain y no la habrá. Una cadena propia es un nodo, es decir una
 persona: no más digna de confianza que la firma que sustituiría. Una cadena pública
 significa que la huella sale de la máquina, lo que rompe la promesa del pie de página
 del propio informe. Cuando una fecha debe ser oponible a alguien que no confía en usted,

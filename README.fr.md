@@ -108,7 +108,7 @@ La déclaration exclut quatre chemins, et un lecteur a droit à la raison de cha
 | exclu | pourquoi |
 |---|---|
 | `src/Detector/*` | les détecteurs contiennent les motifs — la chaîne `rsa` y est ce qui trouve RSA, pas un usage de RSA |
-| `src/Probe.php` | la même chose, pour la poignée de main qu'il lit |
+| `src/Probe.php` | la même chose, pour le handshake qu'il lit |
 | `tests/fixtures/*` | de la cryptographie plantée exprès, pour que les tests aient quelque chose à trouver |
 | `tests/run.sh` | le `openssl genrsa` que la suite lance pour se fabriquer une clé |
 
@@ -192,7 +192,7 @@ La sonde n'a sa place que contre des hôtes dont vous êtes responsable.
 
 L'essentiel de cet outil lit du code. Les faits cryptographiques les plus utiles
 d'une application web ne sont pas dans son code : personne n'écrit `RS256` dans un
-contrôleur. On l'écrit une fois dans un pare-feu, et toutes les connexions des cinq
+contrôleur. On l'écrit une fois dans un firewall, et toutes les connexions des cinq
 années suivantes s'en servent.
 
 ```
@@ -238,7 +238,7 @@ est un jour relue comme tel.
 JOSE et s'arrête n'a rien dit à son lecteur. Le premier est un secret partagé et
 survit à un calculateur quantique ; le second est une signature RSA et non.
 
-**OIDC est le cas qui justifie à lui seul ce détecteur.** Un pare-feu qui délègue
+**OIDC est le cas qui justifie à lui seul ce détecteur.** Un firewall qui délègue
 la connexion à un fournisseur d'identité nomme le fournisseur et jamais la
 signature : l'algorithme vient des clés que ce fournisseur publie, donc il n'est
 pas dans le dépôt et ne peut pas y être. C'est toute la thèse de cet outil énoncée
@@ -1195,7 +1195,7 @@ alors une suite de déclarations authentifiées séparément qui se citent, plut
 clé qui répond de toutes. Le destinataire a besoin de chaque empreinte, et le rapport
 d'audit imprime la sienne.
 
-Il n'y a pas de chaîne de blocs ici et il n'y en aura pas. Une chaîne à soi, c'est un
+Il n'y a pas de blockchain ici et il n'y en aura pas. Une chaîne à soi, c'est un
 nœud, c'est-à-dire une personne : pas plus digne de confiance que la signature qu'elle
 remplacerait. Une chaîne publique veut dire que l'empreinte quitte la machine, ce qui
 casse la promesse du pied de page du rapport. Quand une date doit être opposable à
