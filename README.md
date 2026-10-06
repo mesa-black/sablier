@@ -7,6 +7,8 @@ one that governs; the others are translations, and the drift is checked in CI.*
 
 *How it works, in three diagrams: [docs/how-it-works.md](docs/how-it-works.md)*
 
+*On a closed network: [docs/airgap.md](docs/airgap.md)*
+
 *Scoping study: [docs/scoping.md](docs/scoping.md)*
 
 Sablier reads a project, inventories its cryptography, and crosses that inventory

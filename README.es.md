@@ -7,6 +7,8 @@ fe; esta es una traducción, y la desviación se detecta en integración continu
 
 *Cómo funciona, en tres esquemas: [docs/how-it-works.md](docs/how-it-works.md)*
 
+*En una red cerrada: [docs/airgap.md](docs/airgap.md)*
+
 *Estudio de alcance: [docs/scoping.md](docs/scoping.md)*
 
 Sablier lee un proyecto, inventaría su criptografía y cruza ese inventario con el

@@ -7,6 +7,8 @@ celle-ci est une traduction, et l'écart se voit en intégration continue.*
 
 *Comment ça marche, en trois schémas : [docs/how-it-works.md](docs/how-it-works.md)*
 
+*Sur un réseau fermé : [docs/airgap.md](docs/airgap.md)*
+
 *Étude de cadrage : [docs/scoping.md](docs/scoping.md)*
 
 Sablier lit un projet, inventorie sa cryptographie, et croise cet inventaire avec
