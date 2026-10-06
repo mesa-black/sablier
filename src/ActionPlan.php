@@ -26,7 +26,14 @@ final class ActionPlan
         $domains = [];
         foreach ($analysis->findings as $finding) {
             $counts[$finding->verdict] = ($counts[$finding->verdict] ?? 0) + 1;
-            if (!$finding->domainDeclared && $finding->verdict !== Assessor::NOISE) {
+            // A probe finding has no path, so no glob can ever cover it:
+            // counting it as an undeclared domain asked every project with a
+            // declared host to go and declare something it cannot declare. Found
+            // by scanning a repository whose only cryptography is its TLS — the
+            // report said "nothing is urgent" and told the reader to complete a
+            // declaration that was already complete.
+            if (!$finding->domainDeclared && $finding->verdict !== Assessor::NOISE
+                && !str_starts_with($finding->file, 'tls://')) {
                 $undeclared[$finding->domain] = true;
             }
             if ($finding->verdict === Assessor::COMPROMISED) {
@@ -117,11 +124,13 @@ final class ActionPlan
         ];
     }
 
+    /** Findings a declaration could have covered, which excludes the probe's. */
     private static function undeclaredFindings(Analysis $analysis): int
     {
         $count = 0;
         foreach ($analysis->findings as $finding) {
-            if (!$finding->domainDeclared && $finding->verdict !== Assessor::NOISE) {
+            if (!$finding->domainDeclared && $finding->verdict !== Assessor::NOISE
+                && !str_starts_with($finding->file, 'tls://')) {
                 ++$count;
             }
         }

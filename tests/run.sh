@@ -1303,6 +1303,38 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "breach" "limit" "said next to the figure"
 rm -rf "$br"
 
+# --- a host is not a path, so it cannot be declared ------------------------------
+# A probe finding carries `tls://host:443` where a file would be, and no glob can
+# ever cover it. Counting it as an undeclared domain asked every project with a
+# declared host to go and complete a declaration that was already complete —
+# found by scanning a repository whose only cryptography is its TLS, where the
+# report said "nothing is urgent" and then told the reader to declare something.
+prb=$(mktemp -d)
+mkdir -p "$prb/src"
+printf '<?php final class S { public function t(string $p): string { return hash("sha256", $p); } }\n' > "$prb/src/S.php"
+cat >"$prb/sablier.json" <<'DECL'
+{ "project": "Probe only", "default_lifetime_years": 0,
+  "domains": { "code": { "paths": ["src/*"], "lifetime_years": 0 } },
+  "probe": ["mesa.black"] }
+DECL
+./bin/sablier scan "$prb" --out="$prb/r.html" --quiet >/dev/null 2>&1 || true
+if grep -q "action-declare\|Compléter la déclaration" "$prb/r.html"; then
+	echo "✗ probe: the plan asks to declare a host, which no path can cover"
+	rm -rf "$prb"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "probe" "undeclared" "a host is not a missing declaration"
+
+# But a file in no declared domain still is one.
+mkdir -p "$prb/legacy"
+printf '<?php\nfinal class Token\n{\n    public function issue(array $claims, string $key): string\n    {\n        return jwt_encode($claims, $key, \x27RS256\x27);\n    }\n}\n' > "$prb/legacy/Token.php"
+./bin/sablier scan "$prb" --out="$prb/r2.html" --quiet >/dev/null 2>&1 || true
+if ! grep -q "Compléter la déclaration" "$prb/r2.html"; then
+	echo "✗ probe: a genuinely undeclared file no longer asks for a declaration"
+	rm -rf "$prb"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "probe" "still asks" "a file outside every domain does"
+rm -rf "$prb"
+
 # --- the questionnaire has a word budget ----------------------------------------
 # Three sessions with the same person ended in "it is gibberish to me, I do not
 # understand the sentences, I am lost". The questionnaire had grown to 986 words
