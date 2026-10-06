@@ -212,13 +212,18 @@ final class AuditReporter implements ReporterInterface
             'FIPS 203 / 204 / 205 (2024)' => 'audit.ref.fips',
             'NIST IR 8547 ipd (2024)' => 'audit.ref.nist8547',
             'CNSA 2.0 (NSA)' => 'audit.ref.cnsa',
-            'Recommandation (UE) 2024/1101' => 'audit.ref.eu',
-            'UE — feuille de route NIS CG (23/06/2025)' => 'audit.ref.roadmap',
-            'ANSSI — avis sur la migration post-quantique' => 'audit.ref.anssi',
+            // These three are a title and two descriptions rather than proper
+            // nouns, so they are looked up like everything else. They printed
+            // French in the English and Spanish audit documents — the one
+            // document of the pair that gets filed and handed to somebody.
+            '@audit.ref.eu.name' => 'audit.ref.eu',
+            '@audit.ref.roadmap.name' => 'audit.ref.roadmap',
+            '@audit.ref.anssi.name' => 'audit.ref.anssi',
         ];
         $body = '<p>'.htmlspecialchars(Lang::t('audit.s4.intro')).'</p><table><tbody>';
         foreach ($rows as $label => $key) {
-            $body .= '<tr><th scope="row">'.htmlspecialchars($label).'</th><td>'.htmlspecialchars(Lang::t($key)).'</td></tr>';
+            $name = str_starts_with($label, '@') ? Lang::t(substr($label, 1)) : $label;
+            $body .= '<tr><th scope="row">'.htmlspecialchars($name).'</th><td>'.htmlspecialchars(Lang::t($key)).'</td></tr>';
         }
         $checked = \DateTimeImmutable::createFromFormat('Y-m-d', $declaration->deadlinesCheckedOn);
 
@@ -438,7 +443,9 @@ final class AuditReporter implements ReporterInterface
                     Lang::t('seal.timestamp') => htmlspecialchars(Timestamp::readable($token['time'])
                         .($token['authority'] !== '' ? ' · '.$token['authority'] : '')),
                 ]);
-                $body .= '<p>'.htmlspecialchars(Lang::t('seal.timestamp.proves', $token['algorithm'])).'</p>';
+                $body .= '<p>'.htmlspecialchars($token['algorithm'] !== ''
+                    ? Lang::t('seal.timestamp.proves', $token['algorithm'])
+                    : Lang::t('seal.timestamp.proves.unnamed')).'</p>';
             }
 
             // Which signatures the file carries. A report whose own signature

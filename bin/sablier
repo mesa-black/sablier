@@ -347,7 +347,9 @@ if ($command === 'verify') {
                 printf("  %s\n", Lang::t('verify.timestamp.hint'));
             }
             if ($state['state'] === 'valid') {
-                printf("  %s\n", Lang::t('verify.timestamp.limit', $read['algorithm']));
+                printf("  %s\n", $read['algorithm'] !== ''
+                    ? Lang::t('verify.timestamp.limit', $read['algorithm'])
+                    : Lang::t('verify.timestamp.limit.unnamed'));
             }
             $attestedFailed = $state['state'] === 'invalid';
         }
@@ -557,7 +559,10 @@ if ($command === 'serve') {
         escapeshellarg($sessionFile),
         escapeshellarg(Lang::locale()),
         escapeshellarg(\PHP_BINARY),
-        $host,
+        // Safe today because --host= only accepts an address-shaped string, two
+        // hundred lines above. Escaped anyway: a shell command whose safety
+        // rests on a regex somewhere else is one edit away from not being safe.
+        escapeshellarg($host),
         $port,
         escapeshellarg(__DIR__.'/../src/Web/router.php'),
     );
@@ -794,7 +799,7 @@ if ($command === 'declare') {
         $project['regime'] = $regime;
         printf("  %s\n", Lang::t('declare.regime.set',
             Declaration::REGIMES[$regime]['expiry'],
-            Declaration::REGIMES[$regime]['source'],
+            Declaration::source($regime),
         ));
     }
 

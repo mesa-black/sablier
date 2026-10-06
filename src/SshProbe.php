@@ -74,7 +74,11 @@ final class SshProbe
             purpose: Catalogue::PURPOSE_CONFIDENTIALITY,
             file: $label,
             line: 0,
-            evidence: Lang::t('probe.ssh.evidence.kex', $this->first($kex)),
+            // `kex` and `hostkey` are SSH's own field names, so they read the
+            // same in every language — and the evidence is what a fingerprint is
+            // hashed from, so it cannot be a translated sentence. See the same
+            // fix in Probe and AssetDetector.
+            evidence: 'kex · '.$this->first($kex),
             detail: Lang::t($hybrid ? 'probe.ssh.detail.hybrid' : 'probe.ssh.detail.classical'),
         );
 
@@ -91,7 +95,7 @@ final class SshProbe
             purpose: Catalogue::PURPOSE_AUTHENTICITY,
             file: $label,
             line: 0,
-            evidence: Lang::t('probe.ssh.evidence.host_key', $this->first($hostKeys)),
+            evidence: 'hostkey · '.$this->first($hostKeys),
             detail: Lang::t('probe.ssh.detail.host_key'),
         );
 

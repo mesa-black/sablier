@@ -45,8 +45,6 @@ namespace Sablier;
  */
 final class Timestamp
 {
-    public const string ALGORITHM = 'RFC 3161';
-
     /** Long enough for a loaded authority, short enough that a build does not hang on one. */
     private const int TIMEOUT = 20;
 
@@ -167,6 +165,30 @@ final class Timestamp
     }
 
     /**
+     * The certificates in a `pkcs7 -print_certs` dump, each with its own PEM.
+     *
+     * @return list<array{subject:string, issuer:string, pem:string}>
+     */
+    private static function certificates(string $pems): array
+    {
+        // `[^\n]*` and `[\s\S]*?` rather than `.` with /s: a dot that matches
+        // newlines made the first subject swallow the whole dump, so the parse
+        // returned one certificate instead of two and the "leaf" was whichever
+        // one survived. Caught by comparing the algorithm this prints against
+        // the certificates in the token, which disagreed.
+        $pattern = '/^subject=(?<subject>[^\n]*)\n\s*issuer=(?<issuer>[^\n]*)\n\s*(?<pem>-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----)/m';
+        if (preg_match_all($pattern, $pems, $matches, \PREG_SET_ORDER) === 0) {
+            return [];
+        }
+
+        return array_map(static fn (array $m): array => [
+            'subject' => trim($m['subject']),
+            'issuer' => trim($m['issuer']),
+            'pem' => $m['pem'],
+        ], $matches);
+    }
+
+    /**
      * A token's date written the way every other date in these documents is.
      *
      * The zone is kept and named: an authority answers in UTC, the reader is
@@ -228,15 +250,32 @@ final class Timestamp
             escapeshellarg($binary), escapeshellarg($inner),
         ));
 
+        // The leaf, not simply the first one printed. A CMS structure carries
+        // the responder's certificate *and* the intermediates that chain it, in
+        // whatever order they were put there — and the first one happened to be
+        // the responder for every authority tested, which is a coincidence to
+        // rely on rather than a rule. The leaf is the certificate that issued
+        // none of the others.
+        $certificates = self::certificates($pems);
+        $issuers = array_column($certificates, 'issuer');
+        $leaf = null;
+        foreach ($certificates as $certificate) {
+            if (!\in_array($certificate['subject'], $issuers, true)) {
+                $leaf = $certificate;
+                break;
+            }
+        }
+        $leaf ??= $certificates[0] ?? null;
+
         $organisation = '';
-        if (preg_match('/^subject=.*?\bO\s*=\s*([^,\n]+)/m', $pems, $m) === 1) {
+        if ($leaf !== null && preg_match('/\bO\s*=\s*([^,\n]+)/', $leaf['subject'], $m) === 1) {
             $organisation = trim($m[1]);
         }
 
         $algorithm = '';
-        if (preg_match('/-----BEGIN CERTIFICATE-----.+?-----END CERTIFICATE-----/s', $pems, $first) === 1) {
+        if ($leaf !== null) {
             $certPath = self::temporary();
-            file_put_contents($certPath, $first[0]."\n");
+            file_put_contents($certPath, $leaf['pem']."\n");
             $text = (string) @shell_exec(\sprintf(
                 '%s x509 -in %s -noout -text 2>/dev/null',
                 escapeshellarg($binary), escapeshellarg($certPath),

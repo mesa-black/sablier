@@ -268,7 +268,10 @@ final class IncidentReporter implements ReporterInterface
                 continue;
             }
 
-            $names[$algo['label']] = true;
+            // Through the catalogue's accessor, not the raw row: one label is a
+            // sentence that has to be translated, and reading the array would
+            // print its marker into the one document that goes to a lawyer.
+            $names[Catalogue::label($finding->algorithm)] = true;
         }
 
         return $names === [] ? Lang::t('incident.cell.unknown') : implode(', ', array_keys($names));

@@ -39,7 +39,11 @@ final class Catalogue
 
         // No cryptography at all. In the catalogue because the report has to be
         // able to say it in the same sentence structure as everything else.
-        'plaintext' => ['label' => 'Aucun chiffrement', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
+        // `@` marks a label that is a sentence rather than a name, so it has to
+        // be translated. Every other label here is a proper noun — AES-256 is
+        // AES-256 in three languages — and this one printed "Aucun chiffrement"
+        // in the middle of an English report for as long as it existed.
+        'plaintext' => ['label' => '@algo.plaintext.label', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
 
         // Not an algorithm but a protocol version; it belongs here because the
         // report speaks about it in exactly the same terms: broken today,
@@ -126,7 +130,9 @@ final class Catalogue
 
     public static function label(string $algorithm): string
     {
-        return self::ALGORITHMS[$algorithm]['label'] ?? $algorithm;
+        $label = self::ALGORITHMS[$algorithm]['label'] ?? $algorithm;
+
+        return str_starts_with($label, '@') ? Lang::t(substr($label, 1)) : $label;
     }
 
     /** Normalises what a scanner found (a cipher string, a constant) to a catalogue key. */

@@ -176,7 +176,7 @@ final class Assessor
             // mandate the weak primitive — TOTP is specified on SHA-1 — so this
             // is something to confirm, never something to declare broken.
             if ($finding->inventory) {
-                return [self::WATCH, Lang::t('reason.inventory_broken', $algo['label'])];
+                return [self::WATCH, Lang::t('reason.inventory_broken', Catalogue::label($finding->algorithm))];
             }
 
             return [self::URGENT, Lang::t('reason.broken')];
@@ -217,7 +217,7 @@ final class Assessor
                 $exposureEnd,
                 $gap,
                 Lang::t($gap > 1 ? 'unit.years' : 'unit.year'),
-                $algo['label'],
+                Catalogue::label($finding->algorithm),
             ).($finding->domainDeclared ? '' : ' '.Lang::t('reason.undeclared_domain'))];
         }
 

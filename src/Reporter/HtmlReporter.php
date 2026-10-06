@@ -445,7 +445,14 @@ final class HtmlReporter implements ReporterInterface
             // the command that checks it without this tool, because a date
             // nobody can check is a decoration.
             if ($this->analysis->timestamp !== null) {
-                $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.proves', $this->analysis->timestamp['algorithm'])).'</p>'
+                $scheme = $this->analysis->timestamp['algorithm'];
+                $caveat .= '<p class="legend">'.htmlspecialchars($scheme !== ''
+                    ? Lang::t('seal.timestamp.proves', $scheme)
+                    // Naming nothing rather than naming an empty string: the
+                    // certificate could not be read here, and "signed with ,"
+                    // is how a sentence admits it was built from a variable
+                    // nobody checked.
+                    : Lang::t('seal.timestamp.proves.unnamed')).'</p>'
                     .'<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.verify')).' <code>'
                     .htmlspecialchars(Lang::t('seal.timestamp.command')).'</code></p>';
             }

@@ -79,7 +79,7 @@ final class Declaration
         // a meeting — twenty years for a patient record, twenty-one for a
         // vaccine dispensation, up to seventy for pharmacovigilance — which is
         // the one input this tool usually has to go and ask for.
-        'hds' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => 'ANSSI · hébergement de données de santé'],
+        'hds' => ['expiry' => 2030, 'deprecation' => 2027, 'source' => '@regime.source.hds'],
         // The one regime whose deadline is not a date but a function of the
         // data. The NIS Cooperation Group's roadmap classifies a use case by
         // the confidentiality it owes — high risk if a break after ten years
@@ -88,13 +88,16 @@ final class Declaration
         // this tool was built around, which is why the expiry here is read per
         // domain rather than taken from this row. The pair below is what the
         // regime ends on, for the timeline and for anything with no domain.
-        'eu' => ['expiry' => 2035, 'deprecation' => 2030, 'source' => 'UE · NIS CG, feuille de route coordonnée du 23/06/2025', 'graded' => true],
+        'eu' => ['expiry' => 2035, 'deprecation' => 2030, 'source' => '@regime.source.eu', 'graded' => true],
     ];
 
     /** The three levels of the roadmap, highest first. */
     public const string RISK_HIGH = 'high';
     public const string RISK_MEDIUM = 'medium';
-    public const string RISK_LOW = 'low';
+    // The roadmap names a third class, low risk, and this tool does not produce
+    // it: low risk is "as feasible" with no deadline, and nothing in a
+    // declaration separates it from medium. A constant and three translations
+    // existed for it, which claimed a distinction the model never makes.
 
     public string $regime = 'general';
 
@@ -510,6 +513,21 @@ final class Declaration
      * made by the person who declared it, and the report says so where the
      * level is printed.
      */
+    /**
+     * What a regime cites, in the reader's language.
+     *
+     * Three of the five are proper nouns and travel untranslated; two carry a
+     * description, and those two printed French in every English and Spanish
+     * report. `@` marks the difference, the same way the algorithm catalogue
+     * marks a label that is a sentence.
+     */
+    public static function source(string $regime): string
+    {
+        $source = self::REGIMES[$regime]['source'] ?? '?';
+
+        return str_starts_with($source, '@') ? Lang::t(substr($source, 1)) : $source;
+    }
+
     public function riskLevel(int $lifetime, bool $trustAnchor): string
     {
         if ($lifetime >= self::LONG_TERM_YEARS || $trustAnchor) {

@@ -132,7 +132,14 @@ final class AssetDetector implements DetectorInterface
             purpose: Catalogue::PURPOSE_UNKNOWN,
             file: $file->relativePath,
             line: 0,
-            evidence: Lang::t('evidence.asset.trailing', $trailing),
+            // The fact, not a sentence about it. A finding's fingerprint is
+            // hashed from its evidence, so a translated evidence string gives
+            // the same finding a different handle per language — and an
+            // acceptance recorded in one language then stops applying to an
+            // analysis run in another, silently. Fixed in the TLS probe last
+            // week; these two detectors were missed, and nothing failed because
+            // the fixture that guards the property triggers neither of them.
+            evidence: 'EOF+'.$trailing.' B',
             confidence: Finding::CONFIDENCE_MEDIUM,
             detail: Lang::t('detail.asset.trailing', $end),
         );
@@ -151,7 +158,7 @@ final class AssetDetector implements DetectorInterface
             purpose: Catalogue::PURPOSE_UNKNOWN,
             file: $file->relativePath,
             line: 0,
-            evidence: Lang::t('evidence.asset.magic', $file->extension, self::printable(substr($content, 0, 8))),
+            evidence: '.'.$file->extension.' · '.self::printable(substr($content, 0, 8)),
             confidence: Finding::CONFIDENCE_MEDIUM,
             detail: Lang::t('detail.asset.magic'),
         );

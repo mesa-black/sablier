@@ -1458,6 +1458,109 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
 
+# --- a label that is a sentence is translated, in every document ---------------
+# Most labels in the algorithm catalogue are proper nouns and travel as they are.
+# Two families are not — "no encryption", and the two regimes whose source names
+# a document rather than an institution — and they printed French in the middle
+# of every English and Spanish report until somebody read one. They now carry an
+# `@` marker and are looked up; the risk that replaces the old one is a caller
+# reading the raw row and printing the marker, so no document may contain it.
+mark=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$mark/"
+printf 'DATABASE_URL=postgres://u:p@db.example.org:5432/app\n' > "$mark/.env"
+php -r '
+	$p = $argv[1]."/sablier.json"; $d = json_decode(file_get_contents($p), true);
+	$d["regime"] = "hds"; file_put_contents($p, json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+' "$mark"
+for lang in fr en es; do
+	./bin/sablier scan "$mark" --lang=$lang --out="$mark/r-$lang.html" --audit="$mark/a-$lang.html" \
+		--incident="$mark/i-$lang.html" --breached=2026-01-15 --cbom="$mark/c-$lang.json" \
+		--no-probe --quiet >/dev/null 2>&1 || true
+done
+if grep -l '@algo\.\|@regime\.\|@audit\.' "$mark"/*.html "$mark"/*.json 2>/dev/null; then
+	echo "✗ label: a catalogue marker reached a document instead of being looked up"
+	rm -rf "$mark"; exit 1
+fi
+# And the lookup actually happened: the French label must not be in the English one.
+if grep -q 'Aucun chiffrement' "$mark/i-en.html" || ! grep -q 'No encryption' "$mark/i-en.html"; then
+	echo "✗ label: the English incident document does not name plaintext in English"
+	rm -rf "$mark"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "label" "fr en es" "sentences looked up, markers never printed"
+rm -rf "$mark"
+
+# --- the certificate a token is read from is the responder, not the chain -------
+# A timestamp token carries the responder's certificate and the intermediates
+# that chain it, in no guaranteed order, and the report prints the scheme that
+# certificate uses — the whole point being that the attestation's own signature
+# expires. Reading the wrong one misnames it. The fixture is a token whose
+# responder is ECDSA-384 and whose root is RSA-4096: pick the wrong certificate
+# and the answer changes, which is why this authority was chosen for it.
+php -r '
+	require "src/Timestamp.php";
+	$token = base64_decode(file_get_contents("tests/fixtures/timestamp/ecdsa-responder.tsr.base64"));
+	$read = Sablier\Timestamp::read($token);
+	if ($read === null) {
+		fwrite(STDERR, "✗ timestamp: the fixture token no longer reads — openssl missing?\n");
+		exit(1);
+	}
+	if ($read["algorithm"] !== "ECDSA-384") {
+		fwrite(STDERR, "✗ timestamp: responder scheme read as ".($read["algorithm"] ?: "nothing").", expected ECDSA-384 (the root is RSA-4096)\n");
+		exit(1);
+	}
+	if ($read["authority"] === "") {
+		fwrite(STDERR, "✗ timestamp: no authority read from the responder certificate\n");
+		exit(1);
+	}
+	printf("  ✓ %-24s %-10s %s\n", "timestamp", "responder", $read["authority"]." · ".$read["algorithm"]);
+' || exit 1
+
+# --- a fingerprint is a handle, so no detector may translate its evidence -------
+# A finding's fingerprint is hashed from its evidence. Build that evidence with
+# Lang::t and the same finding gets a different handle per language, so an
+# acceptance recorded in French silently stops applying to an analysis run in
+# English. That was fixed in the TLS probe, and two other detectors kept doing it
+# for a week — because the fixture that guards the property triggers neither of
+# them. So the rule is checked structurally as well as by example: the grep below
+# fails on the next detector that reaches for a sentence.
+if grep -rn 'evidence: *Lang::t' src/ ; then
+	echo "✗ evidence: a fingerprint cannot be hashed from a translated string"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "evidence" "structure" "no detector translates its own handle"
+
+# And by example, on the detector that was wrong: a PNG with bytes after IEND.
+# Written here rather than committed, so the fixture cannot drift from the thing
+# it is testing.
+asset=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$asset/"
+php -r '
+	$png = base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==");
+	file_put_contents($argv[1]."/logo.png", $png.str_repeat("A", 200));
+' "$asset"
+for lang in fr en es; do
+	./bin/sablier scan "$asset" --lang=$lang --json="$asset/$lang.json" --out="$asset/$lang.html" --no-probe --quiet >/dev/null 2>&1 || true
+done
+SABLIER_ASSET_DIR="$asset" php -r '
+	$dir = getenv("SABLIER_ASSET_DIR");
+	$handles = [];
+	foreach (["fr", "en", "es"] as $lang) {
+		$rows = json_decode(file_get_contents("$dir/$lang.json"), true);
+		$asset = array_values(array_filter($rows, static fn (array $r): bool => str_ends_with($r["file"], "logo.png")));
+		if ($asset === []) {
+			fwrite(STDERR, "✗ asset: the fixture no longer produces an asset finding, so this test proves nothing\n");
+			exit(1);
+		}
+		$handles[$lang] = array_column($asset, "fingerprint");
+	}
+	if (count(array_unique(array_map("json_encode", $handles))) !== 1) {
+		fwrite(STDERR, "✗ asset: the same file has a different fingerprint per language: ".json_encode($handles)."\n");
+		exit(1);
+	}
+	printf("  ✓ %-24s %-10s %s\n", "evidence", "asset", count($handles["fr"])." finding(s), one handle in three languages");
+' || { rm -rf "$asset"; exit 1; }
+rm -rf "$asset"
+
 # --- a machine field is never a translated word --------------------------------
 # A committed baseline carried "confidence": "haute" and "domain": "non déclaré"
 # beside English keys and English verdicts. Nobody noticed for weeks: the file is

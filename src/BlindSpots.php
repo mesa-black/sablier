@@ -58,12 +58,12 @@ final class BlindSpots
                 'blind.regime.graded',
                 $analysis->declaration->deprecationYear,
                 $analysis->declaration->expiryYear,
-                Declaration::REGIMES[$analysis->declaration->regime]['source'] ?? '?',
+                Declaration::source($analysis->declaration->regime),
             )
             : Lang::t(
                 'blind.regime',
                 $analysis->declaration->expiryYear,
-                Declaration::REGIMES[$analysis->declaration->regime]['source'] ?? '?',
+                Declaration::source($analysis->declaration->regime),
             );
 
         // A declaration whose domains cover one another is wrong whoever wrote

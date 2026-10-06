@@ -30,7 +30,7 @@ Lang::use(getenv('SABLIER_LANG') ?: 'fr');
 $session = Session::open((string) getenv('SABLIER_SESSION'));
 if ($session === null) {
     http_response_code(500);
-    echo 'session introuvable';
+    echo htmlspecialchars(Lang::t('web.no_session'));
 
     return true;
 }
@@ -54,7 +54,7 @@ if ($token !== '') {
         setcookie('sablier', $token, ['path' => '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => $https]);
     } elseif (!hash_equals($token, $held)) {
         http_response_code(403);
-        echo 'lien incomplet';
+        echo htmlspecialchars(Lang::t('web.incomplete_link'));
 
         return true;
     }
