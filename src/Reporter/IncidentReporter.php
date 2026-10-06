@@ -10,6 +10,7 @@ use Sablier\Breach;
 use Sablier\Catalogue;
 use Sablier\Finding;
 use Sablier\Lang;
+use Sablier\Rendered;
 use Sablier\Signature;
 use Sablier\Version;
 
@@ -52,7 +53,7 @@ final class IncidentReporter implements ReporterInterface
             : basename($analysis->target));
         $title = htmlspecialchars(Lang::t('incident.doc_title'));
         $subtitle = htmlspecialchars(Lang::t('incident.doc_subtitle'));
-        $date = (new \DateTimeImmutable())->format('d/m/Y');
+        $date = Rendered::at();
         $lang = Lang::locale();
         $css = $this->css();
         $runner = htmlspecialchars(implode(' · ', array_filter([

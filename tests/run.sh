@@ -1471,6 +1471,80 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "seal" "unsigned" "claims nothing"
 rm -rf "$prv"
 
+# --- a command with angle brackets in it is a command nobody runs ---------------
+# The documents told the reader to run `sablier verify <report>.sig
+# --declare=<declaration>` and `openssl ts -verify -digest <digest> -in
+# <report>.tsr`. Every one of those values is known to the document printing
+# them. Worse in the audit document, which named `<Audit report>.sig` — a file
+# that does not exist, since the signature is filed beside the report.
+cmd=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$cmd/"
+./bin/sablier keygen --out="$cmd/k.json" >/dev/null 2>&1
+./bin/sablier scan "$cmd" --out="$cmd/inventory.html" --audit="$cmd/audit.html" \
+	--sign="$cmd/k.json" --no-probe --quiet >/dev/null 2>&1 || true
+for doc in inventory audit; do
+	if grep -q "verify &lt;" "$cmd/$doc.html"; then
+		echo "✗ command: $doc.html still asks the reader to substitute a placeholder"
+		rm -rf "$cmd"; exit 1
+	fi
+	if ! grep -q "sablier verify inventory.html.sig --declare=sablier.json" "$cmd/$doc.html"; then
+		echo "✗ command: $doc.html does not name the signature file that exists beside it"
+		rm -rf "$cmd"; exit 1
+	fi
+done
+# And the command works, run exactly as printed, from where the files are.
+if ! (cd "$cmd" && "$OLDPWD/bin/sablier" verify inventory.html.sig --declare=sablier.json >/dev/null 2>&1); then
+	echo "✗ command: the printed command does not verify its own report"
+	rm -rf "$cmd"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "command" "printed" "real names, and it runs"
+rm -rf "$cmd"
+
+# --- one zone for every date in a document --------------------------------------
+# The masthead took the clock of the machine that rendered the document, in
+# whatever zone it was in, while the attested date beside it says UTC. Rendered at
+# half past midnight in Paris, the page printed one day at the top and the day
+# before in its seal — both correct, contradicting each other.
+utc=$(mktemp -d)
+./bin/sablier scan tests/fixtures/sample --out="$utc/r.html" --no-probe --quiet >/dev/null 2>&1 || true
+if ! grep -q "$(date -u '+%d/%m/%Y')" "$utc/r.html"; then
+	echo "✗ date: the document does not carry today's UTC date"
+	rm -rf "$utc"; exit 1
+fi
+if ! grep -q "UTC" "$utc/r.html"; then
+	echo "✗ date: a date with no zone on it is two different days"
+	rm -rf "$utc"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "date" "utc" "named, and the same for every reader"
+rm -rf "$utc"
+
+# --- an alarm needs a subject --------------------------------------------------
+# "The published vulnerabilities of your dependencies were not checked" printed
+# on every run without one. A published vulnerability can only change a verdict
+# on a library this tool catalogued, so a project with none has nothing for the
+# collection to touch — and this tool itself has no dependencies at all, which
+# made it the first reader of its own false alarm.
+adv=$(mktemp -d)
+cp tests/fixtures/sample/sablier.json "$adv/"
+printf '<?php\necho "no dependencies here";\n' > "$adv/app.php"
+./bin/sablier scan "$adv" --out="$adv/bare.html" --no-probe --quiet >/dev/null 2>&1 || true
+if grep -q "advisories" "$adv/bare.html"; then
+	echo "✗ advisories: warned about dependencies in a project that has none"
+	rm -rf "$adv"; exit 1
+fi
+
+# And with a catalogued library in a lock file, the sentence is owed.
+cat > "$adv/composer.lock" <<'LOCK'
+{"packages":[{"name":"firebase/php-jwt","version":"6.0.0"}]}
+LOCK
+./bin/sablier scan "$adv" --out="$adv/withlib.html" --no-probe --quiet >/dev/null 2>&1 || true
+if ! grep -q "advisories" "$adv/withlib.html"; then
+	echo "✗ advisories: a catalogued library is present and nothing says its holes were not checked"
+	rm -rf "$adv"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "advisories" "subject" "warned only where a library exists"
+rm -rf "$adv"
+
 # --- a seal that moves when nothing moved says nothing --------------------------
 # Re-running an unchanged analysis used to produce a new signed_at, a new
 # signature over the same digest, and a chain link from a digest to itself.

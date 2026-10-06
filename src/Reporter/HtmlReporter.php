@@ -14,6 +14,7 @@ use Sablier\Catalogue;
 use Sablier\Effort;
 use Sablier\Finding;
 use Sablier\Lang;
+use Sablier\Rendered;
 use Sablier\Signature;
 use Sablier\Timestamp;
 use Sablier\Version;
@@ -95,7 +96,7 @@ final class HtmlReporter implements ReporterInterface
         $blind = $this->blind();
         $css = $this->css();
         $target = htmlspecialchars($this->analysis->target);
-        $date = (new \DateTimeImmutable())->format('d/m/Y');
+        $date = Rendered::at();
         $project = htmlspecialchars($this->analysis->declaration->project !== '' ? $this->analysis->declaration->project : basename($this->analysis->target));
 
         $titleTag = $this->analysis->importedFrom !== '' ? ' · '.Lang::t('report.imported_tag') : '';
@@ -181,7 +182,7 @@ final class HtmlReporter implements ReporterInterface
             'share.text',
             Version::label(),
             $project,
-            (new \DateTimeImmutable())->format('d/m/Y'),
+            Rendered::at(),
             strip_tags($headline),
             $actionable,
             $this->analysis->declaration->expiryYear,
@@ -208,6 +209,7 @@ final class HtmlReporter implements ReporterInterface
                     $this->analysis->signature['public_key'],
                     \is_array($hybrid) ? $hybrid['public_key'] : '',
                 ),
+                basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html').'.sig',
             );
         }
 
@@ -480,8 +482,17 @@ final class HtmlReporter implements ReporterInterface
             // the first time one was published on a website: a reader who
             // arrives at a signed page with no command and no claim has a seal
             // they can admire and cannot use.
+            // The real file names, not angle brackets. This document knows what
+            // it was called and which declaration it read; asking the reader to
+            // substitute three placeholders is asking them not to check.
+            $report = basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html');
+            $declared = $this->analysis->declaration->path !== ''
+                ? basename($this->analysis->declaration->path)
+                : '';
             $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.verify')).' <code>'
-                .htmlspecialchars(Lang::t('seal.verify.command')).'</code></p>';
+                .htmlspecialchars($declared !== ''
+                    ? Lang::t('seal.verify.command', $report.'.sig', $declared)
+                    : Lang::t('seal.verify.command.alone', $report.'.sig')).'</code></p>';
 
             // What the attested date establishes, and where it stops — next to
             // the command that checks it without this tool, because a date
@@ -496,7 +507,14 @@ final class HtmlReporter implements ReporterInterface
                     // nobody checked.
                     : Lang::t('seal.timestamp.proves.unnamed')).'</p>'
                     .'<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.verify')).' <code>'
-                    .htmlspecialchars(Lang::t('seal.timestamp.command')).'</code></p>';
+                    .htmlspecialchars(Lang::t(
+                        'seal.timestamp.command',
+                        Signature::digest($this->analysis),
+                        basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html').'.tsr',
+                        $this->analysis->timestamp['authority'] !== ''
+                            ? $this->analysis->timestamp['authority']
+                            : Lang::t('seal.timestamp.authority'),
+                    )).'</code></p>';
             }
 
             // What it does not cover, first, because the earlier version of this
@@ -665,6 +683,7 @@ final class HtmlReporter implements ReporterInterface
             .verdict.compromised h2 .count,.verdict.urgent h2 .count{background:var(--bad)}
             .verdict.migrate h2 .count{background:var(--warn)}
             .absences{margin-top:1.2rem}
+            code{word-break:break-all}
             .blind{border:1px solid var(--line);border-radius:3px;padding:1.1rem 1.3rem;margin-top:3rem;background:#00000004}
             .blind h2{margin-top:0}
             .blind ul{margin:0;padding-left:1.1rem}

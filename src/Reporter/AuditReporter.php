@@ -14,6 +14,7 @@ use Sablier\Catalogue;
 use Sablier\Declaration;
 use Sablier\Finding;
 use Sablier\Lang;
+use Sablier\Rendered;
 use Sablier\Signature;
 use Sablier\Timestamp;
 use Sablier\Version;
@@ -65,7 +66,7 @@ final class AuditReporter implements ReporterInterface
             : basename($analysis->target));
         $title = htmlspecialchars(Lang::t('audit.doc_title'));
         $subtitle = htmlspecialchars(Lang::t('audit.doc_subtitle'));
-        $date = (new \DateTimeImmutable())->format('d/m/Y');
+        $date = Rendered::at();
         $lang = Lang::locale();
         $css = $this->css();
 
@@ -165,7 +166,7 @@ final class AuditReporter implements ReporterInterface
             Lang::t('audit.f.reference') => $this->supplied($audit['reference']),
             Lang::t('audit.f.mandate') => $this->supplied($audit['mandate']),
             Lang::t('audit.f.target') => '<code>'.htmlspecialchars($this->analysis->target).'</code>',
-            Lang::t('audit.f.date') => htmlspecialchars((new \DateTimeImmutable())->format('d/m/Y')),
+            Lang::t('audit.f.date') => htmlspecialchars(Rendered::at()),
             Lang::t('audit.f.volume') => htmlspecialchars($volume),
             Lang::t('audit.f.tool') => htmlspecialchars(Version::label()),
         ];
@@ -483,8 +484,16 @@ final class AuditReporter implements ReporterInterface
                     \is_array($hybrid) ? $hybrid['public_key'] : '',
                 ))).'</p>';
             }
-            $body .= '<p>'.htmlspecialchars(Lang::t('audit.s10.verify')).' <code>sablier verify &lt;'
-                .htmlspecialchars(Lang::t('audit.doc_title')).'&gt;.sig --declare=&lt;declaration&gt;</code></p>';
+            // The report's signature, named as a file. This line used to read
+            // `sablier verify <Audit report>.sig` — the document's title inside
+            // angle brackets, pointing at a file that does not exist: the
+            // signature is filed beside the report, and this document is not it.
+            $report = basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html');
+            $declared = $declaration->path !== '' ? basename($declaration->path) : '';
+            $body .= '<p>'.htmlspecialchars(Lang::t('audit.s10.verify')).' <code>'
+                .htmlspecialchars($declared !== ''
+                    ? Lang::t('seal.verify.command', $report.'.sig', $declared)
+                    : Lang::t('seal.verify.command.alone', $report.'.sig')).'</code></p>';
             if (!\is_array($hybrid)) {
                 $body .= '<p class="flag">'.htmlspecialchars(Lang::t('seal.caveat', $declaration->expiryYear)).'</p>';
             }

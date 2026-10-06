@@ -40,6 +40,13 @@ final readonly class Analysis
         /** The command that produced this analysis, so a third party can repeat it. */
         public string $commandLine = '',
         /**
+         * Where this document was written, so the commands it prints can name
+         * real files instead of angle brackets. Only the base name is ever
+         * shown: the .sig and the .tsr sit beside the report wherever it travels,
+         * and the path it had on the machine that made it is nobody's business.
+         */
+        public string $reportPath = '',
+        /**
          * What each detector opened and what it produced, so the report can say
          * what it looked for and did not find rather than only what it skipped.
          *

@@ -1143,13 +1143,36 @@ if ($options['advisories'] !== null) {
         fwrite(\STDERR, '✗ '.Lang::t('advisories.unreadable', $options['advisories'])."\n");
         exit(1);
     }
-    $blind[] = Lang::t('advisories.blind.used', $advisories->scanner, substr($advisories->generatedAt, 0, 10), $advisories->count(), $advisories->ignored);
-} else {
-    $blind[] = Lang::t('advisories.blind.absent');
 }
 
 $findings = (new Assessor($declaration, $currentYear, $advisories))->assess($inventory);
 $duration = microtime(true) - $startedAt;
+
+// Said after the assessment, because whether it is worth saying depends on it.
+//
+// A published vulnerability can only change a verdict on a library this tool
+// catalogued — that is the one place where "presence is not usage" gives way.
+// A project with no such library has nothing for the advisory collection to
+// touch, and telling its reader that a hole might be hiding in dependencies
+// that do not exist is an alarm with no subject. Measured on three projects
+// before changing it: this tool itself has no dependencies at all, the blog has
+// three and none of them is cryptographic, and the application has seven — only
+// the third needs the sentence.
+//
+// What replaces it in the other two is already printed, in the other box: the
+// dependency files were read, and no catalogued library was in them.
+$catalogued = 0;
+foreach ($findings as $finding) {
+    if ($finding->inventory) {
+        ++$catalogued;
+    }
+}
+
+if ($advisories !== null) {
+    $blind[] = Lang::t('advisories.blind.used', $advisories->scanner, substr($advisories->generatedAt, 0, 10), $advisories->count(), $advisories->ignored);
+} elseif ($catalogued > 0) {
+    $blind[] = Lang::t('advisories.blind.absent');
+}
 
 // Signing happens after the analysis and over the findings, never over the
 // rendered file: two runs of the same inventory differ byte for byte and say
@@ -1315,6 +1338,7 @@ $analysis = new Analysis(
     // run from — an absolute path says more about the machine that produced the
     // document than about the command a reader is meant to repeat.
     searched: $searched,
+    reportPath: $reportPath ?? '',
     commandLine: implode(' ', array_map(
         static function (string $argument) use ($cwd): string {
             if ($cwd !== false && str_starts_with($argument, $cwd.'/')) {
