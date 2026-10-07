@@ -1301,6 +1301,14 @@ une commande les revérifie toutes les trois :
 make cve
 ```
 
+Chacune des trois est épinglée **par empreinte**, pas seulement par étiquette.
+Une étiquette est un nom, et un nom peut être redirigé ; `make cve` prouve
+quelque chose sur des octets, et cette preuve ne vaudrait rien si les octets
+pouvaient changer sous le nom à propos duquel elle a été faite. `make images`
+affiche ce vers quoi ces étiquettes pointent aujourd'hui, pour qu'un déplacement
+d'épingle soit une décision que quelqu'un prend plutôt qu'un événement qu'il
+subit.
+
 Elle échoue sur toute vulnérabilité haute ou critique, sur **les deux architectures** —
 une étiquette multi-architecture, ce sont plusieurs images reconstruites à des moments
 différents, et une affirmation qui ne vaut que pour le portable où elle a été faite n'est

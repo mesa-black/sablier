@@ -948,7 +948,11 @@ if ($command === 'advisories') {
         exit(1);
     }
 
-    $scanner = getenv('SABLIER_TRIVY_IMAGE') ?: 'aquasec/trivy:0.75.0';
+    // Pinned by digest for the same reason as in the Makefile: a tag is a name
+    // and a name can be re-pointed, and `make cve` proves something about bytes.
+    // Override it with SABLIER_TRIVY_IMAGE when your site mirrors its own.
+    $scanner = getenv('SABLIER_TRIVY_IMAGE')
+        ?: 'aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa';
     $cache = (getenv('HOME') ?: sys_get_temp_dir()).'/.cache/trivy';
     @mkdir($cache, 0o755, true);
     printf("\n  %s\n", Lang::t('advisories.running', $scanner));

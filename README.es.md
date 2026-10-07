@@ -1274,6 +1274,13 @@ escáner— y un comando las vuelve a comprobar las tres:
 make cve
 ```
 
+Cada una de las tres está fijada **por huella**, no solo por etiqueta. Una
+etiqueta es un nombre y un nombre puede reapuntarse; `make cve` prueba algo sobre
+bytes, y esa prueba no valdría nada si los bytes pudieran cambiar bajo el nombre
+sobre el que se hizo. `make images` muestra a qué apuntan hoy esas etiquetas,
+para que mover una fijación sea una decisión que alguien toma y no algo que le
+ocurre.
+
 Falla ante cualquier vulnerabilidad alta o crítica, en **ambas arquitecturas**: una
 etiqueta multiarquitectura son varias imágenes reconstruidas en momentos distintos, y una
 afirmación que solo vale para el portátil donde se hizo no es una afirmación. Se ejecuta

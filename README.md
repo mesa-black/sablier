@@ -1272,6 +1272,12 @@ three:
 make cve
 ```
 
+Each of the three is pinned **by digest**, not only by tag. A tag is a name and a
+name can be re-pointed; `make cve` proves something about bytes, so it would be
+worth nothing if the bytes could change under the name the proof was made about.
+`make images` prints what those tags resolve to today, so moving a pin is a
+decision somebody makes rather than something that happens to them.
+
 It fails on any high or critical vulnerability, on **both architectures** — a
 multi-arch tag is several images rebuilt at different times, and a claim that
 only holds for the laptop it was made on is not a claim. It runs in CI on every

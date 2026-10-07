@@ -4,10 +4,25 @@
 # checks exactly what the launcher and the CI use, and nothing else. The
 # Chromium one left with the browser it carried: the PDF is typeset in PHP now,
 # and a container nobody starts is one less thing to vouch for.
-PHP_IMAGE ?= php:8.4-cli-alpine
-PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4
-TRIVY_IMAGE ?= aquasec/trivy:0.75.0
-.PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples release
+# Pinned by digest, not only by tag.
+#
+# A tag is a name and a name can be re-pointed. `make cve` proves these images
+# carry no known high or critical vulnerability — a proof about bytes, so it is
+# worth nothing if the bytes can change under the name it was made about. The
+# digest is what makes the weekly claim and the image somebody actually pulls
+# the same object.
+#
+# This is not hypothetical. A floating base tag in another repository moved from
+# one minor version to the next on 2026-10-04, with no commit anywhere, and took
+# a day to diagnose: the symptom was a test suite killed mid-run.
+#
+# Each digest points at the multi-architecture manifest, so `--platform` still
+# picks the right one. `make images` prints what the tags resolve to today, for
+# when updating them is a decision somebody makes on purpose.
+PHP_IMAGE ?= php:8.4-cli-alpine@sha256:37c8c64177612b72e7f9d2c00481739c166a3708bea27c1cfd27fea1291d82d1
+PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4@sha256:96037250b0dd0c52519337f71e5e0aa91672534671356bb91f6db2b96fe67ace
+TRIVY_IMAGE ?= aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+.PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples release images
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
@@ -131,3 +146,15 @@ release: ## Build the release archive for the current version, reproducibly
 	@git archive --format=tar --prefix=sablier-$(VERSION)/ "v$(VERSION)" | gzip -n -9 > "$(ARCHIVE)"
 	@printf '  %s\n' "$(ARCHIVE)"
 	@openssl dgst -sha256 -r "$(ARCHIVE)" | awk '{printf "  sha256  %s\n", $$1}'
+
+images: ## What the pinned tags resolve to today, to update a digest on purpose
+	@for image in $(PHP_IMAGE) $(PHPSTAN_IMAGE) $(TRIVY_IMAGE); do \
+		tag=$${image%%@*}; \
+		pinned=$${image##*@}; \
+		now=$$(docker buildx imagetools inspect "$$tag" --format '{{.Manifest.Digest}}' 2>/dev/null); \
+		if [ "$$now" = "$$pinned" ]; then \
+			printf '  = %s\n    %s\n' "$$tag" "$$pinned"; \
+		else \
+			printf '  ≠ %s\n    pinned %s\n    today  %s\n' "$$tag" "$$pinned" "$${now:-unavailable}"; \
+		fi; \
+	done
