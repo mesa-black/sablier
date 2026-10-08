@@ -261,6 +261,9 @@ final class AuditReporter implements ReporterInterface
         $frame = $declaration->nationalFrame();
         if ($frame !== null) {
             $cell = Lang::t('audit.ref.national.authority', $frame['authority']);
+            if ($frame['law'] !== '') {
+                $cell .= ' '.Lang::t('audit.ref.national.law', $frame['law']);
+            }
             if ($frame['referential'] !== '') {
                 $cell .= ' '.Lang::t('audit.ref.national.referential', $frame['referential']);
             }

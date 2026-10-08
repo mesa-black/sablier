@@ -220,19 +220,32 @@ procedures regarding the use of cryptography and, where appropriate,
 encryption"*. That is the obligation this inventory serves, and it holds whatever
 the state of each transposition — several are still unfinished.
 
-**All twenty-seven are in the table**, each with the national cybersecurity
-authority ENISA publishes for it and the date that name was taken. France also
-carries its referential and its registration portal, read on ANSSI's own site; no
-other row carries either, because no other row has been read there yet.
+**Sablier knows all twenty-seven member states.** Declare `jurisdiction: de`
+and the audit document prints the German authority, its registration portal and
+the date each was read; declare `jurisdiction: pl` and it prints Poland's. What
+it knows for each is the national cybersecurity authority ENISA publishes, and
+when that name was taken.
 
-What the table deliberately does **not** carry is a transposition status. The
+Four member states say more than that today, each read on its own authority's
+site: **France**, its referential — ReCyF — and the portal entities register
+through; **Germany**, its transposition act, in force since 6 December 2025, and
+the BSI portal; **Belgium**, the CyberFundamentals framework, which the CCB
+recommends to every NIS 2 entity because a validated implementation grants a
+presumption of conformity; and **Spain**, the fact that its transposition is
+still a bill, and that INCIBE itself says the competent authorities and the
+single point of contact have to wait for it.
+
+The other twenty-three print their authority and nothing beside it. That means
+nobody has read their site yet — not that there is nothing there to read.
+
+What it deliberately does **not** store is a transposition status. The
 Commission's own country pages were a state of play from mid-2025, several member
 states have moved since, and a status frozen into a release is a regulatory fact
 that goes stale between two versions of this tool and still reads as current. So
 the documents cite the Commission's living page — one URL for all twenty-seven,
 which updates itself — instead of copying a verdict out of it.
 
-Two more things every row prints. The date the authority's name was taken, for
+Two more things are printed for every member state. The date the authority's name was taken, for
 the same reason `deadlines_checked_on` exists: a regulatory fact with no date on
 it is one nobody can age. And a caveat, because several member states designate
 sectoral authorities as well: this is the door to start at, not necessarily the

@@ -227,13 +227,26 @@ and procedures regarding the use of cryptography and, where appropriate,
 encryption »*. C'est l'obligation que cet inventaire sert, et elle vaut quel que
 soit l'avancement de chaque transposition — plusieurs sont encore inachevées.
 
-**Les vingt-sept figurent dans la table**, chacun avec l'autorité nationale de
-cybersécurité que publie l'ENISA et la date à laquelle ce nom a été relevé. La
-France porte en plus son référentiel et son portail d'enregistrement, lus sur le
-site de l'ANSSI ; aucune autre ligne ne porte l'un ou l'autre, parce qu'aucune
-autre n'a encore été lue là-bas.
+**Sablier connaît les vingt-sept États membres.** Déclarez `jurisdiction: de`
+et le document d'audit imprime l'autorité allemande, son portail d'enregistrement
+et la date à laquelle chacun a été relevé ; déclarez `jurisdiction: pl` et il
+imprime celle de la Pologne. Ce qu'il connaît pour chacun, c'est l'autorité
+nationale de cybersécurité que publie l'ENISA, et la date de ce relevé.
 
-Ce que la table ne porte **délibérément pas**, c'est un statut de transposition.
+Quatre États membres en disent davantage aujourd'hui, chacun lu sur le site de sa
+propre autorité : la **France**, son référentiel — le ReCyF — et le portail par
+lequel les entités s'enregistrent ; l'**Allemagne**, sa loi de transposition, en
+vigueur depuis le 6 décembre 2025, et le portail du BSI ; la **Belgique**, le
+référentiel CyberFundamentals, que le CCB recommande à toutes les entités NIS 2
+parce qu'une implémentation validée donne une présomption de conformité ; et
+l'**Espagne**, le fait que sa transposition est encore un avant-projet de loi, et
+que l'INCIBE écrit elle-même que les autorités compétentes et le point de contact
+unique doivent l'attendre.
+
+Les vingt-trois autres impriment leur autorité et rien à côté. Cela veut dire que
+personne n'a encore lu leur site — pas qu'il n'y a rien à y lire.
+
+Ce qu'il ne conserve **délibérément pas**, c'est un statut de transposition.
 Les pages pays de la Commission donnaient un état des lieux de mi-2025, plusieurs
 États membres ont bougé depuis, et un statut figé dans une release est un fait
 réglementaire qui périme entre deux versions de cet outil et se lit pourtant
@@ -241,7 +254,7 @@ comme courant. Les documents citent donc la page vivante de la Commission — un
 seule adresse pour les vingt-sept, qui se met à jour d'elle-même — au lieu d'en
 recopier un verdict.
 
-Deux choses de plus sur chaque ligne. La date à laquelle le nom de l'autorité a
+Deux choses de plus sont imprimées pour chaque État membre. La date à laquelle le nom de l'autorité a
 été relevé, pour la raison même qui fait exister `deadlines_checked_on` : un fait
 réglementaire sans date est un fait que personne ne peut faire vieillir. Et une
 réserve, parce que plusieurs États membres désignent aussi des autorités

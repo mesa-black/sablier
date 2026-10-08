@@ -2042,6 +2042,29 @@ grep -q "nis-transposition" "$j/a.html" || {
 }
 printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "no status" "cites the living page, freezes nothing"
 
+# 5. The four member states read on their own authority's site each carry what
+#    that site says, and nothing more. Spain is the one worth a test of its own:
+#    its own agency writes that the competent authorities wait on a transposition
+#    that is still a bill, so a document naming an authority there has to say it
+#    is ENISA's published name and not a settled NIS 2 designation.
+printf '{"project":"T","regime":"eu","jurisdiction":"de","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+grep -q "NIS-2-Umsetzungsgesetz" "$j/a.html" && grep -q "portal.bsi.bund.de" "$j/a.html" || {
+	echo "✗ jurisdiction: Germany lost its transposition act or its portal"; rm -rf "$j"; exit 1
+}
+printf '{"project":"T","regime":"eu","jurisdiction":"be","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+grep -q "CyFun" "$j/a.html" && grep -qi "conformit" "$j/a.html" || {
+	echo "✗ jurisdiction: Belgium lost CyberFundamentals or the presumption of conformity"; rm -rf "$j"; exit 1
+}
+printf '{"project":"T","regime":"eu","jurisdiction":"es","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+grep -qi "INCIBE" "$j/a.html" || {
+	echo "✗ jurisdiction: Spain names an authority without the caveat its own agency publishes"
+	rm -rf "$j"; exit 1
+}
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "de be es" "each says what its own authority says"
+
 # 3. Not declared, and never read off --lang. An English document for a German
 #    entity, a Spanish one for the Mexican arm of a Belgian group: guessing the
 #    country from the reader's language is the silent assumption this tool spends

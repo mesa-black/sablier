@@ -221,13 +221,26 @@ procedures regarding the use of cryptography and, where appropriate,
 encryption»*. Esa es la obligación a la que sirve este inventario, y vale
 cualquiera que sea el estado de cada transposición — varias siguen inacabadas.
 
-**Los veintisiete están en la tabla**, cada uno con la autoridad nacional de
-ciberseguridad que publica ENISA y la fecha en que se tomó ese nombre. Francia
-lleva además su referencial y su portal de registro, leídos en el sitio de la
-propia ANSSI; ninguna otra fila lleva uno ni otro, porque ninguna otra se ha
-leído allí todavía.
+**Sablier conoce los veintisiete Estados miembros.** Declare `jurisdiction: de`
+y el documento de auditoría imprime la autoridad alemana, su portal de registro y
+la fecha en que se tomó cada uno; declare `jurisdiction: pl` e imprime la de
+Polonia. Lo que conoce de cada uno es la autoridad nacional de ciberseguridad que
+publica ENISA, y la fecha de ese registro.
 
-Lo que la tabla **deliberadamente no** lleva es un estado de transposición. Las
+Cuatro Estados miembros dicen hoy algo más, cada uno leído en el sitio de su
+propia autoridad: **Francia**, su referencial — ReCyF — y el portal por el que se
+registran las entidades; **Alemania**, su ley de transposición, en vigor desde el
+6 de diciembre de 2025, y el portal del BSI; **Bélgica**, el referencial
+CyberFundamentals, que el CCB recomienda a todas las entidades NIS 2 porque una
+implementación validada otorga una presunción de conformidad; y **España**, el
+hecho de que su transposición sigue siendo un anteproyecto de ley, y que INCIBE
+escribe ella misma que las autoridades competentes y el punto de contacto único
+tienen que esperarla.
+
+Los otros veintitrés imprimen su autoridad y nada más. Eso significa que nadie ha
+leído aún su sitio — no que no haya nada que leer allí.
+
+Lo que **deliberadamente no** guarda es un estado de transposición. Las
 páginas por país de la Comisión daban una situación de mediados de 2025, varios
 Estados miembros han cambiado desde entonces, y un estado congelado en una
 release es un hecho normativo que caduca entre dos versiones de esta herramienta
@@ -235,7 +248,7 @@ y se sigue leyendo como actual. Así que los documentos citan la página viva de
 Comisión — una sola dirección para los veintisiete, que se actualiza sola — en
 lugar de copiar de ella un veredicto.
 
-Dos cosas más en cada fila. La fecha en que se tomó el nombre de la autoridad,
+Dos cosas más se imprimen para cada Estado miembro. La fecha en que se tomó el nombre de la autoridad,
 por la misma razón por la que existe `deadlines_checked_on`: un hecho normativo
 sin fecha es un hecho que nadie puede envejecer. Y una reserva, porque varios
 Estados miembros designan además autoridades sectoriales: esta es la puerta por la

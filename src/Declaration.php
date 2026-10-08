@@ -140,26 +140,46 @@ final class Declaration
      * the documents point at the Commission's living page instead, which is one
      * URL for all twenty-seven and updates itself.
      *
-     * `referential` and `portal` are filled only where they were read on that
-     * country's own authority's site. France has both; the rest have the
-     * authority and nothing invented beside it.
+     * `law`, `referential` and `portal` are filled only where they were read on
+     * that country's own authority's site, and they are three different things:
+     * the transposition act, a published framework of measures, and where an
+     * entity registers. Most member states have the first and not the second —
+     * France publishes ReCyF and Belgium CyberFundamentals, and a row with no
+     * referential means that country has none we have read, not that we skipped
+     * it.
      *
      * One caveat belongs with every row and the documents print it: several
      * member states designate sectoral authorities as well as this one, so this
      * is where to start rather than necessarily who audits your sector.
      *
-     * @var array<string, array{authority:string, referential?:string, portal?:string, note?:string, checked:string}>
+     * @var array<string, array{authority:string, law?:string, referential?:string, portal?:string, note?:string, checked:string}>
      */
     public const array JURISDICTIONS = [
         'at' => ['authority' => 'BMI — Bundesministerium für Inneres', 'checked' => '2026-10-08'],
-        'be' => ['authority' => 'CCB — Centre for Cybersecurity Belgium', 'checked' => '2026-10-08'],
+        'be' => [
+            'authority' => 'CCB — Centre for Cybersecurity Belgium',
+            'referential' => 'CyberFundamentals (CyFun)',
+            'portal' => 'atwork.safeonweb.be',
+            'note' => '@jurisdiction.be.note',
+            'checked' => '2026-10-08',
+        ],
         'bg' => ['authority' => 'Ministry of e-Government — Directorate of Cybersecurity and National Security', 'checked' => '2026-10-08'],
         'cy' => ['authority' => 'DSA — Digital Security Authority', 'checked' => '2026-10-08'],
         'cz' => ['authority' => 'NÚKIB — Národní úřad pro kybernetickou a informační bezpečnost', 'checked' => '2026-10-08'],
-        'de' => ['authority' => 'BSI — Bundesamt für Sicherheit in der Informationstechnik', 'checked' => '2026-10-08'],
+        'de' => [
+            'authority' => 'BSI — Bundesamt für Sicherheit in der Informationstechnik',
+            'law' => 'NIS-2-Umsetzungsgesetz',
+            'portal' => 'portal.bsi.bund.de',
+            'note' => '@jurisdiction.de.note',
+            'checked' => '2026-10-08',
+        ],
         'dk' => ['authority' => 'DRA — Danish Resilience Agency', 'checked' => '2026-10-08'],
         'ee' => ['authority' => 'RIA — Riigi Infosüsteemi Amet', 'checked' => '2026-10-08'],
-        'es' => ['authority' => 'Consejo Nacional de Ciberseguridad', 'checked' => '2026-10-08'],
+        'es' => [
+            'authority' => 'Consejo Nacional de Ciberseguridad',
+            'note' => '@jurisdiction.es.note',
+            'checked' => '2026-10-08',
+        ],
         'fi' => ['authority' => 'NCSC-FI — National Cyber Security Centre Finland', 'checked' => '2026-10-08'],
         'fr' => [
             'authority' => 'ANSSI — Agence nationale de la sécurité des systèmes d\'information',
@@ -688,7 +708,7 @@ final class Declaration
      * the caller builds a sentence out of whichever parts exist, and asking it
      * to also distinguish "absent" from "empty" buys nothing.
      *
-     * @return array{code:string, authority:string, referential:string, portal:string, note:string, checked:string}|null
+     * @return array{code:string, authority:string, law:string, referential:string, portal:string, note:string, checked:string}|null
      */
     public function nationalFrame(): ?array
     {
@@ -700,6 +720,7 @@ final class Declaration
         return [
             'code' => $this->jurisdiction,
             'authority' => $row['authority'],
+            'law' => $row['law'] ?? '',
             'referential' => $row['referential'] ?? '',
             'portal' => $row['portal'] ?? '',
             'note' => $row['note'] ?? '',
