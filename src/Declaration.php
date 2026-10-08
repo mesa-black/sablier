@@ -128,30 +128,62 @@ final class Declaration
     public string $jurisdiction = '';
 
     /**
-     * What we have verified, per country, and when.
+     * The twenty-seven, and where each one's frame starts.
      *
-     * Primary sources only — the authority's own site or the Official Journal.
-     * The consultancy pages that are easy to find are good for orientation and
-     * are not citable in a document meant to be contested. `checked` is printed,
-     * for the same reason `deadlines_checked_on` is: a regulatory fact with no
-     * date on it is a fact nobody can age.
+     * The authority is what this table carries, because it is the stable,
+     * checkable half: a name, published by ENISA for every member state, and the
+     * first door to knock on. What it deliberately does **not** carry is a
+     * transposition verdict. NIS 2 is a directive, the Commission's own country
+     * pages were a state of play from mid-2025, and several member states have
+     * moved since — a status frozen into a release is a regulatory fact that
+     * goes stale between two versions of this tool and is read as current. So
+     * the documents point at the Commission's living page instead, which is one
+     * URL for all twenty-seven and updates itself.
      *
-     * One entry is not an oversight. NIS 2 is a directive: twenty-seven
-     * transpositions, several unfinished, and a referential that is still a
-     * working document in at least one of them. Filling this table from
-     * secondary sources would produce twenty-seven confident rows and no
-     * verified ones.
+     * `referential` and `portal` are filled only where they were read on that
+     * country's own authority's site. France has both; the rest have the
+     * authority and nothing invented beside it.
      *
-     * @var array<string, array{authority:string, referential:string, portal:string, note:string, checked:string}>
+     * One caveat belongs with every row and the documents print it: several
+     * member states designate sectoral authorities as well as this one, so this
+     * is where to start rather than necessarily who audits your sector.
+     *
+     * @var array<string, array{authority:string, referential?:string, portal?:string, note?:string, checked:string}>
      */
     public const array JURISDICTIONS = [
+        'at' => ['authority' => 'BMI — Bundesministerium für Inneres', 'checked' => '2026-10-08'],
+        'be' => ['authority' => 'CCB — Centre for Cybersecurity Belgium', 'checked' => '2026-10-08'],
+        'bg' => ['authority' => 'Ministry of e-Government — Directorate of Cybersecurity and National Security', 'checked' => '2026-10-08'],
+        'cy' => ['authority' => 'DSA — Digital Security Authority', 'checked' => '2026-10-08'],
+        'cz' => ['authority' => 'NÚKIB — Národní úřad pro kybernetickou a informační bezpečnost', 'checked' => '2026-10-08'],
+        'de' => ['authority' => 'BSI — Bundesamt für Sicherheit in der Informationstechnik', 'checked' => '2026-10-08'],
+        'dk' => ['authority' => 'DRA — Danish Resilience Agency', 'checked' => '2026-10-08'],
+        'ee' => ['authority' => 'RIA — Riigi Infosüsteemi Amet', 'checked' => '2026-10-08'],
+        'es' => ['authority' => 'Consejo Nacional de Ciberseguridad', 'checked' => '2026-10-08'],
+        'fi' => ['authority' => 'NCSC-FI — National Cyber Security Centre Finland', 'checked' => '2026-10-08'],
         'fr' => [
-            'authority' => 'ANSSI',
+            'authority' => 'ANSSI — Agence nationale de la sécurité des systèmes d\'information',
             'referential' => 'ReCyF',
             'portal' => 'messervices.cyber.gouv.fr/nis2',
             'note' => '@jurisdiction.fr.note',
             'checked' => '2026-10-08',
         ],
+        'gr' => ['authority' => 'NCSA — National Cybersecurity Authority of Greece', 'checked' => '2026-10-08'],
+        'hr' => ['authority' => 'NCSC-HR — Nacionalni centar za kibernetičku sigurnost', 'checked' => '2026-10-08'],
+        'hu' => ['authority' => 'NCSC — Nemzeti Kibervédelmi Intézet', 'checked' => '2026-10-08'],
+        'ie' => ['authority' => 'NCSC — National Cyber Security Centre', 'checked' => '2026-10-08'],
+        'it' => ['authority' => 'ACN — Agenzia per la Cybersicurezza Nazionale', 'checked' => '2026-10-08'],
+        'lt' => ['authority' => 'NKSC — Nacionalinis kibernetinio saugumo centras', 'checked' => '2026-10-08'],
+        'lu' => ['authority' => 'ILR — Institut Luxembourgeois de Régulation', 'checked' => '2026-10-08'],
+        'lv' => ['authority' => 'NCC — Nacionālais kiberdrošības centrs', 'checked' => '2026-10-08'],
+        'mt' => ['authority' => 'MITA — Malta Information Technology Agency', 'checked' => '2026-10-08'],
+        'nl' => ['authority' => 'NCSC — Nationaal Cyber Security Centrum', 'checked' => '2026-10-08'],
+        'pl' => ['authority' => 'Ministerstwo Cyfryzacji', 'checked' => '2026-10-08'],
+        'pt' => ['authority' => 'CNCS — Centro Nacional de Cibersegurança', 'checked' => '2026-10-08'],
+        'ro' => ['authority' => 'DNSC — Directoratul Național de Securitate Cibernetică', 'checked' => '2026-10-08'],
+        'se' => ['authority' => 'MSB — Myndigheten för samhällsskydd och beredskap', 'checked' => '2026-10-08'],
+        'si' => ['authority' => 'URSIV — Urad Vlade Republike Slovenije za informacijsko varnost', 'checked' => '2026-10-08'],
+        'sk' => ['authority' => 'NBÚ — Národný bezpečnostný úrad', 'checked' => '2026-10-08'],
     ];
 
     /**
@@ -652,12 +684,26 @@ final class Declaration
     /**
      * The national frame to cite, when one was declared and we have checked it.
      *
+     * The optional halves come back as empty strings rather than absent keys:
+     * the caller builds a sentence out of whichever parts exist, and asking it
+     * to also distinguish "absent" from "empty" buys nothing.
+     *
      * @return array{code:string, authority:string, referential:string, portal:string, note:string, checked:string}|null
      */
     public function nationalFrame(): ?array
     {
         $row = self::JURISDICTIONS[$this->jurisdiction] ?? null;
+        if ($row === null) {
+            return null;
+        }
 
-        return $row === null ? null : ['code' => $this->jurisdiction, ...$row];
+        return [
+            'code' => $this->jurisdiction,
+            'authority' => $row['authority'],
+            'referential' => $row['referential'] ?? '',
+            'portal' => $row['portal'] ?? '',
+            'note' => $row['note'] ?? '',
+            'checked' => $row['checked'],
+        ];
     }
 }

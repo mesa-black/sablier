@@ -221,14 +221,28 @@ procedures regarding the use of cryptography and, where appropriate,
 encryption»*. Esa es la obligación a la que sirve este inventario, y vale
 cualquiera que sea el estado de cada transposición — varias siguen inacabadas.
 
-Lo nacional solo se cita allí donde lo hemos verificado ante la autoridad del
-país correspondiente, con la fecha de esa verificación impresa al lado, por la
-misma razón por la que existe `deadlines_checked_on`: un hecho normativo sin
-fecha es un hecho que nadie puede envejecer. Hoy figura un solo país en la tabla,
-Francia, y una jurisdicción declarada que no hayamos verificado lo dice en lugar
-de dejar un hueco. NIS 2 es una directiva — veintisiete transposiciones — y
-rellenar esa tabla desde las páginas de consultoría fáciles de encontrar daría
-veintisiete filas seguras y ninguna verificada.
+**Los veintisiete están en la tabla**, cada uno con la autoridad nacional de
+ciberseguridad que publica ENISA y la fecha en que se tomó ese nombre. Francia
+lleva además su referencial y su portal de registro, leídos en el sitio de la
+propia ANSSI; ninguna otra fila lleva uno ni otro, porque ninguna otra se ha
+leído allí todavía.
+
+Lo que la tabla **deliberadamente no** lleva es un estado de transposición. Las
+páginas por país de la Comisión daban una situación de mediados de 2025, varios
+Estados miembros han cambiado desde entonces, y un estado congelado en una
+release es un hecho normativo que caduca entre dos versiones de esta herramienta
+y se sigue leyendo como actual. Así que los documentos citan la página viva de la
+Comisión — una sola dirección para los veintisiete, que se actualiza sola — en
+lugar de copiar de ella un veredicto.
+
+Dos cosas más en cada fila. La fecha en que se tomó el nombre de la autoridad,
+por la misma razón por la que existe `deadlines_checked_on`: un hecho normativo
+sin fecha es un hecho que nadie puede envejecer. Y una reserva, porque varios
+Estados miembros designan además autoridades sectoriales: esta es la puerta por la
+que se empieza, no necesariamente la que le audita.
+
+Una jurisdicción declarada fuera de la Unión — `ch`, `uk`, `us` — no tiene fila, y
+el documento lo dice en lugar de agarrar la agencia más plausible.
 
 Y este inventario no es un informe de conformidad NIS 2. Produce una de las
 medidas que pide la directiva. El registro ante la autoridad y la notificación de

@@ -250,19 +250,33 @@ final class AuditReporter implements ReporterInterface
         // audits an entity is its own member state's transposition, and that is
         // declared rather than guessed from the language this document is
         // written in.
-        $frame = $this->analysis->declaration->nationalFrame();
+        //
+        // The cell is assembled from the fields that exist rather than one
+        // sentence with five holes in it: the authority is known for every
+        // member state, the referential and the registration portal only where
+        // they were read on that authority's own site. A sentence built from an
+        // empty variable is how a document says "Referential: ." and loses a
+        // room.
+        $declaration = $this->analysis->declaration;
+        $frame = $declaration->nationalFrame();
         if ($frame !== null) {
+            $cell = Lang::t('audit.ref.national.authority', $frame['authority']);
+            if ($frame['referential'] !== '') {
+                $cell .= ' '.Lang::t('audit.ref.national.referential', $frame['referential']);
+            }
+            if ($frame['note'] !== '') {
+                $cell .= ' '.Lang::t(substr($frame['note'], 1));
+            }
+            if ($frame['portal'] !== '') {
+                $cell .= ' '.Lang::t('audit.ref.national.portal', $frame['portal']);
+            }
+            $cell .= ' '.Lang::t('audit.ref.national.sectoral')
+                .' '.Lang::t('audit.ref.national.where')
+                .' '.Lang::t('audit.ref.national.checked', $frame['checked']);
             $body .= '<tr><th scope="row">'.htmlspecialchars(Lang::t('audit.ref.national', strtoupper($frame['code']))).'</th><td>'
-                .htmlspecialchars(Lang::t(
-                    'audit.ref.national.frame',
-                    $frame['authority'],
-                    $frame['referential'],
-                    Lang::t(substr($frame['note'], 1)),
-                    $frame['portal'],
-                    $frame['checked'],
-                )).'</td></tr>';
-        } elseif ($this->analysis->declaration->jurisdiction !== '') {
-            $body .= '<tr><th scope="row">'.htmlspecialchars(Lang::t('audit.ref.national', strtoupper($this->analysis->declaration->jurisdiction))).'</th><td>'
+                .htmlspecialchars($cell).'</td></tr>';
+        } elseif ($declaration->jurisdiction !== '') {
+            $body .= '<tr><th scope="row">'.htmlspecialchars(Lang::t('audit.ref.national', strtoupper($declaration->jurisdiction))).'</th><td>'
                 .htmlspecialchars(Lang::t('audit.ref.national.unchecked')).'</td></tr>';
         } else {
             $body .= '<tr><th scope="row">'.htmlspecialchars(Lang::t('audit.ref.national.none.name')).'</th><td>'

@@ -220,14 +220,26 @@ procedures regarding the use of cryptography and, where appropriate,
 encryption"*. That is the obligation this inventory serves, and it holds whatever
 the state of each transposition — several are still unfinished.
 
-What is national is cited only where it was checked against that country's own
-authority, with the date of the check printed beside it, for the same reason
-`deadlines_checked_on` exists: a regulatory fact with no date on it is one nobody
-can age. One country is in the table today, France, and a declared jurisdiction
-we have not checked says so rather than leaving a gap. NIS 2 is a directive —
-twenty-seven transpositions — and filling that table from the consultancy pages
-that are easy to find would produce twenty-seven confident rows and no verified
-ones.
+**All twenty-seven are in the table**, each with the national cybersecurity
+authority ENISA publishes for it and the date that name was taken. France also
+carries its referential and its registration portal, read on ANSSI's own site; no
+other row carries either, because no other row has been read there yet.
+
+What the table deliberately does **not** carry is a transposition status. The
+Commission's own country pages were a state of play from mid-2025, several member
+states have moved since, and a status frozen into a release is a regulatory fact
+that goes stale between two versions of this tool and still reads as current. So
+the documents cite the Commission's living page — one URL for all twenty-seven,
+which updates itself — instead of copying a verdict out of it.
+
+Two more things every row prints. The date the authority's name was taken, for
+the same reason `deadlines_checked_on` exists: a regulatory fact with no date on
+it is one nobody can age. And a caveat, because several member states designate
+sectoral authorities as well: this is the door to start at, not necessarily the
+one that audits you.
+
+A declared jurisdiction outside the Union — `ch`, `uk`, `us` — has no row, and
+the document says so rather than reaching for the nearest plausible agency.
 
 And this inventory is not a NIS 2 compliance report. It produces one of the
 measures the directive asks for. Registration with the authority and incident

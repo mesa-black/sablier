@@ -2003,16 +2003,44 @@ grep -q "ANSSI" "$j/a.html" && grep -q "ReCyF" "$j/a.html" && grep -q "2026-10-0
 }
 printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "fr" "frame printed, with its check date"
 
-# 2. Declared and not checked: it says so. The failure worth guarding is the
-#    opposite one — inventing a referential for a member state nobody verified.
+# 2. Every member state is in the table, so a declared one never falls through
+#    to the "we have not checked this" branch. Twenty-seven authorities from one
+#    published list beats twenty-seven confident rows from twenty-seven searches.
+count=$(php -r 'require "src/Declaration.php"; echo count(Sablier\Declaration::JURISDICTIONS);')
+[ "$count" = 27 ] || { echo "✗ jurisdiction: $count rows, expected the twenty-seven"; rm -rf "$j"; exit 1; }
 printf '{"project":"T","regime":"eu","jurisdiction":"de","domains":{}}' > "$j/d.json"
 ./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
-grep -q "DE" "$j/a.html" || { echo "✗ jurisdiction: a declared country was not named"; rm -rf "$j"; exit 1; }
-if grep -qE "BSI|Bundesamt" "$j/a.html"; then
+grep -q "BSI" "$j/a.html" || { echo "✗ jurisdiction: a member state in the table printed no authority"; rm -rf "$j"; exit 1; }
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "27 states" "each prints its own authority"
+
+# 3. Outside the Union there is no row, and the document says so rather than
+#    reaching for the nearest plausible agency.
+printf '{"project":"T","regime":"eu","jurisdiction":"ch","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+grep -q "CH" "$j/a.html" || { echo "✗ jurisdiction: a declared country was not named"; rm -rf "$j"; exit 1; }
+if grep -qE "NCSC-CH|MELANI|BACS" "$j/a.html"; then
 	echo "✗ jurisdiction: a frame was invented for a country with no checked data"
 	rm -rf "$j"; exit 1
 fi
 printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "unchecked" "names the gap, invents nothing"
+
+# 4. And no row claims a transposition status. The Commission's own country
+#    pages were a mid-2025 state of play, several member states moved since, and
+#    a status frozen into a release reads as current long after it stops being
+#    true — so the document cites the living page instead of copying it. Checked
+#    on a member state's document: for a country outside the Union that page
+#    would be the wrong thing to point at, and is not printed.
+printf '{"project":"T","regime":"eu","jurisdiction":"de","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+if grep -qE "reasoned opinion|transposée|transposed on|avis motivé" "$j/a.html"; then
+	echo "✗ jurisdiction: a transposition status was frozen into the document"
+	rm -rf "$j"; exit 1
+fi
+grep -q "nis-transposition" "$j/a.html" || {
+	echo "✗ jurisdiction: the document does not point at the living source"
+	rm -rf "$j"; exit 1
+}
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "no status" "cites the living page, freezes nothing"
 
 # 3. Not declared, and never read off --lang. An English document for a German
 #    entity, a Spanish one for the Mexican arm of a Belgian group: guessing the
