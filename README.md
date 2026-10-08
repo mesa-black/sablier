@@ -44,8 +44,12 @@ confidentiality it is carrying".
 
 **What it is not.** Not a vulnerability scanner — it reads what you *chose*, not
 what is broken today. Not a compliance report: it produces one artefact, a
-cryptographic inventory, which is one of the measures NIS 2 asks for, and it says
-nothing about registering with an authority or reporting incidents. And it has no
+cryptographic inventory. In the Union that artefact is one of the measures NIS 2
+asks for; outside it, the same inventory answers to whichever framework you
+adopt — the tool carries NIST IR 8547, the NSA's CNSA 2.0 and the EU roadmap, and
+which one applies is a field in the declaration rather than a default. Either
+way it says nothing about registering with an authority or reporting
+incidents. And it has no
 opinion it will not show you: every finding prints its evidence, its fingerprint,
 and a pre-filled way to contest it.
 

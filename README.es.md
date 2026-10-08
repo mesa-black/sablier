@@ -45,8 +45,12 @@ la confidencialidad que transporta?».
 
 **Qué no es.** No es un escáner de vulnerabilidades: lee lo que usted *eligió*,
 no lo que está roto hoy. No es un informe de conformidad: produce un artefacto,
-un inventario criptográfico, que es una de las medidas que pide NIS 2, y no dice
-nada sobre el registro ante una autoridad ni sobre la notificación de incidentes.
+un inventario criptográfico. En la Unión ese artefacto es una de las medidas que
+pide NIS 2; fuera de ella, el mismo inventario responde al marco que usted
+adopte — la herramienta lleva NIST IR 8547, el CNSA 2.0 de la NSA y la hoja de
+ruta europea, y cuál se aplica es un campo de la declaración y no un valor por
+defecto. En ambos casos no dice nada sobre el registro ante una autoridad ni
+sobre la notificación de incidentes.
 Y no tiene ninguna opinión que no le muestre: cada hallazgo imprime su prueba, su
 huella, y una forma ya rellenada de impugnarlo.
 

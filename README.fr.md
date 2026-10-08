@@ -46,9 +46,12 @@ confidentialité qu'il transporte ».
 
 **Ce qu'il n'est pas.** Pas un scanner de vulnérabilités — il lit ce que vous avez
 *choisi*, pas ce qui est cassé aujourd'hui. Pas un rapport de conformité : il
-produit un artefact, un inventaire cryptographique, qui est l'une des mesures que
-NIS 2 demande, et il ne dit rien de l'enregistrement auprès d'une autorité ni de
-la déclaration des incidents. Et il n'a aucun avis qu'il ne vous montrera pas :
+produit un artefact, un inventaire cryptographique. Dans l'Union, cet artefact
+est l'une des mesures que NIS 2 demande ; en dehors, le même inventaire répond au
+cadre que vous retenez — l'outil porte NIST IR 8547, le CNSA 2.0 de la NSA et la
+feuille de route européenne, et lequel s'applique est un champ de la déclaration
+plutôt qu'un défaut. Dans les deux cas il ne dit rien de l'enregistrement auprès
+d'une autorité ni de la déclaration des incidents. Et il n'a aucun avis qu'il ne vous montrera pas :
 chaque constat imprime sa preuve, son empreinte, et une manière préremplie de le
 contester.
 
