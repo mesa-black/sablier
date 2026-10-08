@@ -48,6 +48,23 @@ The report now prints a three-step recipe that locates the store with
 printed on Debian 13, Ubuntu 24.04, Alpine 3.22, Fedora 42, Rocky 9,
 openSUSE Leap 15.6, and macOS with both OpenSSL 3.6 and LibreSSL 3.3.
 
+### The release job had never run once
+
+Worth writing down, because the way it hid is more instructive than the bug. The
+job that cuts a release on a tag carried `Sablier\\Version::NUMBER` in its YAML,
+which reaches PHP with two backslashes and is a parse error — so the step meant
+to check the version constant against the tag failed the build instead of
+checking anything. It only runs on tags, and the v0.6.0, v0.7.0 and v0.8.0
+releases were created by hand, by us, in the same sitting as the automation that
+was supposed to replace that gesture. The releases existed, so nobody went
+looking at why the job that was supposed to create them had not.
+
+It also owed an archive it never attached. `docs/airgap.md` tells a closed site
+that every release carries an archive built from the tag, that `make release`
+rebuilds the same bytes, and that the digest is in the notes — and none of that
+was true of any release. The job now builds it, attaches it, and appends the
+digest with the two commands that reproduce it.
+
 ### And why the seal can be older than the report
 
 A re-run that changes no finding keeps its token, so the masthead showed today
