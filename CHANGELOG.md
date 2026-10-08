@@ -62,8 +62,8 @@ looking at why the job that was supposed to create them had not.
 It also owed an archive it never attached. `docs/airgap.md` tells a closed site
 that every release carries an archive built from the tag, that `make release`
 rebuilds the same bytes, and that the digest is in the notes — and none of that
-was true of any release. The job now builds it, attaches it, and appends the
-digest with the two commands that reproduce it.
+was true of any release. The job now builds it, attaches it, and appends its
+digests — plural, for the reason the next section gives.
 
 ### And the reproducible archive was not reproducible
 
