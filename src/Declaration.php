@@ -102,6 +102,59 @@ final class Declaration
     public string $regime = 'general';
 
     /**
+     * Which country's national frame the documents cite, as an ISO 3166-1
+     * alpha-2 code. Declared, never guessed.
+     *
+     * This is a second axis, and conflating it with `regime` was a design
+     * mistake worth naming: a regime answers *when does this cryptography
+     * expire* — borrowed from whichever authority the declarer accepts, which is
+     * why a German entity is free to adopt ANSSI's 2030 — while a jurisdiction
+     * answers *whose national transposition will audit me*. `hds` is the proof
+     * the two were tangled: French health-data hosting law, filed next to the
+     * NSA's CNSA 2.0.
+     *
+     * It is **not** inferred from `--lang`, and the documents say so. A language
+     * is not a country: an English report for a German entity, a Spanish one for
+     * the Mexican subsidiary of a Belgian group. Guessing the jurisdiction from
+     * the reader's language is exactly the silent assumption this tool refuses
+     * everywhere else.
+     *
+     * Any two-letter code is accepted, including outside the Union, because an
+     * entity outside it can still owe NIS 2 duties through where it operates.
+     * What is not invented is the content: a frame is printed only for a country
+     * whose data below was checked against that country's own authority, and
+     * for any other the document says it has nothing rather than leaving a gap.
+     */
+    public string $jurisdiction = '';
+
+    /**
+     * What we have verified, per country, and when.
+     *
+     * Primary sources only — the authority's own site or the Official Journal.
+     * The consultancy pages that are easy to find are good for orientation and
+     * are not citable in a document meant to be contested. `checked` is printed,
+     * for the same reason `deadlines_checked_on` is: a regulatory fact with no
+     * date on it is a fact nobody can age.
+     *
+     * One entry is not an oversight. NIS 2 is a directive: twenty-seven
+     * transpositions, several unfinished, and a referential that is still a
+     * working document in at least one of them. Filling this table from
+     * secondary sources would produce twenty-seven confident rows and no
+     * verified ones.
+     *
+     * @var array<string, array{authority:string, referential:string, portal:string, note:string, checked:string}>
+     */
+    public const array JURISDICTIONS = [
+        'fr' => [
+            'authority' => 'ANSSI',
+            'referential' => 'ReCyF',
+            'portal' => 'messervices.cyber.gouv.fr/nis2',
+            'note' => '@jurisdiction.fr.note',
+            'checked' => '2026-10-08',
+        ],
+    ];
+
+    /**
      * Somebody wrote the year down themselves.
      *
      * A declaration that states `expiry_year` outranks any regime, including a
@@ -214,6 +267,17 @@ final class Declaration
         $regime = strtolower(Value::string($raw['regime'] ?? null, 'general'));
         $self->breachedOn = Value::string($raw['breached'] ?? null);
         $self->regime = isset(self::REGIMES[$regime]) ? $regime : 'general';
+
+        // Two letters, lowercased, and nothing else read into it. `hds` is the
+        // one regime that carries a country of its own — French health-data
+        // hosting law — so it supplies the jurisdiction when none was declared,
+        // and yields to one that was. `anssi` deliberately does not: adopting
+        // ANSSI's dates is a choice available to anybody, and it says nothing
+        // about who audits you.
+        $declared = strtolower(trim(Value::string($raw['jurisdiction'] ?? null)));
+        $self->jurisdiction = preg_match('/^[a-z]{2}$/', $declared) === 1
+            ? $declared
+            : ($self->regime === 'hds' ? 'fr' : '');
         $self->deprecationYear = self::REGIMES[$self->regime]['deprecation'];
         $self->expiryYear = self::REGIMES[$self->regime]['expiry'];
 
@@ -583,5 +647,17 @@ final class Declaration
 
         // The label is translated: a hardcoded one printed French in every report.
         return ['name' => Lang::t('domain.undeclared'), 'lifetime' => $this->defaultLifetime, 'trust_anchor' => false, 'hybrid' => false, 'breached' => $this->breachedOn, 'declared' => false];
+    }
+
+    /**
+     * The national frame to cite, when one was declared and we have checked it.
+     *
+     * @return array{code:string, authority:string, referential:string, portal:string, note:string, checked:string}|null
+     */
+    public function nationalFrame(): ?array
+    {
+        $row = self::JURISDICTIONS[$this->jurisdiction] ?? null;
+
+        return $row === null ? null : ['code' => $this->jurisdiction, ...$row];
     }
 }

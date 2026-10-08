@@ -234,6 +234,7 @@ final class AuditReporter implements ReporterInterface
             // nouns, so they are looked up like everything else. They printed
             // French in the English and Spanish audit documents — the one
             // document of the pair that gets filed and handed to somebody.
+            '@audit.ref.nis2.name' => 'audit.ref.nis2',
             '@audit.ref.eu.name' => 'audit.ref.eu',
             '@audit.ref.roadmap.name' => 'audit.ref.roadmap',
             '@audit.ref.anssi.name' => 'audit.ref.anssi',
@@ -242,6 +243,30 @@ final class AuditReporter implements ReporterInterface
         foreach ($rows as $label => $key) {
             $name = str_starts_with($label, '@') ? Lang::t(substr($label, 1)) : $label;
             $body .= '<tr><th scope="row">'.htmlspecialchars($name).'</th><td>'.htmlspecialchars(Lang::t($key)).'</td></tr>';
+        }
+
+        // The national frame, which is a second axis and not a deadline. The
+        // references above are the Union's and apply to all twenty-seven; what
+        // audits an entity is its own member state's transposition, and that is
+        // declared rather than guessed from the language this document is
+        // written in.
+        $frame = $this->analysis->declaration->nationalFrame();
+        if ($frame !== null) {
+            $body .= '<tr><th scope="row">'.htmlspecialchars(Lang::t('audit.ref.national', strtoupper($frame['code']))).'</th><td>'
+                .htmlspecialchars(Lang::t(
+                    'audit.ref.national.frame',
+                    $frame['authority'],
+                    $frame['referential'],
+                    Lang::t(substr($frame['note'], 1)),
+                    $frame['portal'],
+                    $frame['checked'],
+                )).'</td></tr>';
+        } elseif ($this->analysis->declaration->jurisdiction !== '') {
+            $body .= '<tr><th scope="row">'.htmlspecialchars(Lang::t('audit.ref.national', strtoupper($this->analysis->declaration->jurisdiction))).'</th><td>'
+                .htmlspecialchars(Lang::t('audit.ref.national.unchecked')).'</td></tr>';
+        } else {
+            $body .= '<tr><th scope="row">'.htmlspecialchars(Lang::t('audit.ref.national.none.name')).'</th><td>'
+                .htmlspecialchars(Lang::t('audit.ref.national.none')).'</td></tr>';
         }
         $checked = \DateTimeImmutable::createFromFormat('Y-m-d', $declaration->deadlinesCheckedOn);
 

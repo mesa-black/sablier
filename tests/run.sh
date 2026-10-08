@@ -829,6 +829,7 @@ for level in "^## " "^### "; do
 done
 printf '  ✓ %-24s %-10s %s\n' "readme" "three langs" "same sections in en, fr and es"
 
+
 # --- the questions that can change something, first ---------------------------
 # SHA-256 is sound at every lifetime, so a subject made only of it cannot be
 # changed by any answer. On the first real project this tool was pointed at,
@@ -1931,6 +1932,69 @@ SABLIER_LANG_DIR="$lang" php -r '
 	printf("  ✓ %-24s %-10s %s\n", "json", "fr en es", count($fr)." findings, identical but the prose");
 ' || { rm -rf "$lang"; exit 1; }
 rm -rf "$lang"
+
+# --- the jurisdiction is a second axis, and it is declared ---------------------
+# A regime answers when this cryptography expires; a jurisdiction answers whose
+# transposition will audit you. Conflating them is how `hds` — French health-data
+# hosting law — ended up filed next to the NSA's CNSA 2.0. What these four checks
+# guard is that the second axis never gets guessed.
+j=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$j/"
+
+# 1. Declared and checked: the frame is printed, with the date it was checked,
+#    because a regulatory fact with no date on it is one nobody can age.
+printf '{"project":"T","regime":"eu","jurisdiction":"fr","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+grep -q "ANSSI" "$j/a.html" && grep -q "ReCyF" "$j/a.html" && grep -q "2026-10-08" "$j/a.html" || {
+	echo "✗ jurisdiction: a declared and checked frame was not printed"
+	rm -rf "$j"; exit 1
+}
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "fr" "frame printed, with its check date"
+
+# 2. Declared and not checked: it says so. The failure worth guarding is the
+#    opposite one — inventing a referential for a member state nobody verified.
+printf '{"project":"T","regime":"eu","jurisdiction":"de","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+grep -q "DE" "$j/a.html" || { echo "✗ jurisdiction: a declared country was not named"; rm -rf "$j"; exit 1; }
+if grep -qE "BSI|Bundesamt" "$j/a.html"; then
+	echo "✗ jurisdiction: a frame was invented for a country with no checked data"
+	rm -rf "$j"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "unchecked" "names the gap, invents nothing"
+
+# 3. Not declared, and never read off --lang. An English document for a German
+#    entity, a Spanish one for the Mexican arm of a Belgian group: guessing the
+#    country from the reader's language is the silent assumption this tool spends
+#    its pages refusing.
+printf '{"project":"T","regime":"eu","domains":{}}' > "$j/d.json"
+for lang in fr en es; do
+	./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a-$lang.html" \
+		--lang=$lang --no-probe --quiet >/dev/null 2>&1
+	if grep -qE "ANSSI\.|ReCyF" "$j/a-$lang.html"; then
+		echo "✗ jurisdiction: $lang inferred a country from the language"
+		rm -rf "$j"; exit 1
+	fi
+	grep -q "2022/2555" "$j/a-$lang.html" || {
+		echo "✗ jurisdiction: $lang does not cite the directive that creates the obligation"
+		rm -rf "$j"; exit 1
+	}
+done
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "fr en es" "not guessed from the language"
+
+# 4. One regime does carry a country of its own, and supplies it: health-data
+#    hosting law is French. `anssi` deliberately does not — adopting its dates is
+#    open to anybody and says nothing about who audits you.
+printf '{"project":"T","regime":"hds","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/h.html" --audit="$j/ha.html" --no-probe --quiet >/dev/null 2>&1
+grep -q "ReCyF" "$j/ha.html" || { echo "✗ jurisdiction: hds did not supply its own country"; rm -rf "$j"; exit 1; }
+printf '{"project":"T","regime":"anssi","domains":{}}' > "$j/d.json"
+./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/n.html" --audit="$j/na.html" --no-probe --quiet >/dev/null 2>&1
+if grep -q "ReCyF" "$j/na.html"; then
+	echo "✗ jurisdiction: anssi was read as a jurisdiction, which it is not"
+	rm -rf "$j"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "hds anssi" "one carries a country, one does not"
+rm -rf "$j"
 
 # --- a date somebody else attests ---------------------------------------------
 # Our own `signed_at` is covered by the signature and still worth nothing as
