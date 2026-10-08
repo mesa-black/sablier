@@ -233,17 +233,24 @@ et la date à laquelle chacun a été relevé ; déclarez `jurisdiction: pl` et 
 imprime celle de la Pologne. Ce qu'il connaît pour chacun, c'est l'autorité
 nationale de cybersécurité que publie l'ENISA, et la date de ce relevé.
 
-Quatre États membres en disent davantage aujourd'hui, chacun lu sur le site de sa
-propre autorité : la **France**, son référentiel — le ReCyF — et le portail par
-lequel les entités s'enregistrent ; l'**Allemagne**, sa loi de transposition, en
-vigueur depuis le 6 décembre 2025, et le portail du BSI ; la **Belgique**, le
-référentiel CyberFundamentals, que le CCB recommande à toutes les entités NIS 2
-parce qu'une implémentation validée donne une présomption de conformité ; et
-l'**Espagne**, le fait que sa transposition est encore un avant-projet de loi, et
-que l'INCIBE écrit elle-même que les autorités compétentes et le point de contact
-unique doivent l'attendre.
+Sept États membres en disent davantage aujourd'hui, chacun lu sur le site de sa
+propre autorité :
 
-Les vingt-trois autres impriment leur autorité et rien à côté. Cela veut dire que
+| | |
+|---|---|
+| **France** | ANSSI · ReCyF · MesServicesCyber |
+| **Allemagne** | BSI · NIS-2-Umsetzungsgesetz, en vigueur le 6 décembre 2025 · portal.bsi.bund.de, enregistrement sous trois mois |
+| **Belgique** | CCB · CyberFundamentals, dont une implémentation validée donne une présomption de conformité · Safeonweb@Work |
+| **Italie** | ACN · Decreto legislativo 138/2024, en vigueur le 16 octobre 2024 · la plateforme de l'ACN, et jusqu'à 0,1 % du chiffre d'affaires pour un enregistrement tardif |
+| **Pays-Bas** | NCSC · Cyberbeveiligingswet, en vigueur le 15 août 2026 · mijn.ncsc.nl — tandis que la RDI surveille neuf secteurs |
+| **Portugal** | CNCS · Decreto-Lei 125/2025, en vigueur le 3 avril 2026 · Medidas Mínimas de Cibersegurança · MyCiber |
+| **Espagne** | Consejo Nacional de Ciberseguridad · transposition encore un avant-projet, et l'INCIBE écrit elle-même que les autorités compétentes et le point de contact unique doivent l'attendre |
+
+Les Pays-Bas illustrent le mieux la réserve que porte chaque cadre : on
+s'enregistre auprès du NCSC et c'est la RDI qui contrôle. Le guichet
+d'enregistrement n'est pas nécessairement l'autorité qui audite votre secteur.
+
+Les vingt autres impriment leur autorité et rien à côté. Cela veut dire que
 personne n'a encore lu leur site — pas qu'il n'y a rien à y lire.
 
 Ce qu'il ne conserve **délibérément pas**, c'est un statut de transposition.

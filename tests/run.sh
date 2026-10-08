@@ -2065,6 +2065,21 @@ grep -qi "INCIBE" "$j/a.html" || {
 }
 printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "de be es" "each says what its own authority says"
 
+# 6. The detailed ones keep what was read for them. Counted rather than spot
+#    checked: a country losing its act or its portal in a refactor is the kind of
+#    regression nobody notices, because the document still looks complete.
+detailed=$(php -r 'require "src/Declaration.php"; echo count(array_filter(Sablier\Declaration::JURISDICTIONS, fn ($r) => count($r) > 2));')
+[ "$detailed" = 7 ] || { echo "✗ jurisdiction: $detailed detailed rows, expected 7"; rm -rf "$j"; exit 1; }
+for pair in "it:Decreto legislativo 138/2024" "nl:Cyberbeveiligingswet" "pt:MyCiber"; do
+	printf '{"project":"T","regime":"eu","jurisdiction":"%s","domains":{}}' "${pair%%:*}" > "$j/d.json"
+	./bin/sablier scan "$j" --declare="$j/d.json" --out="$j/r.html" --audit="$j/a.html" --no-probe --quiet >/dev/null 2>&1
+	grep -qF "${pair#*:}" "$j/a.html" || {
+		echo "✗ jurisdiction: ${pair%%:*} lost what was read for it (${pair#*:})"
+		rm -rf "$j"; exit 1
+	}
+done
+printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "it nl pt" "seven detailed, none lost its facts"
+
 # 3. Not declared, and never read off --lang. An English document for a German
 #    entity, a Spanish one for the Mexican arm of a Belgian group: guessing the
 #    country from the reader's language is the silent assumption this tool spends

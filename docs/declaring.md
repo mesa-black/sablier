@@ -226,17 +226,25 @@ the date each was read; declare `jurisdiction: pl` and it prints Poland's. What
 it knows for each is the national cybersecurity authority ENISA publishes, and
 when that name was taken.
 
-Four member states say more than that today, each read on its own authority's
-site: **France**, its referential — ReCyF — and the portal entities register
-through; **Germany**, its transposition act, in force since 6 December 2025, and
-the BSI portal; **Belgium**, the CyberFundamentals framework, which the CCB
-recommends to every NIS 2 entity because a validated implementation grants a
-presumption of conformity; and **Spain**, the fact that its transposition is
-still a bill, and that INCIBE itself says the competent authorities and the
-single point of contact have to wait for it.
+Seven member states say more than that today, each read on its own authority's
+site:
 
-The other twenty-three print their authority and nothing beside it. That means
-nobody has read their site yet — not that there is nothing there to read.
+| | |
+|---|---|
+| **France** | ANSSI · ReCyF · MesServicesCyber |
+| **Germany** | BSI · NIS-2-Umsetzungsgesetz, in force 6 December 2025 · portal.bsi.bund.de, registration within three months |
+| **Belgium** | CCB · CyberFundamentals, where a validated implementation grants a presumption of conformity · Safeonweb@Work |
+| **Italy** | ACN · Decreto legislativo 138/2024, in force 16 October 2024 · the ACN platform, and up to 0.1% of turnover for registering late |
+| **Netherlands** | NCSC · Cyberbeveiligingswet, in force 15 August 2026 · mijn.ncsc.nl — while the RDI supervises nine sectors |
+| **Portugal** | CNCS · Decreto-Lei 125/2025, in force 3 April 2026 · Medidas Mínimas de Cibersegurança · MyCiber |
+| **Spain** | Consejo Nacional de Ciberseguridad · transposition still a bill, and INCIBE itself says the competent authorities and the single point of contact must wait for it |
+
+The Netherlands is the clearest illustration of the caveat every frame carries:
+you register with the NCSC and the RDI inspects you. The registration desk is
+not necessarily the authority that audits your sector.
+
+The other twenty print their authority and nothing beside it. That means nobody
+has read their site yet — not that there is nothing there to read.
 
 What it deliberately does **not** store is a transposition status. The
 Commission's own country pages were a state of play from mid-2025, several member

@@ -227,17 +227,24 @@ la fecha en que se tomó cada uno; declare `jurisdiction: pl` e imprime la de
 Polonia. Lo que conoce de cada uno es la autoridad nacional de ciberseguridad que
 publica ENISA, y la fecha de ese registro.
 
-Cuatro Estados miembros dicen hoy algo más, cada uno leído en el sitio de su
-propia autoridad: **Francia**, su referencial — ReCyF — y el portal por el que se
-registran las entidades; **Alemania**, su ley de transposición, en vigor desde el
-6 de diciembre de 2025, y el portal del BSI; **Bélgica**, el referencial
-CyberFundamentals, que el CCB recomienda a todas las entidades NIS 2 porque una
-implementación validada otorga una presunción de conformidad; y **España**, el
-hecho de que su transposición sigue siendo un anteproyecto de ley, y que INCIBE
-escribe ella misma que las autoridades competentes y el punto de contacto único
-tienen que esperarla.
+Siete Estados miembros dicen hoy algo más, cada uno leído en el sitio de su
+propia autoridad:
 
-Los otros veintitrés imprimen su autoridad y nada más. Eso significa que nadie ha
+| | |
+|---|---|
+| **Francia** | ANSSI · ReCyF · MesServicesCyber |
+| **Alemania** | BSI · NIS-2-Umsetzungsgesetz, en vigor el 6 de diciembre de 2025 · portal.bsi.bund.de, registro en tres meses |
+| **Bélgica** | CCB · CyberFundamentals, donde una implementación validada otorga una presunción de conformidad · Safeonweb@Work |
+| **Italia** | ACN · Decreto legislativo 138/2024, en vigor el 16 de octubre de 2024 · la plataforma de la ACN, y hasta el 0,1 % de la facturación por registrarse tarde |
+| **Países Bajos** | NCSC · Cyberbeveiligingswet, en vigor el 15 de agosto de 2026 · mijn.ncsc.nl — mientras la RDI supervisa nueve sectores |
+| **Portugal** | CNCS · Decreto-Lei 125/2025, en vigor el 3 de abril de 2026 · Medidas Mínimas de Cibersegurança · MyCiber |
+| **España** | Consejo Nacional de Ciberseguridad · transposición todavía un anteproyecto, y INCIBE escribe ella misma que las autoridades competentes y el punto de contacto único tienen que esperarla |
+
+Los Países Bajos ilustran mejor que nadie la reserva que lleva cada marco: uno se
+registra ante el NCSC y es la RDI quien inspecciona. La ventanilla de registro no
+es necesariamente la autoridad que audita su sector.
+
+Los otros veinte imprimen su autoridad y nada más. Eso significa que nadie ha
 leído aún su sitio — no que no haya nada que leer allí.
 
 Lo que **deliberadamente no** guarda es un estado de transposición. Las
