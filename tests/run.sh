@@ -829,6 +829,34 @@ for level in "^## " "^### "; do
 done
 printf '  ✓ %-24s %-10s %s\n' "readme" "three langs" "same sections in en, fr and es"
 
+# The README was 1,484 lines and is now a page per subject under docs/, in the
+# same three languages. That moved the rot rather than removing it: the drift to
+# watch is now per document, and a section added to one translation and not the
+# others is invisible to the check above.
+for doc in advisories breach closed-network declaring design detection judging pipeline reports signing; do
+	for level in "^## " "^### "; do
+		en=$(grep -c "$level" "docs/$doc.md" || true)
+		fr=$(grep -c "$level" "docs/$doc.fr.md" || true)
+		es=$(grep -c "$level" "docs/$doc.es.md" || true)
+		if [ "$en" != "$fr" ] || [ "$en" != "$es" ]; then
+			echo "✗ docs: $doc $level — en=$en fr=$fr es=$es, the translations have drifted"
+			exit 1
+		fi
+	done
+done
+printf '  ✓ %-24s %-10s %s\n' "docs" "ten pages" "same sections in en, fr and es"
+
+# And every link the three READMEs make must resolve. A README that is now
+# mostly a map of other files fails in a new way: silently, by pointing at a
+# page that was renamed or never written.
+missing=0
+for readme in README.md README.fr.md README.es.md; do
+	for target in $(grep -oE '\]\((docs|examples)/[A-Za-z0-9._-]+\)' "$readme" | sed 's/^](//; s/)$//' | sort -u); do
+		[ -e "$target" ] || { echo "✗ readme: $readme points at $target, which does not exist"; missing=1; }
+	done
+done
+[ "$missing" -eq 0 ] || exit 1
+printf '  ✓ %-24s %-10s %s\n' "readme links" "three langs" "every docs/ and examples/ target exists"
 
 # --- the questions that can change something, first ---------------------------
 # SHA-256 is sound at every lifetime, so a subject made only of it cannot be
