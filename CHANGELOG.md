@@ -4,6 +4,58 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.9.0 — 2026-10-08
+
+The release about the one claim a signature cannot make.
+
+### A date can now be attested by several authorities
+
+`--timestamp` repeats, or takes a comma-separated list, and the same digest goes
+to each authority named. One authority is one point of trust; an authority only
+ever sees thirty-two bytes, so there is nothing to coordinate and none of them
+needs to know it is not alone. The cost is one HTTP request each.
+
+Each token is written to its own slot — `report.html.tsr`, `report.html.2.tsr`,
+… in the order the authorities were named — and the slot belongs to the
+authority across runs: one that was unreachable today leaves its slot empty
+instead of shifting the others down and detaching their antecedence. A failure
+is loud and does not stop the others being asked, which would be a strange thing
+to give up in a mechanism whose purpose is surviving one operator having a bad
+day. `verify` walks the slots rather than reading the first one: a reader handed
+three attestations and a command that checks one would verify a third of what
+they hold and conclude on the whole of it.
+
+What it buys is worth stating precisely, and the report states it: each
+authority sets an *independent* upper bound, so the date defensible without
+trusting any single operator is the latest of them, and forging the earliest no
+longer detaches the document from a date.
+
+### The verification command now works off Debian
+
+The report printed `-CAfile <the authority's root>`, and the command everybody
+publishes for RFC 3161 hardcodes `/etc/ssl/certs/ca-certificates.crt`. Both are
+wrong on machines people actually use, and both fail the same way a forged token
+does — `Verification: FAILED` — so a reader on the wrong distribution learns that
+our seal is broken rather than that their paths differ.
+
+Two false assumptions, measured rather than assumed. The certificate store is a
+Debian convention: that file does not exist on Fedora, Rocky or openSUSE. And the
+token carries its full chain, but LibreSSL — the `openssl` Apple ships — does not
+read it and answers `unable to get local issuer certificate`.
+
+The report now prints a three-step recipe that locates the store with
+`openssl version -d` and hands the chain over with `-untrusted`, checked as
+printed on Debian 13, Ubuntu 24.04, Alpine 3.22, Fedora 42, Rocky 9,
+openSUSE Leap 15.6, and macOS with both OpenSSL 3.6 and LibreSSL 3.3.
+
+### And why the seal can be older than the report
+
+A re-run that changes no finding keeps its token, so the masthead showed today
+and the seal showed the first attestation, with nothing to say why — a document
+appearing to contradict itself. The seal now carries the reason, because the rule
+behind it is the point: antecedence is what a token buys, and replacing it
+destroys it.
+
 ## v0.5.0 — 2026-10-03
 
 The release where it stopped asking of others what it did not do itself.

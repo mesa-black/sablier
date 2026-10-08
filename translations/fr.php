@@ -203,6 +203,7 @@ return [
     --breached=DATE     une fuite constatée le AAAA-MM-JJ : compter ce qui reste lisible
     --incident=FICHIER  document post-fuite : ce qui est sorti, et combien de temps ça nuit
     --timestamp=URL     faire attester la date de l\'empreinte par une autorité RFC 3161 (avec --sign)
+                        répétable, ou séparée par des virgules : une autorité est un point de confiance unique
     --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
     --quiet             pas de résumé au terminal',
@@ -404,8 +405,23 @@ sablier verify %3$s --fingerprint="<la deuxième ligne>"',
     'seal.timestamp.proves' => 'Ce que l\'horodatage établit : l\'empreinte ci-dessus existait à cette date, selon un tiers qui n\'a aucun intérêt dans ces conclusions. Aucune signature de ce rapport ne peut le prouver, puisque la date qu\'elle porte sort de l\'horloge de la machine qui a signé. Sa limite : le jeton est signé en %s, que ce rapport classe lui-même comme vulnérable au quantique — c\'est une preuve pour un litige dans les prochaines années, pas pour 2040.',
     'seal.timestamp.proves.unnamed' => 'Ce que l\'horodatage établit : l\'empreinte ci-dessus existait à cette date, selon un tiers qui n\'a aucun intérêt dans ces conclusions. Sa limite : le certificat de l\'autorité n\'a pas pu être lu ici, donc ce document ne nomme pas le schéma qui signe le jeton — il est classique, et c\'est une preuve pour un litige dans les prochaines années, pas pour 2040.',
     'verify.timestamp.limit.unnamed' => 'ce que le jeton ne prouve pas : rien au-delà du schéma classique qui le signe, que cette machine n\'a pas pu nommer. Une date à opposer plus tard doit être réattestée tant que ce schéma tient.',
+    'seal.timestamp.earlier' => 'Cette date est antérieure à celle du rapport (%s), et ce n\'est pas une incohérence : les constats n\'ont pas bougé depuis, donc le jeton d\'origine est conservé. C\'est l\'attestation la plus ancienne qui a une valeur — en redemander une à chaque rendu détruirait l\'antériorité qu\'elle établit.',
     'seal.timestamp.verify' => 'La date se vérifie sans cet outil, avec le jeton déposé à côté du rapport :',
-    'seal.timestamp.command' => 'openssl ts -verify -digest %s -in %s -CAfile <certificat racine de %s>',
+    'seal.timestamp.corroborated' => 'La même empreinte a été présentée à d\'autres autorités, dans d\'autres juridictions. Chacune a signé son propre jeton sans rien savoir des autres, et chacune pose une borne indépendante : la date qu\'on peut défendre sans accorder sa confiance à un seul opérateur est la plus tardive de cette liste, et falsifier la plus ancienne ne suffit donc plus à détacher ce document de sa date.',
+    'seal.timestamp.corroboration' => '%1$s, par %2$s — jeton dans %3$s, vérifiable avec la même recette.',
+    'seal.timestamp.command' => '# 1. le magasin de certificats de votre openssl, où qu\'il soit
+O=$(openssl version -d | sed \'s/.*"\\(.*\\)"/\\1/\')
+for f in "$O/cert.pem" "$O/certs/ca-certificates.crt" /etc/ssl/ca-bundle.pem; do
+  [ -f "$f" ] && CA="$f" && break
+done
+
+# 2. la chaîne que le jeton porte déjà, extraite pour la fournir explicitement
+openssl ts -reply -in %2$s -token_out -out token.der
+openssl pkcs7 -inform DER -in token.der -print_certs -out chain.pem
+
+# 3. la vérification
+openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
+    'seal.timestamp.command.note' => 'Trois étapes plutôt qu\'une ligne, et chacune répare une hypothèse fausse. Le chemin du magasin de certificats n\'est pas le même d\'un système à l\'autre — la commande qu\'on lit partout, `-CAfile /etc/ssl/certs/ca-certificates.crt`, échoue sur Fedora, Rocky et openSUSE, où ce fichier n\'existe pas. Et le jeton porte sa chaîne complète, mais LibreSSL — l\'openssl livré avec macOS — ne la lit pas et répond `unable to get local issuer certificate` : la lui donner avec `-untrusted` ne change rien ailleurs et règle ce cas. Vérifié tel quel sur Debian, Ubuntu, Alpine, Fedora, Rocky, openSUSE, et sur macOS avec les deux openssl.',
     'verify.previous' => 'ce rapport succède à l\'empreinte %s… : fournissez la signature précédente avec --previous= pour vérifier le maillon.',
     'verify.previous.match' => 'maillon vérifié : ce rapport succède bien à %s…',
     'verify.previous.mismatch' => 'maillon rompu : ce rapport annonce succéder à %s…, ce n\'est pas la signature fournie.',

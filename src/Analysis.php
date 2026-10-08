@@ -30,11 +30,18 @@ final readonly class Analysis
         /** @var array{algorithm:string, digest:string, signed_at:string, public_key:string, signature:string, previous?:string, hybrid?:array{algorithm:string, public_key:string, signature:string}, ephemeral?:bool}|null */
         public ?array $signature = null,
         /**
-         * What a third party attests about the date, when one was asked.
+         * What third parties attest about the date, when any were asked.
          *
-         * @var array{time:string, authority:string, algorithm:string, serial:string, imprint:string, path:string}|null
+         * A list rather than one token, in the order the authorities were named.
+         * One authority is one point of trust; the same imprint presented to
+         * several, in several jurisdictions, costs one HTTP request each and
+         * turns forgery into collusion. The first is the primary — it is the one
+         * whose file name every printed command uses, and the only one a reader
+         * who corroborates nothing will look at.
+         *
+         * @var list<array{time:string, authority:string, algorithm:string, serial:string, imprint:string, path:string}>
          */
-        public ?array $timestamp = null,
+        public array $timestamps = [],
         /** The tool that produced the inventory, when it was not this one. */
         public string $importedFrom = '',
         /** The command that produced this analysis, so a third party can repeat it. */
@@ -54,5 +61,25 @@ final readonly class Analysis
          */
         public array $searched = [],
     ) {
+    }
+
+    /**
+     * The attestation every printed command refers to.
+     *
+     * @return array{time:string, authority:string, algorithm:string, serial:string, imprint:string, path:string}|null
+     */
+    public function timestamp(): ?array
+    {
+        return $this->timestamps[0] ?? null;
+    }
+
+    /**
+     * The attestations that corroborate the first one, if any were asked for.
+     *
+     * @return list<array{time:string, authority:string, algorithm:string, serial:string, imprint:string, path:string}>
+     */
+    public function corroborations(): array
+    {
+        return \array_slice($this->timestamps, 1);
     }
 }

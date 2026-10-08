@@ -1995,6 +1995,38 @@ if ! grep -qi "invalid" "$ts/out"; then
 	cat "$ts/out"; rm -rf "$ts"; exit 1
 fi
 printf '  ✓ %-24s %-10s %s\n' "timestamp" "foreign token" "imprint checked before trust"
+
+# 5. Several authorities, because one authority is one point of trust. Each is
+#    asked in turn and a failure does not abandon the rest: corroboration whose
+#    purpose is to survive one operator having a bad day would be a strange
+#    thing to give up the moment one operator has a bad day. Both URLs must
+#    therefore appear on stderr, and neither may leave a token behind.
+./bin/sablier scan "$ts" --out="$ts/c.html" --no-probe --quiet --sign="$ts/k.json" \
+	--timestamp=http://127.0.0.1:9/first,http://127.0.0.1:9/second 2>"$ts/err2" >/dev/null || true
+if ! grep -q "/first" "$ts/err2" || ! grep -q "/second" "$ts/err2"; then
+	echo "✗ timestamp: a comma-separated list did not reach every authority"
+	cat "$ts/err2"; rm -rf "$ts"; exit 1
+fi
+if [ -e "$ts/c.html.tsr" ] || [ -e "$ts/c.html.2.tsr" ]; then
+	echo "✗ timestamp: a failed request wrote a token anyway"
+	rm -rf "$ts"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "timestamp" "several" "each asked, none silent"
+
+# 6. A token in the second slot is still checked. The reader who was handed three
+#    attestations and a command that reads the first would verify a third of what
+#    they hold and conclude the whole of it was sound — so discovery walks the
+#    slots instead of assuming the plain name.
+php -r 'echo base64_decode(file_get_contents("tests/fixtures/timestamp/other-digest.tsr.base64"));' > "$ts/c.html.2.tsr"
+if ./bin/sablier verify "$ts/c.html.sig" >"$ts/out2" 2>&1; then
+	echo "✗ timestamp: a foreign token in the second slot was accepted"
+	rm -rf "$ts"; exit 1
+fi
+if ! grep -qi "invalid" "$ts/out2"; then
+	echo "✗ timestamp: a token past the first slot was never looked at"
+	cat "$ts/out2"; rm -rf "$ts"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "timestamp" "slot 2" "every token verified, not the first"
 rm -rf "$ts"
 
 # --- a half not checked is not a half this machine cannot check ------------------

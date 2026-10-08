@@ -215,13 +215,13 @@ final class HtmlReporter implements ReporterInterface
 
         // And the date a third party attests, when one was asked for: the one
         // claim in the document that this message's own channel cannot make.
-        if ($this->analysis->timestamp !== null) {
+        if ($this->analysis->timestamp() !== null) {
             $summary .= "\n\n".Lang::t(
                 'share.text.attested',
-                Timestamp::readable($this->analysis->timestamp['time']),
+                Timestamp::readable($this->analysis->timestamp()['time']),
                 // An authority that names itself "S.A." already ends in a full
                 // stop, and the sentence added a second one.
-                rtrim($this->analysis->timestamp['authority'], '.'),
+                rtrim($this->analysis->timestamp()['authority'], '.'),
             );
         }
         // The scheme is the phone's. A desktop that has never registered it
@@ -465,8 +465,8 @@ final class HtmlReporter implements ReporterInterface
             // above cannot establish on its own: `signed_at` is covered by the
             // signature, so it cannot be edited afterwards, but it is read off
             // the clock of the machine that signed — ours.
-            if ($this->analysis->timestamp !== null) {
-                $token = $this->analysis->timestamp;
+            if ($this->analysis->timestamp() !== null) {
+                $token = $this->analysis->timestamp();
                 $rows .= '<div><dt>'.htmlspecialchars(Lang::t('seal.timestamp')).'</dt><dd>'
                     .htmlspecialchars(Timestamp::readable($token['time'])
                         .($token['authority'] !== '' ? ' · '.$token['authority'] : '')).'</dd></div>';
@@ -497,24 +497,61 @@ final class HtmlReporter implements ReporterInterface
             // What the attested date establishes, and where it stops — next to
             // the command that checks it without this tool, because a date
             // nobody can check is a decoration.
-            if ($this->analysis->timestamp !== null) {
-                $scheme = $this->analysis->timestamp['algorithm'];
+            if ($this->analysis->timestamp() !== null) {
+                $scheme = $this->analysis->timestamp()['algorithm'];
                 $caveat .= '<p class="legend">'.htmlspecialchars($scheme !== ''
                     ? Lang::t('seal.timestamp.proves', $scheme)
                     // Naming nothing rather than naming an empty string: the
                     // certificate could not be read here, and "signed with ,"
                     // is how a sentence admits it was built from a variable
                     // nobody checked.
-                    : Lang::t('seal.timestamp.proves.unnamed')).'</p>'
-                    .'<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.verify')).' <code>'
-                    .htmlspecialchars(Lang::t(
+                    : Lang::t('seal.timestamp.proves.unnamed')).'</p>';
+
+                // Why the seal can be older than the masthead. The seal is kept
+                // as long as the findings hash to the same value, so a re-run
+                // that changes nothing shows today's date at the top and the
+                // first attestation at the bottom. Left unexplained, those two
+                // lines read as a document contradicting itself — and the rule
+                // behind them is the point: antecedence is what a token buys,
+                // and it is destroyed by replacing it.
+                $attested = Timestamp::readable($this->analysis->timestamp()['time']);
+                if (!str_starts_with($attested, Rendered::day())) {
+                    $caveat .= '<p class="legend">'
+                        .htmlspecialchars(Lang::t('seal.timestamp.earlier', Rendered::at())).'</p>';
+                }
+
+                // Three commands in a block rather than one line in prose, and
+                // the reason is in the note under them: the one-liner everybody
+                // publishes assumes the Debian certificate path and an openssl
+                // that reads the chain out of the token. Both assumptions are
+                // false on systems people actually use, and a verification
+                // command that fails on a reader's machine teaches them that
+                // our seal is broken.
+                $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.verify')).'</p>'
+                    .'<pre class="recipe">'.htmlspecialchars(Lang::t(
                         'seal.timestamp.command',
                         Signature::digest($this->analysis),
                         basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html').'.tsr',
-                        $this->analysis->timestamp['authority'] !== ''
-                            ? $this->analysis->timestamp['authority']
-                            : Lang::t('seal.timestamp.authority'),
-                    )).'</code></p>';
+                    )).'</pre>'
+                    .'<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.command.note')).'</p>';
+
+                // The authorities that corroborate the first. Each is a separate
+                // file with its own command; what matters here is that the
+                // reader can see there is more than one, and in which
+                // jurisdictions, because that is the whole value of asking.
+                $others = $this->analysis->corroborations();
+                if ($others !== []) {
+                    $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.corroborated')).'</p><ul class="legend">';
+                    foreach ($others as $other) {
+                        $caveat .= '<li>'.htmlspecialchars(Lang::t(
+                            'seal.timestamp.corroboration',
+                            Timestamp::readable($other['time']),
+                            $other['authority'] !== '' ? rtrim($other['authority'], '.') : Lang::t('seal.timestamp.authority'),
+                            basename($other['path']),
+                        )).'</li>';
+                    }
+                    $caveat .= '</ul>';
+                }
             }
 
             // What it does not cover, first, because the earlier version of this
@@ -726,6 +763,7 @@ final class HtmlReporter implements ReporterInterface
             .fp-legend h2{margin-top:0}
             .fp-legend p{margin:.8rem 0 .2rem}
             .fp-legend pre{margin:.5rem 0}
+            pre.recipe{white-space:pre;overflow-x:auto;line-height:1.5}
             .fp-note{color:var(--muted)}
             .verdict.accepted .count{background:var(--muted)}
             article.accepted h3{opacity:.85}

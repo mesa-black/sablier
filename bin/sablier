@@ -327,11 +327,17 @@ if ($command === 'verify') {
             $tokenCa = $m[1];
         }
     }
-    if ($tokenPath === '') {
-        $tokenPath = preg_replace('/\.sig$/', '', $signaturePath).'.tsr';
-    }
+    // Every token beside the signature, not the first one. A reader handed
+    // three attestations and a command that checks one would verify a third of
+    // what they hold, and conclude the whole of it was fine.
+    $tokenPaths = $tokenPath !== ''
+        ? [$tokenPath]
+        : Timestamp::paths((string) preg_replace('/\.sig$/', '', $signaturePath));
     $attestedFailed = false;
-    if (is_file($tokenPath)) {
+    foreach ($tokenPaths as $tokenPath) {
+        if (!is_file($tokenPath)) {
+            continue;
+        }
         $token = (string) file_get_contents($tokenPath);
         $read = Timestamp::read($token);
         $state = Timestamp::verify($token, Value::string($block['digest'] ?? null), $tokenCa);
@@ -355,7 +361,9 @@ if ($command === 'verify') {
                     ? Lang::t('verify.timestamp.limit', $read['algorithm'])
                     : Lang::t('verify.timestamp.limit.unnamed'));
             }
-            $attestedFailed = $state['state'] === 'invalid';
+            // One invalid token condemns the set: it is the state that says a
+            // token attests something other than this document.
+            $attestedFailed = $attestedFailed || $state['state'] === 'invalid';
         }
     }
 
@@ -1023,12 +1031,26 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'incident' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'timestamp' => null, 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
+$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'incident' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'timestamp' => [], 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
     } elseif (preg_match('/^--(declare|out|json|cbom|audit|incident|calendar|pdf|year|sign|timestamp|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
-        $options[$m[1]] = $m[2];
+        // One authority is one point of trust. The flag therefore accumulates
+        // instead of overwriting, and accepts a comma-separated list in one go,
+        // so corroborating a date across jurisdictions costs an argument rather
+        // than a second run — and a second run would be worse than nothing: it
+        // would re-sign the same findings and overwrite the first token.
+        if ($m[1] === 'timestamp') {
+            foreach (explode(',', $m[2]) as $url) {
+                $url = trim($url);
+                if ($url !== '' && !\in_array($url, $options['timestamp'], true)) {
+                    $options['timestamp'][] = $url;
+                }
+            }
+        } else {
+            $options[$m[1]] = $m[2];
+        }
     } elseif (!str_starts_with($arg, '--')) {
         $target = $arg;
     }
@@ -1186,20 +1208,20 @@ if ($advisories !== null) {
 // into it, so on a closed site this flag would have reached for an authority
 // that is not supposed to be reachable — found while writing down, line by
 // line, everything this tool can send.
-if ($options['timestamp'] !== null && Airgap::on()) {
+if ($options['timestamp'] !== [] && Airgap::on()) {
     Airgap::refuse('--timestamp');
 }
 
 // An attestation needs something to attest and a file to sit beside, and both
 // come from signing. Refused rather than ignored: a flag that does nothing is
 // worse than a flag that says why.
-if ($options['timestamp'] !== null && $options['sign'] === null) {
+if ($options['timestamp'] !== [] && $options['sign'] === null) {
     fwrite(\STDERR, '✗ '.Lang::t('cli.timestamp_needs_sign')."\n");
     exit(1);
 }
 
 $signature = null;
-$timestamp = null;
+$timestamps = [];
 $kept = false;
 if ($options['sign'] !== null) {
     // --sign gives the run an output path a hundred lines above, so this is
@@ -1305,8 +1327,12 @@ if ($options['sign'] !== null) {
     // operator asked for, with nothing said, is the exact shape of false
     // assurance this tool spends its pages refusing. So it is loud on stderr and
     // no `.tsr` is written, which means the report claims nothing about a date.
-    if ($options['timestamp'] !== null) {
-        $tokenPath = Timestamp::path($reportPath);
+    // One slot per authority, in the order they were named. A slot is stable
+    // across runs: an authority that was unreachable today leaves its slot empty
+    // rather than shifting the others down, which is what keeps each
+    // attestation's antecedence attached to the authority that made it.
+    foreach ($options['timestamp'] as $slot => $authority) {
+        $tokenPath = Timestamp::path($reportPath, $slot);
 
         // An existing token that attests this very digest is kept, and that is
         // the whole point rather than an optimisation: the claim worth making is
@@ -1316,18 +1342,22 @@ if ($options['sign'] !== null) {
         $held = is_file($tokenPath) ? (string) file_get_contents($tokenPath) : '';
         $previous = $held !== '' ? Timestamp::read($held) : null;
         if ($previous !== null && hash_equals($previous['imprint'], $digest)) {
-            $timestamp = [...$previous, 'path' => $tokenPath];
-        } else {
-            $attested = Timestamp::request($digest, $options['timestamp']);
-            if (isset($attested['token'])) {
-                file_put_contents($tokenPath, $attested['token']);
-                $read = Timestamp::read($attested['token']);
-                if ($read !== null) {
-                    $timestamp = [...$read, 'path' => $tokenPath];
-                }
-            } else {
-                fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
+            $timestamps[] = [...$previous, 'path' => $tokenPath];
+            continue;
+        }
+
+        $attested = Timestamp::request($digest, $authority);
+        if (isset($attested['token'])) {
+            file_put_contents($tokenPath, $attested['token']);
+            $read = Timestamp::read($attested['token']);
+            if ($read !== null) {
+                $timestamps[] = [...$read, 'path' => $tokenPath];
             }
+        } else {
+            // Loud, and the other authorities are still asked: corroboration
+            // whose point is to survive one operator having a bad day would be
+            // a strange thing to abandon the moment one operator has a bad day.
+            fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
         }
     }
 }
@@ -1344,7 +1374,7 @@ $analysis = new Analysis(
     probes: $probes,
     projected: $currentYear !== $actualYear,
     signature: $signature,
-    timestamp: $timestamp,
+    timestamps: $timestamps,
     importedFrom: $importedFrom,
     // Printed in the audit report: a document that cannot be reproduced is an
     // assertion, not a finding. The binary is named relative to where it was
@@ -1517,7 +1547,7 @@ if ($auditPdfMessage !== null) {
 if ($pdfMessage !== null) {
     printf("  → %s\n", $pdfMessage);
 }
-if ($timestamp !== null) {
+foreach ($timestamps as $timestamp) {
     printf("  → %s\n", Lang::t('cli.timestamped', $timestamp['path'], Timestamp::readable($timestamp['time']), $timestamp['authority']));
 }
 if ($signature !== null) {

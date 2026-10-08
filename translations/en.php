@@ -194,6 +194,7 @@ return [
     --breached=DATE     a breach was declared on YYYY-MM-DD: count what stays readable
     --incident=FILE     post-breach document: what left, and how long it keeps hurting
     --timestamp=URL     have the digest\'s date attested by an RFC 3161 authority (with --sign)
+                        repeatable, or comma-separated: one authority is one point of trust
     --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
     --quiet             no terminal summary',
@@ -395,8 +396,23 @@ sablier verify %3$s --fingerprint="<the second line>"',
     'seal.timestamp.proves' => 'What the timestamp establishes: the digest above existed on that date, according to a third party with no stake in these conclusions. No signature on this report can prove that, because the date it carries comes from the clock of the machine that signed. Its limit: the token is signed with %s, which this report itself classes as quantum vulnerable — it is evidence for a dispute in the next few years, not for 2040.',
     'seal.timestamp.proves.unnamed' => 'What the timestamp establishes: the digest above existed on that date, according to a third party with no stake in these conclusions. Its limit: the authority\'s certificate could not be read here, so this document does not name the scheme that signs the token — it is a classical one, and this is evidence for a dispute in the next few years, not for 2040.',
     'verify.timestamp.limit.unnamed' => 'what the token does not prove: anything past the classical scheme that signs it, which this machine could not name. A date to be relied on later has to be re-attested while that scheme still holds.',
+    'seal.timestamp.earlier' => 'This date is earlier than the report\'s (%s), and that is not an inconsistency: the findings have not moved since, so the original token is kept. The earliest attestation is the one that carries weight — asking for a new one on every render would destroy the antecedence it establishes.',
     'seal.timestamp.verify' => 'The date is checked without this tool, with the token filed beside the report:',
-    'seal.timestamp.command' => 'openssl ts -verify -digest %s -in %s -CAfile <root certificate of %s>',
+    'seal.timestamp.corroborated' => 'The same imprint was presented to other authorities, in other jurisdictions. Each signed its own token knowing nothing of the others, and each sets an independent bound: the date defensible without trusting any single operator is the latest in this list, so forging the earliest no longer detaches this document from a date.',
+    'seal.timestamp.corroboration' => '%1$s, by %2$s — token in %3$s, verifiable with the same recipe.',
+    'seal.timestamp.command' => '# 1. wherever your openssl keeps its certificate store
+O=$(openssl version -d | sed \'s/.*"\\(.*\\)"/\\1/\')
+for f in "$O/cert.pem" "$O/certs/ca-certificates.crt" /etc/ssl/ca-bundle.pem; do
+  [ -f "$f" ] && CA="$f" && break
+done
+
+# 2. the chain the token already carries, extracted so it can be handed over
+openssl ts -reply -in %2$s -token_out -out token.der
+openssl pkcs7 -inform DER -in token.der -print_certs -out chain.pem
+
+# 3. the verification
+openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
+    'seal.timestamp.command.note' => 'Three steps rather than one line, and each repairs a false assumption. The certificate store is not at the same path from one system to the next — the command everybody publishes, `-CAfile /etc/ssl/certs/ca-certificates.crt`, fails on Fedora, Rocky and openSUSE, where that file does not exist. And the token carries its full chain, but LibreSSL — the openssl shipped with macOS — does not read it and answers `unable to get local issuer certificate`: handing it over with `-untrusted` changes nothing elsewhere and settles that case. Checked as printed on Debian, Ubuntu, Alpine, Fedora, Rocky, openSUSE, and on macOS with both openssl builds.',
     'verify.previous' => 'this report succeeds digest %s… — pass the earlier signature with --previous= to check the link.',
     'verify.previous.match' => 'link verified: this report does succeed %s…',
     'verify.previous.mismatch' => 'broken link: this report claims to succeed %s…, which is not the signature supplied.',

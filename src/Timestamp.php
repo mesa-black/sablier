@@ -45,13 +45,56 @@ namespace Sablier;
  */
 final class Timestamp
 {
+    /**
+     * How many authorities a document can carry.
+     *
+     * Not a technical limit — nothing in RFC 3161 caps it — but a bound on the
+     * discovery loop, and a statement that corroboration is a handful of
+     * independent jurisdictions rather than a collection.
+     */
+    private const SLOTS = 8;
+
     /** Long enough for a loaded authority, short enough that a build does not hang on one. */
     private const int TIMEOUT = 20;
 
     /** Where a token is filed, beside the signature it dates. */
-    public static function path(string $reportPath): string
+    /**
+     * Where the token of the nth authority is written.
+     *
+     * One slot per authority, in the order they were named, and the first keeps
+     * the plain `.tsr` name: it is the one every command in the documentation
+     * and in the report itself points at, and the one a reader who corroborates
+     * nothing still finds. The slot is stable across runs, which is what makes
+     * the keep-the-earliest rule work per authority — an authority that was
+     * unreachable on one run does not push the others down a slot and lose
+     * their antecedence.
+     */
+    public static function path(string $reportPath, int $slot = 0): string
     {
-        return $reportPath.'.tsr';
+        return $reportPath.($slot === 0 ? '' : '.'.($slot + 1)).'.tsr';
+    }
+
+    /**
+     * Every token sitting beside a report, in slot order.
+     *
+     * Discovery rather than a flag, for the reason the chain is discovered too:
+     * an artefact that has to be asked for is an artefact nobody checks. A
+     * reader who was handed three tokens and knows to look for one would verify
+     * one third of what they hold.
+     *
+     * @return list<string>
+     */
+    public static function paths(string $reportPath): array
+    {
+        $found = [];
+        for ($slot = 0; $slot < self::SLOTS; ++$slot) {
+            $path = self::path($reportPath, $slot);
+            if (is_file($path)) {
+                $found[] = $path;
+            }
+        }
+
+        return $found;
     }
 
     /**

@@ -455,8 +455,8 @@ final class AuditReporter implements ReporterInterface
             // than in the other: it is the one that gets filed, and a filed
             // document is read years later by somebody asking when it was
             // written rather than whether it is pretty.
-            if ($this->analysis->timestamp !== null) {
-                $token = $this->analysis->timestamp;
+            if ($this->analysis->timestamp() !== null) {
+                $token = $this->analysis->timestamp();
                 $body .= self::definitions([
                     Lang::t('seal.timestamp') => htmlspecialchars(Timestamp::readable($token['time'])
                         .($token['authority'] !== '' ? ' · '.$token['authority'] : '')),
@@ -464,6 +464,13 @@ final class AuditReporter implements ReporterInterface
                 $body .= '<p>'.htmlspecialchars($token['algorithm'] !== ''
                     ? Lang::t('seal.timestamp.proves', $token['algorithm'])
                     : Lang::t('seal.timestamp.proves.unnamed')).'</p>';
+
+                // Why this date can precede the one at the top of the page: the
+                // token is kept while the findings hash to the same value, and
+                // the earliest one is the only one worth having.
+                if (!str_starts_with(Timestamp::readable($token['time']), Rendered::day())) {
+                    $body .= '<p>'.htmlspecialchars(Lang::t('seal.timestamp.earlier', Rendered::at())).'</p>';
+                }
             }
 
             // Which signatures the file carries. A report whose own signature

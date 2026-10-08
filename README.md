@@ -1198,9 +1198,30 @@ printed in the report, so the attestation can be checked with no reference to
 this tool at all:
 
 ```bash
+# 1. wherever your openssl keeps its certificate store
+O=$(openssl version -d | sed 's/.*"\(.*\)"/\1/')
+for f in "$O/cert.pem" "$O/certs/ca-certificates.crt" /etc/ssl/ca-bundle.pem; do
+  [ -f "$f" ] && CA="$f" && break
+done
+
+# 2. the chain the token already carries, extracted so it can be handed over
+openssl ts -reply -in report.html.tsr -token_out -out token.der
+openssl pkcs7 -inform DER -in token.der -print_certs -out chain.pem
+
+# 3. the verification
 openssl ts -verify -digest <the digest printed in the report> \
-  -in report.html.tsr -CAfile <the authority's root>
+  -in report.html.tsr -CAfile "$CA" -untrusted chain.pem
 ```
+
+The report prints exactly that, and it is three steps rather than one line
+because the one-liner everybody publishes is wrong on most machines. The
+certificate store is not at the same path from one system to the next:
+`-CAfile /etc/ssl/certs/ca-certificates.crt` fails on Fedora, Rocky and openSUSE,
+where that file does not exist. And the token carries its full chain, but
+LibreSSL — the `openssl` Apple ships — does not read it and answers `unable to
+get local issuer certificate`; handing the chain over with `-untrusted` changes
+nothing elsewhere and settles that case. Checked as printed on Debian, Ubuntu,
+Alpine, Fedora, Rocky, openSUSE, and on macOS with both openssl builds.
 
 That is also why the token is a file of its own, raw DER beside the `.sig`: it is
 exactly what the stock `openssl ts` command reads. And it survives an ephemeral
@@ -1209,6 +1230,28 @@ key — the key is destroyed, the attested date is not.
 **There is no default authority.** Who attests your dates is a decision, like the
 regime and the lifetimes, and a default would make it for you in a jurisdiction
 you did not pick. The flag takes a URL or does nothing.
+
+**And it takes several.** One authority is one point of trust, so the flag
+repeats — or takes a comma-separated list — and the same digest goes to each:
+
+```bash
+sablier scan . --sign=sablier.key \
+  --timestamp=http://time.certum.pl,http://timestamp.digicert.com
+```
+
+An authority only ever sees thirty-two bytes, so there is nothing to coordinate
+and none of them needs to know it is not alone. Each token is written to its own
+slot — `report.html.tsr`, `report.html.2.tsr`, … in the order the authorities
+were named — and `verify` walks the slots rather than reading the first one. The
+slot belongs to the authority and is stable across runs: one that was unreachable
+today leaves its slot empty instead of shifting the others down and detaching
+their antecedence.
+
+What that buys is precise. Each authority gives an *independent* upper bound, so
+the date you can defend **without trusting any single operator** is the latest of
+them, and the one you can defend **if you trust one** is the earliest. Forging the
+earliest no longer gets you anything: the others still bound the document on
+their own.
 
 `sablier verify` picks the token up on its own when it sits beside the signature,
 and reports four states rather than two, because collapsing them lies:

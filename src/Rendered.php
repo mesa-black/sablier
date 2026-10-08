@@ -27,6 +27,24 @@ final class Rendered
 {
     public static function at(): string
     {
-        return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('d/m/Y H:i').' UTC';
+        return self::now()->format('d/m/Y H:i').' UTC';
+    }
+
+    /**
+     * The same instant, to the day.
+     *
+     * Used to compare the run against a date a third party attested, which is
+     * printed to the minute and almost never falls in the same minute. The
+     * question a reader asks of those two lines is whether they are the same
+     * day, so that is the comparison the document makes.
+     */
+    public static function day(): string
+    {
+        return self::now()->format('d/m/Y');
+    }
+
+    private static function now(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 }

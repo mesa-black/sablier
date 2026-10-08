@@ -194,6 +194,7 @@ return [
     --breached=FECHA    una fuga constatada el AAAA-MM-DD: contar lo que queda legible
     --incident=ARCHIVO  documento posfuga: lo que salió, y cuánto tiempo hace daño
     --timestamp=URL     hacer atestiguar la fecha de la huella por una autoridad RFC 3161 (con --sign)
+                        repetible, o separada por comas: una autoridad es un único punto de confianza
     --lang=fr|en|es     idioma del informe
     --no-probe          no sondear los hosts declarados
     --quiet             sin resumen en el terminal',
@@ -395,8 +396,23 @@ sablier verify %3$s --fingerprint="<la segunda línea>"',
     'seal.timestamp.proves' => 'Lo que el sellado de tiempo establece: la huella anterior existía en esa fecha, según un tercero sin interés alguno en estas conclusiones. Ninguna firma de este informe puede probarlo, porque la fecha que lleva sale del reloj de la máquina que firmó. Su límite: el token está firmado con %s, que este mismo informe clasifica como vulnerable al cuántico — es una prueba para un litigio en los próximos años, no para 2040.',
     'seal.timestamp.proves.unnamed' => 'Lo que el sellado de tiempo establece: la huella anterior existía en esa fecha, según un tercero sin interés alguno en estas conclusiones. Su límite: el certificado de la autoridad no se pudo leer aquí, así que este documento no nombra el esquema que firma el token — es uno clásico, y es una prueba para un litigio en los próximos años, no para 2040.',
     'verify.timestamp.limit.unnamed' => 'lo que el token no prueba: nada más allá del esquema clásico que lo firma, que esta máquina no pudo nombrar. Una fecha que haya de oponerse más tarde debe volver a atestiguarse mientras ese esquema aguante.',
+    'seal.timestamp.earlier' => 'Esta fecha es anterior a la del informe (%s), y no es una incoherencia: los hallazgos no han cambiado desde entonces, así que se conserva el testigo original. La atestación más antigua es la que tiene valor: pedir una nueva en cada ejecución destruiría la anterioridad que establece.',
     'seal.timestamp.verify' => 'La fecha se comprueba sin esta herramienta, con el token depositado junto al informe:',
-    'seal.timestamp.command' => 'openssl ts -verify -digest %s -in %s -CAfile <certificado raíz de %s>',
+    'seal.timestamp.corroborated' => 'La misma huella se presentó a otras autoridades, en otras jurisdicciones. Cada una firmó su propio testigo sin saber nada de las demás, y cada una fija un límite independiente: la fecha defendible sin confiar en un solo operador es la más tardía de esta lista, así que falsificar la más antigua ya no basta para desligar este documento de una fecha.',
+    'seal.timestamp.corroboration' => '%1$s, por %2$s — testigo en %3$s, verificable con la misma receta.',
+    'seal.timestamp.command' => '# 1. el almacén de certificados de su openssl, donde esté
+O=$(openssl version -d | sed \'s/.*"\\(.*\\)"/\\1/\')
+for f in "$O/cert.pem" "$O/certs/ca-certificates.crt" /etc/ssl/ca-bundle.pem; do
+  [ -f "$f" ] && CA="$f" && break
+done
+
+# 2. la cadena que el testigo ya lleva, extraída para entregarla explícitamente
+openssl ts -reply -in %2$s -token_out -out token.der
+openssl pkcs7 -inform DER -in token.der -print_certs -out chain.pem
+
+# 3. la verificación
+openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
+    'seal.timestamp.command.note' => 'Tres pasos en lugar de una línea, y cada uno repara una suposición falsa. La ruta del almacén de certificados no es la misma de un sistema a otro: el comando que se lee en todas partes, `-CAfile /etc/ssl/certs/ca-certificates.crt`, falla en Fedora, Rocky y openSUSE, donde ese archivo no existe. Y el testigo lleva su cadena completa, pero LibreSSL — el openssl que viene con macOS — no la lee y responde `unable to get local issuer certificate`: entregarla con `-untrusted` no cambia nada en los demás casos y resuelve ese. Verificado tal cual en Debian, Ubuntu, Alpine, Fedora, Rocky, openSUSE y en macOS con los dos openssl.',
     'verify.previous' => 'este informe sucede a la huella %s…: pase la firma anterior con --previous= para comprobar el eslabón.',
     'verify.previous.match' => 'eslabón verificado: este informe sucede efectivamente a %s…',
     'verify.previous.mismatch' => 'eslabón roto: este informe dice suceder a %s…, que no es la firma aportada.',
