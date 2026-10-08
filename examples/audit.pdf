@@ -9,13 +9,13 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 15 0 R /F2 16 0 R /F3 17 0 R >> >> /Contents 4 0 R >>
 endobj
 4 0 obj
-<< /Length 4550 >>
+<< /Length 4552 >>
 stream
 BT 0 g /F2 15.0 Tf 56.00 769.89 Td (Rapport d'audit — Fixture) Tj ET
 0.85 G 0.4 w 56.00 745.19 m 539.28 745.19 l S
 BT 0 g /F1 9.5 Tf 56.00 739.19 Td (Rapport d'audit) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 710.08 Td (Fixture) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 690.21 Td (Exposition cryptographique et durées de confidentialité · 08/10/2026 09:06 UTC) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 690.21 Td (Exposition cryptographique et durées de confidentialité · 08/10/2026 09:28 UTC) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 661.10 Td (Sommaire) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 641.23 Td (-) Tj ET
 BT 0 g /F1 9.5 Tf 70.00 641.23 Td (Objet et périmètre) Tj ET
@@ -51,11 +51,11 @@ BT 0 g /F1 9.5 Tf 206.00 388.82 Td ([à compléter]) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 373.71 Td (Périmètre analysé) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 373.71 Td (tests/fixtures/sample) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 358.60 Td (Date de l'analyse) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 358.60 Td (08/10/2026 09:06 UTC) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 358.60 Td (08/10/2026 09:28 UTC) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 343.49 Td (Volume examiné) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 343.49 Td (3 fichiers lus) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 328.38 Td (Outil) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 328.38 Td (Sablier 0.9.0) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 328.38 Td (Sablier 0.10.0) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 313.27 Td (Commande exécutée) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 313.27 Td (./bin/sablier scan tests/fixtures/sample --out=examples/report.html) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 300.16 Td (--audit=examples/audit.html --pdf=examples/report.pdf) Tj ET
@@ -73,7 +73,7 @@ BT 0 g /F1 9.5 Tf 56.00 117.19 Td (L'inventaire est ensuite croisé avec la durée
 BT 0 g /F1 9.5 Tf 56.00 104.08 Td (confidentielle. Le raisonnement est celui de l'inégalité de Mosca \(2015\), simplifié :) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 85.97 Td (année de l'analyse + durée de confidentialité déclarée > péremption de l'algorithme  =>  la donnée déjà émise est) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 72.86 Td (exposée, et migrer ne la répare pas) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.9.0 · 1/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.10.0 · 1/6) Tj ET
 
 endstream
 endobj
@@ -81,7 +81,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 15 0 R /F2 16 0 R /F3 17 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 5385 >>
+<< /Length 5386 >>
 stream
 BT 0 g /F1 9.5 Tf 56.00 785.89 Td (L'analyse est reproductible : la même commande sur le même état du dépôt produit la même empreinte de) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 772.78 Td (constatations. L'outil ne prédit pas l'arrivée d'un calculateur quantique ; il utilise l'échéance réglementaire comme) Tj ET
@@ -137,7 +137,7 @@ BT 0 g /F1 8.5 Tf 297.64 208.73 Td (Échéances par usage : signature de logiciels
 BT 0 g /F1 8.5 Tf 297.64 197.00 Td (micrologiciels et équipements réseau en 2030, navigateurs,) Tj ET
 BT 0 g /F1 8.5 Tf 297.64 185.27 Td (services en nuage et systèmes d'exploitation en 2033.) Tj ET
 0.85 G 0.4 w 56.00 170.54 m 539.28 170.54 l S
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.9.0 · 2/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.10.0 · 2/6) Tj ET
 
 endstream
 endobj
@@ -145,7 +145,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 15 0 R /F2 16 0 R /F3 17 0 R >> >> /Contents 8 0 R >>
 endobj
 8 0 obj
-<< /Length 6129 >>
+<< /Length 6130 >>
 stream
 BT 0 g /F1 8.5 Tf 56.00 785.89 Td (Directive \(UE\) 2022/2555 \(NIS 2\)) Tj ET
 BT 0 g /F1 8.5 Tf 297.64 785.89 Td (Directive du 14 décembre 2022, JO L 333/80, à transposer «) Tj ET
@@ -226,7 +226,7 @@ BT 0 g /F1 8.5 Tf 345.97 117.30 Td (ssh-keygen -t rsa -b) Tj ET
 BT 0 g /F1 8.5 Tf 345.97 105.57 Td (4096 -f /root/.ssh/offsite) Tj ET
 BT 0 g /F1 8.5 Tf 442.62 117.30 Td (haute) Tj ET
 0.85 G 0.4 w 56.00 90.84 m 539.28 90.84 l S
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.9.0 · 3/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.10.0 · 3/6) Tj ET
 
 endstream
 endobj
@@ -234,7 +234,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 15 0 R /F2 16 0 R /F3 17 0 R >> >> /Contents 10 0 R >>
 endobj
 10 0 obj
-<< /Length 5987 >>
+<< /Length 5988 >>
 stream
 BT 0 g /F1 8.5 Tf 56.00 785.89 Td (4) Tj ET
 BT 0 g /F1 8.5 Tf 152.66 785.89 Td (AES-256) Tj ET
@@ -323,7 +323,7 @@ BT 0 g /F2 11.5 Tf 56.00 156.62 Td (7. Avis) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 136.75 Td (L'avis découle des constatations de la section 5 et des durées de la section 6. Il distingue ce qui se récolte — le) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 123.64 Td (chiffrement, qu'un adversaire peut capturer aujourd'hui pour le déchiffrer plus tard — de ce qui ne se récolte pas,) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 110.53 Td (les signatures.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.9.0 · 4/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.10.0 · 4/6) Tj ET
 
 endstream
 endobj
@@ -331,7 +331,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 15 0 R /F2 16 0 R /F3 17 0 R >> >> /Contents 12 0 R >>
 endobj
 12 0 obj
-<< /Length 4647 >>
+<< /Length 4648 >>
 stream
 BT 0 g /F2 10.0 Tf 56.00 785.89 Td (COMPROMIS) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 768.09 Td (Chiffré aujourd'hui, à garder confidentiel jusqu'en 2036 — soit 1 an après la péremption de RSA. Une capture faite) Tj ET
@@ -378,7 +378,7 @@ BT 0 g /F2 9.5 Tf 56.00 105.74 Td (Récolte différée) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 105.74 Td (Capturer aujourd'hui des données chiffrées pour les déchiffrer lorsque la) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 92.63 Td (machine capable de le faire existera. Pour ces données, la date de) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 79.52 Td (compromission est le jour du chiffrement, pas celui de l'attaque.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.9.0 · 5/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.10.0 · 5/6) Tj ET
 
 endstream
 endobj
@@ -386,7 +386,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 15 0 R /F2 16 0 R /F3 17 0 R >> >> /Contents 14 0 R >>
 endobj
 14 0 obj
-<< /Length 3118 >>
+<< /Length 3119 >>
 stream
 BT 0 g /F2 9.5 Tf 56.00 785.89 Td (Confidentialité) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 785.89 Td (Ce que protège le chiffrement : la donnée reste illisible. C'est la seule propriété) Tj ET
@@ -420,7 +420,7 @@ BT 0 g /F1 9.5 Tf 56.00 465.82 Td (l'analyse avec l'option de signature.) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 436.71 Td (Déclaration de l'auditeur) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 418.91 Td (Aucune déclaration de l'auditeur n'a été fournie. Elle doit être rédigée, datée et signée avant que ce document soit) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 405.80 Td (produit devant un tiers.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.9.0 · 6/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.10.0 · 6/6) Tj ET
 
 endstream
 endobj
@@ -434,7 +434,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 18 0 obj
-<< /Title (Rapport d'audit — Fixture) /Producer (Sablier 0.9.0) /CreationDate (D:20261008090609) >>
+<< /Title (Rapport d'audit — Fixture) /Producer (Sablier 0.10.0) /CreationDate (D:20261008092839) >>
 endobj
 xref
 0 19
@@ -443,22 +443,22 @@ xref
 0000000058 00000 n 
 0000000147 00000 n 
 0000000302 00000 n 
-0000004903 00000 n 
-0000005058 00000 n 
-0000010494 00000 n 
-0000010649 00000 n 
-0000016829 00000 n 
-0000016985 00000 n 
-0000023024 00000 n 
-0000023181 00000 n 
-0000027880 00000 n 
-0000028037 00000 n 
-0000031207 00000 n 
-0000031305 00000 n 
-0000031408 00000 n 
-0000031504 00000 n 
+0000004905 00000 n 
+0000005060 00000 n 
+0000010497 00000 n 
+0000010652 00000 n 
+0000016833 00000 n 
+0000016989 00000 n 
+0000023029 00000 n 
+0000023186 00000 n 
+0000027886 00000 n 
+0000028043 00000 n 
+0000031214 00000 n 
+0000031312 00000 n 
+0000031415 00000 n 
+0000031511 00000 n 
 trailer
 << /Size 19 /Root 1 0 R /Info 18 0 R >>
 startxref
-31620
+31628
 %%EOF

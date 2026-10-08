@@ -4,6 +4,78 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.10.0 — 2026-10-08
+
+The release that says which country audits you, and stops guessing it.
+
+### A jurisdiction is not a regime, and not a language
+
+One field carried two questions. A **regime** answers *when does this
+cryptography expire*, borrowed from whichever authority the declarer accepts —
+which is why a German entity is free to adopt ANSSI's 2030. A **jurisdiction**
+answers *whose national transposition will audit me*. `hds` was the proof the two
+were tangled: French health-data hosting law, filed next to the NSA's CNSA 2.0.
+
+`jurisdiction` is its own field now, an ISO 3166-1 alpha-2 code, **declared and
+never inferred from `--lang`**, and the documents say so in as many words. A
+language is not a country: an English report for a German entity, a Spanish one
+for the Mexican subsidiary of a Belgian group. `hds` supplies `fr` because health
+hosting law genuinely is French; `anssi` deliberately does not.
+
+Sablier knows all twenty-seven member states, each with the national
+cybersecurity authority ENISA publishes for it and the date that name was taken.
+Four say more, each read where that country publishes it: France (ReCyF,
+MesServicesCyber), Germany (the NIS-2-Umsetzungsgesetz, in force since
+6 December 2025, and registration through portal.bsi.bund.de within three months
+of coming into scope), Belgium (CyberFundamentals, where a validated
+implementation grants a presumption of conformity, and Safeonweb@Work) and Spain
+— the opposite kind of fact, since its transposition is still a bill and INCIBE
+itself writes that the competent authorities and the single point of contact have
+to wait for it. A country outside the Union gets no frame and the document says
+so rather than reaching for the nearest plausible agency.
+
+### The directive, named at last, and conditionally
+
+The tool never once said "NIS 2". The audit document now cites it from the
+primary source — **Directive (EU) 2022/2555**, 14 December 2022, OJ L 333/80, to
+be transposed *"by 17 October 2024"* under article 41, whose article 21(2)(h)
+lists *"policies and procedures regarding the use of cryptography and, where
+appropriate, encryption"* among the risk-management measures.
+
+Conditionally, because the first version of that sentence broke the rule this
+release is about. English is read everywhere and most Spanish speakers are
+outside the Union, so "one of the measures NIS 2 asks for", stated flat, assumes
+a reader's jurisdiction from their language. In the Union it is the obligation
+this inventory answers to; outside it the frame is whatever `regime` names, and
+the READMEs point at the two non-EU frameworks the tool already carries.
+
+**No transposition status is stored, and that is deliberate.** The Commission's
+own country pages are a state of play from mid-2025 — Germany still reads
+"reasoned opinion, 7 May 2025" there, ten months after its law entered into force
+and with 20,141 entities registered. A status frozen into a release is a
+regulatory fact that goes stale between versions and still reads as current. The
+documents cite the Commission's living page instead, and two tests fail the build
+if a verdict ever appears in a document or that pointer ever leaves one.
+
+### The one image a reader actually runs was named by a tag
+
+The Makefile pinned its three images by digest and `./sablier` — the thing the
+README tells somebody with no PHP to run — named the bare `php:8.4-cli-alpine`,
+with the checked digest sitting in the same directory. It is pinned now, and the
+suite asserts both that the launcher names a digest and that it names the same
+one as the Makefile; a single assertion would have passed on two different
+digests.
+
+### A README that stops
+
+It had reached 1,484 lines and thirty sections, which is a manual with no table
+of contents. It is 144 lines: what the tool does, three commands, why the
+interview is the tool, what it is not, and a map. Twenty-eight sections moved
+into ten pages under `docs/`, one per subject, each in the three languages, and
+not one line of prose was retyped — the sections were sliced by position out of
+the three files, whose order was identical. The heading-parity check now runs per
+document, and every `docs/` and `examples/` link the READMEs make must resolve.
+
 ## v0.9.0 — 2026-10-08
 
 The release about the one claim a signature cannot make.
