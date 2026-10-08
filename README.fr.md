@@ -84,11 +84,15 @@ make test                                   # le modèle de risque discrimine-t-
 
 **Pas de PHP sur cette machine ?** `./sablier` est le même outil à travers un
 conteneur : il utilise l'interpréteur local quand il est en 8.4 ou plus récent, et
-sinon exécute le code inchangé dans `php:8.4-cli-alpine`. Rien n'est installé, le
-rapport est écrit par votre propre utilisateur, et les chemins sont résolus depuis
-le répertoire où vous vous tenez — celui qui est monté, si bien que le lanceur
-refuse un chemin en dehors plutôt que d'écrire un rapport qui disparaît avec le
-conteneur.
+sinon exécute le code inchangé dans `php:8.4-cli-alpine`, **épinglée par digest**
+et non par ce tag — un tag est un pointeur que quelqu'un d'autre déplace, et le
+lanceur exécuterait sinon des octets que personne ici n'a vérifiés. Le même digest
+figure dans le `Makefile`, et la suite de tests refuse un commit où les deux
+divergent. `make images` affiche ce que le tag désigne aujourd'hui, pour mettre
+l'épinglage à jour volontairement. Rien n'est installé, le rapport est écrit par
+votre propre utilisateur, et les chemins sont résolus depuis le répertoire où vous
+vous tenez — celui qui est monté, si bien que le lanceur refuse un chemin en dehors
+plutôt que d'écrire un rapport qui disparaît avec le conteneur.
 
 ```bash
 cd /chemin/du/projet && /chemin/vers/sablier scan . --out=rapport.html

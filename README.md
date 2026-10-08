@@ -81,10 +81,15 @@ make test                                   # does the risk model still discrimi
 
 **No PHP on this machine?** `./sablier` is the same tool through a container:
 it uses the local interpreter when it is 8.4 or newer, and otherwise runs the
-unchanged code inside `php:8.4-cli-alpine`. Nothing is installed, the report is
-written by your own user, and paths are resolved against the directory you
-stand in — which is the one mounted, so the launcher refuses a path outside it
-rather than writing a report that disappears with the container.
+unchanged code inside `php:8.4-cli-alpine`, **pinned by digest** rather than by
+that tag — a tag is a pointer somebody else moves, and the launcher would
+otherwise run bytes nobody here has checked. The same digest is in the
+`Makefile`, and the test suite refuses a commit where the two disagree.
+`make images` prints what the tag resolves to today, for updating the pin on
+purpose. Nothing is installed, the report is written by your own user, and paths
+are resolved against the directory you stand in — which is the one mounted, so
+the launcher refuses a path outside it rather than writing a report that
+disappears with the container.
 
 ```bash
 cd /path/to/project && /path/to/sablier scan . --out=report.html

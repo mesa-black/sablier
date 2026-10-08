@@ -858,6 +858,30 @@ done
 [ "$missing" -eq 0 ] || exit 1
 printf '  ✓ %-24s %-10s %s\n' "readme links" "three langs" "every docs/ and examples/ target exists"
 
+# --- no image this repository runs is named by a tag alone --------------------
+# A tag is a pointer somebody else moves. The Makefile pinned its three images by
+# digest and the launcher — the one thing a reader with no PHP actually runs —
+# still named the bare tag, which is the worse half of the inconsistency: the
+# checked digest sat beside it in the same directory. Two assertions, because the
+# first alone would pass on two different digests.
+launcher=$(sed -n 's/^image=${SABLIER_PHP_IMAGE:-\(.*\)}$/\1/p' sablier)
+makefile=$(sed -n 's/^PHP_IMAGE ?= //p' Makefile)
+case "$launcher" in
+	*@sha256:*) ;;
+	*) echo "✗ images: the launcher names '$launcher', a tag and not a digest"; exit 1 ;;
+esac
+if [ "$launcher" != "$makefile" ]; then
+	echo "✗ images: launcher '$launcher' and Makefile '$makefile' disagree"
+	exit 1
+fi
+for pinned in $(sed -n 's/^\(PHP\|PHPSTAN\|TRIVY\)_IMAGE ?= //p' Makefile); do
+	case "$pinned" in
+		*@sha256:*) ;;
+		*) echo "✗ images: $pinned is a tag and not a digest"; exit 1 ;;
+	esac
+done
+printf '  ✓ %-24s %-10s %s\n' "images" "by digest" "launcher and Makefile pin the same bytes"
+
 # --- the questions that can change something, first ---------------------------
 # SHA-256 is sound at every lifetime, so a subject made only of it cannot be
 # changed by any answer. On the first real project this tool was pointed at,

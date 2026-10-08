@@ -18,7 +18,20 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 # Alpine rather than the Debian image, for one measurable reason: at the time
 # of writing Trivy reports 162 high or critical vulnerabilities in php:8.4-cli
 # and none in this one. `make cve` re-checks that claim rather than trusting it.
-image=${SABLIER_PHP_IMAGE:-php:8.4-cli-alpine}
+#
+# Pinned by digest, and not by tag, because a tag is a pointer somebody else
+# moves. `php:8.4-cli-alpine` meant different bytes last month and will mean
+# different bytes next month, so a launcher that names the tag runs code nobody
+# in this repository has checked — while the Makefile beside it pins the very
+# same image by digest. That inconsistency is the shape of the failure this
+# project has already written up elsewhere: a minor base-image release that
+# removed a directive and stopped shipping a directory, surfacing as an exit code
+# everybody reads as something else.
+#
+# The digest is the same string as PHP_IMAGE in the Makefile, and the test suite
+# refuses a commit where the two disagree. `make images` prints what the tag
+# resolves to today, for updating it on purpose.
+image=${SABLIER_PHP_IMAGE:-php:8.4-cli-alpine@sha256:37c8c64177612b72e7f9d2c00481739c166a3708bea27c1cfd27fea1291d82d1}
 
 if command -v php >/dev/null 2>&1 && php -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' 2>/dev/null; then
     exec php "$root/bin/sablier" "$@"

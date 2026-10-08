@@ -82,10 +82,15 @@ make test                                   # ¿sigue discriminando el modelo de
 
 **¿Sin PHP en esta máquina?** `./sablier` es la misma herramienta a través de un
 contenedor: usa el intérprete local cuando es 8.4 o posterior, y si no ejecuta el
-código sin cambios dentro de `php:8.4-cli-alpine`. No se instala nada, el informe lo
-escribe su propio usuario, y las rutas se resuelven desde el directorio en el que
-usted está — el que se monta, de modo que el lanzador rechaza una ruta fuera de él
-en lugar de escribir un informe que desaparece con el contenedor.
+código sin cambios dentro de `php:8.4-cli-alpine`, **fijada por digest** y no por
+esa etiqueta: una etiqueta es un puntero que otro mueve, y el lanzador ejecutaría
+si no bytes que nadie aquí ha verificado. El mismo digest está en el `Makefile`, y
+la suite de pruebas rechaza un commit donde ambos discrepen. `make images` muestra
+a qué apunta la etiqueta hoy, para actualizar la fijación a propósito. No se
+instala nada, el informe lo escribe su propio usuario, y las rutas se resuelven
+desde el directorio en el que usted está — el que se monta, de modo que el
+lanzador rechaza una ruta fuera de él en lugar de escribir un informe que
+desaparece con el contenedor.
 
 ```bash
 cd /ruta/del/proyecto && /ruta/a/sablier scan . --out=informe.html
