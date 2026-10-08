@@ -117,39 +117,43 @@ timestamping authority by hand, and the token carried back.
 ## Getting the tool in, and knowing you got the right one
 
 A closed site does not `git clone`. Every release carries an archive built from
-its tag with its digest in the notes:
+its tag, and **two** digests in the notes, because they answer two different
+questions:
 
 ```
-sablier-0.8.0.tar.gz
-    sha256  5fbd3a5c3234264b3f5edf11a4c448d53154c28979b6c42f2d37789ef19cffe3
+sablier-0.9.0.tar.gz
+    sha256  ecafa3e6…  (the file we published)
+    sha256  3b733323…  (the tar, which reproduces anywhere)
 ```
 
-Check it on the machine that will run it, with nothing but the digest you were
-given through whatever channel you already trust:
+The first checks that the file you were handed is the file we published. Run it
+on the machine that will run the tool, with nothing but the digest you were given
+through whatever channel you already trust:
 
 ```sh
-openssl dgst -sha256 sablier-0.8.0.tar.gz
+openssl dgst -sha256 sablier-0.9.0.tar.gz
 ```
 
-That digest is reproducible, which is the part that matters: anybody can rebuild
-the same bytes from the same tag and get the same line, so the file does not have
-to be taken on trust from whoever handed it over.
+The second is the one that does not require trusting whoever handed the file
+over, because anybody can rebuild it from the tag:
 
 ```sh
 git clone https://github.com/mesa-black/sablier && cd sablier
-git archive --format=tar --prefix=sablier-0.8.0/ v0.8.0 | gzip -n -9 \
-  | openssl dgst -sha256
+git archive --format=tar --prefix=sablier-0.9.0/ v0.9.0 | openssl dgst -sha256
 ```
 
-That is the whole mechanism, written out rather than hidden behind a target: the
-repository has `make release`, but these two commands work against any tag,
-including the ones cut before that target existed. Checked from a fresh clone of
-this repository against `v0.8.0`: `5fbd3a5c…`, the same line.
+**Why the digest that reproduces is the tar's and not the archive's.** We had
+claimed `gzip -n -9` was enough and published one digest. It is not, and the
+claim was wrong: `-n` stops gzip writing the current time into the header, but it
+does not make two deflate implementations agree. Measured on this very tag —
+Apple gzip 479 and GNU gzip 1.13 compress the identical tar to different bytes,
+while `git archive` gave the same `3b733323…` under git 2.50.1 and git 2.47.3
+alike. So `git archive` is the reproducible part and `gzip` is not, and the
+sentence that can be defended is about the uncompressed stream.
 
-`gzip -n` is not a detail. Without it gzip writes the current time into the
-header and two archives of the same tree differ — measured rather than assumed:
-with `-n`, two runs a second apart both gave `5fbd3a5c…`; without it,
-`ddceae9d…` then `465632e8…`.
+`gzip -n` still matters for the file we serve: without it, two archives of the
+same tree differ from each other — measured, with `-n` two runs a second apart
+both gave `5fbd3a5c…`, without it `ddceae9d…` then `465632e8…`.
 
 Note that this is **not** GitHub's "Source code (tar.gz)" link. Those bytes have
 changed before, under everybody, when their compression changed. The file to

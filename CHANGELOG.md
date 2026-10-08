@@ -65,6 +65,25 @@ rebuilds the same bytes, and that the digest is in the notes — and none of tha
 was true of any release. The job now builds it, attaches it, and appends the
 digest with the two commands that reproduce it.
 
+### And the reproducible archive was not reproducible
+
+Found by doing what the documentation tells a reader to do, on a second machine.
+`docs/airgap.md` said a release's archive could be rebuilt from its tag to the
+same bytes, and published one digest for the `.tar.gz`. Rebuilding v0.9.0 gave
+`fb3a8c5d…` against the `ecafa3e6…` the release announced.
+
+The tar was identical on both sides — `3b733323…` under git 2.50.1 and git
+2.47.3 alike — so `git archive` is reproducible and `gzip` is not: `-n` stops it
+writing the current time into the header, and does nothing about two deflate
+implementations disagreeing. Apple gzip 479 and GNU gzip 1.13 compress the same
+tar to different bytes.
+
+So the claim moved to where it holds. `make release` and the release notes now
+carry two digests, and say which question each answers: the `.tar.gz` checks that
+the file you were handed is the file we published, and the tar is the one that
+reproduces from the tag on anybody's machine. The command in the notes stops at
+`git archive` for that reason.
+
 ### And why the seal can be older than the report
 
 A re-run that changes no finding keeps its token, so the masthead showed today

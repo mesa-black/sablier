@@ -134,9 +134,22 @@ judge: ## Judge another tool's CBOM: make judge CBOM=cbom.json [DECLARE=file.jso
 # header and two archives of the same tree differ. Measured — with it, two runs
 # a second apart gave 5fbd3a5c…; without it, ddceae9d… then 465632e8….
 #
+# But `-n` is not enough to make the .tar.gz reproducible, and we had claimed it
+# was. Two digests are printed because they answer two different questions:
+#
+#   the .tar.gz  — checks the file you were handed is the file we published.
+#   the .tar     — reproduces from the tag on any machine.
+#
+# `gzip -n` strips the timestamp; it does not make two deflate implementations
+# agree. Measured on the v0.9.0 tree: Apple gzip 479 and GNU gzip 1.13 compress
+# the identical tar to different bytes, while the tar itself came out at
+# 3b733323… under git 2.50.1 and git 2.47.3 alike. So the claim belongs to the
+# uncompressed stream, which is the one somebody rebuilding from the tag can
+# compare with ours whatever their tooling.
+#
 # GitHub's own "Source code (tar.gz)" is not this file. Its bytes have changed
 # before, under everybody, when their compression changed; ours is attached to
-# the release and its digest is in the notes.
+# the release and both digests are in the notes.
 VERSION := $(shell php -r 'require "src/Version.php"; echo Sablier\Version::NUMBER;')
 ARCHIVE := sablier-$(VERSION).tar.gz
 
@@ -145,7 +158,9 @@ release: ## Build the release archive for the current version, reproducibly
 		|| { echo "✗ no tag v$(VERSION): the archive is built from the tag, not from this tree"; exit 1; }
 	@git archive --format=tar --prefix=sablier-$(VERSION)/ "v$(VERSION)" | gzip -n -9 > "$(ARCHIVE)"
 	@printf '  %s\n' "$(ARCHIVE)"
-	@openssl dgst -sha256 -r "$(ARCHIVE)" | awk '{printf "  sha256  %s\n", $$1}'
+	@openssl dgst -sha256 -r "$(ARCHIVE)" | awk '{printf "  sha256  %s  (the file we published)\n", $$1}'
+	@git archive --format=tar --prefix=sablier-$(VERSION)/ "v$(VERSION)" \
+		| openssl dgst -sha256 -r | awk '{printf "  sha256  %s  (the tar, which reproduces anywhere)\n", $$1}'
 
 images: ## What the pinned tags resolve to today, to update a digest on purpose
 	@for image in $(PHP_IMAGE) $(PHPSTAN_IMAGE) $(TRIVY_IMAGE); do \

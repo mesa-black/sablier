@@ -81,6 +81,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      # checkout leaves the tag as a lightweight ref, so `git tag -l --format`
+      # read the commit's message instead of the tag's and the first release it
+      # ever cut was titled after a changelog commit. Re-fetching brings the tag
+      # object itself.
+      - name: Fetch the tag object, not just the commit it points at
+        run: |
+          git fetch --force --tags --no-recurse-submodules origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          test "$(git cat-file -t "$GITHUB_REF_NAME")" = tag \
+            || { echo "✗ $GITHUB_REF_NAME is not annotated: cut it with 'git tag -a'"; exit 1; }
+
       # `make release` reads the version from the source to name the archive,
       # and the step below reads it to compare with the tag.
       - uses: shivammathur/setup-php@v2
@@ -117,14 +127,22 @@ jobs:
           # digest has to be readable without downloading anything. GitHub's own
           # "Source code (tar.gz)" is not this file: its bytes have changed
           # under everybody before, when their compression changed.
+          # Two digests, because they answer two questions. The .tar.gz checks
+          # that the file somebody was handed is the file we published; the tar
+          # is the one that reproduces from the tag on another machine. `gzip -n`
+          # strips the timestamp, it does not make two deflate implementations
+          # agree — Apple gzip and GNU gzip differ on an identical tar — so the
+          # reproducibility claim belongs to the uncompressed stream.
           make release > archive.txt
           archive=$(awk 'NR==1{print $1}' archive.txt)
-          digest=$(awk '/sha256/{print $2}' archive.txt)
+          gz=$(awk '/published/{print $2}' archive.txt)
+          tar=$(awk '/reproduces/{print $2}' archive.txt)
           test -s "$archive" || { echo "✗ make release produced no archive"; exit 1; }
-          printf '\n---\n\nReproducible archive — rebuild it from the tag with `make release`, or:\n\n```\ngit archive --format=tar --prefix=%s/ %s | gzip -n -9 > %s\nopenssl dgst -sha256 %s\n```\n\n    %s  %s\n' \
-            "${archive%.tar.gz}" "$tag" "$archive" "$archive" "$digest" "$archive" >> notes.md
+          test -n "$gz" && test -n "$tar" || { echo "✗ make release printed no digests"; exit 1; }
+          printf '\n---\n\n### The archive\n\n`%s` is attached. Check that you were handed what we published:\n\n```\nopenssl dgst -sha256 %s\n```\n\n    %s\n\nAnd rebuild it from the tag, on any machine, to need nobody'"'"'s word for it:\n\n```\ngit archive --format=tar --prefix=%s/ %s | openssl dgst -sha256\n```\n\n    %s\n\nThe second command stops at the tar on purpose. `gzip -n` strips the timestamp but does not make two deflate implementations agree, so the `.tar.gz` bytes depend on whose gzip built them; `git archive` does not.\n' \
+            "$archive" "$archive" "$gz" "${archive%.tar.gz}" "$tag" "$tar" >> notes.md
 
           gh release create "$tag" --verify-tag \
             --title "$(cat title.txt)" --notes-file notes.md "$archive"
           echo "  published $tag — $(cat title.txt)"
-          echo "  $archive  sha256 $digest"
+          echo "  $archive  gz $gz  tar $tar"
