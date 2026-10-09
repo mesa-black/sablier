@@ -15,7 +15,7 @@ BT 0 g /F2 15.0 Tf 56.00 769.89 Td (Document post-fuite — Fixture) Tj ET
 0.85 G 0.4 w 56.00 745.19 m 539.28 745.19 l S
 BT 0 g /F1 9.5 Tf 56.00 739.19 Td (Document post-fuite) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 710.08 Td (Fixture) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 690.21 Td (Ce qui est sorti, et combien de temps cela continue de nuire · 08/10/2026 10:15 UTC) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 690.21 Td (Ce qui est sorti, et combien de temps cela continue de nuire · 09/10/2026 00:27 UTC) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 661.10 Td (1. Objet, et ce que ce document n'est pas) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 641.23 Td (Domaines déclarés touchés : 2. La confidentialité promise n'est pas tenue sur 1, pour 1 année, et un engagement) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 628.12 Td (reste dû jusqu'en 2036.) Tj ET
@@ -83,7 +83,7 @@ BT 0 g /F1 9.5 Tf 56.00 113.56 Td (Une seule des mesures ci-dessous touche aux d
 BT 0 g /F1 9.5 Tf 56.00 100.45 Td (ce qui est nécessaire et n'est pas la même chose.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 82.34 Td (-) Tj ET
 BT 0 g /F1 9.5 Tf 70.00 82.34 Td (Renouveler les clés, secrets et accès qui étaient dans le périmètre. — ne change rien à ce qui est sorti.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Document post-fuite · Fixture · Sablier 0.10.0 · 1/2) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Document post-fuite · Fixture · Sablier 0.11.0 · 1/2) Tj ET
 
 endstream
 endobj
@@ -128,7 +128,7 @@ BT 0 g /F1 9.5 Tf 56.00 399.73 Td (dépôt produit la même empreinte.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 381.62 Td (92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 363.51 Td (Ce rapport n'est pas signé. Pour qu'un tiers puisse établir qu'il n'a pas été modifié depuis son émission, relancer) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 350.40 Td (l'analyse avec l'option de signature.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Document post-fuite · Fixture · Sablier 0.10.0 · 2/2) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Document post-fuite · Fixture · Sablier 0.11.0 · 2/2) Tj ET
 
 endstream
 endobj
@@ -142,7 +142,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 10 0 obj
-<< /Title (Document post-fuite — Fixture) /Producer (Sablier 0.10.0) /CreationDate (D:20261008101525) >>
+<< /Title (Document post-fuite — Fixture) /Producer (Sablier 0.11.0) /CreationDate (D:20261009002757) >>
 endobj
 xref
 0 11

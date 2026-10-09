@@ -4,6 +4,50 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.11.0 — 2026-10-09
+
+The release that fills in the national frames, and says what a failure costs.
+
+### Seven member states, read on their own authority's site
+
+The twenty-seven each carried an authority and nothing else. Seven carry more
+now, and every fact was read where that country publishes it.
+
+France keeps ReCyF and MesServicesCyber. Germany: the NIS-2-Umsetzungsgesetz, in
+force since 6 December 2025, registration through portal.bsi.bund.de within three
+months of coming into scope. Belgium: CyberFundamentals, which the CCB recommends
+to every NIS 2 entity for a reason worth printing — a validated implementation
+grants a presumption of conformity — and Safeonweb@Work. Italy: Decreto
+legislativo 138/2024, in force since 16 October 2024, registration on the ACN
+platform through SPID, and an administrative penalty of up to 0.1 % of turnover
+for registering late. The Netherlands: the Cyberbeveiligingswet, in force since
+15 August 2026, registration in the register the NCSC keeps — while the RDI
+supervises nine sectors, which makes it the sharpest illustration of the caveat
+every frame prints, since you register at one door and are inspected from
+another. Portugal: Decreto-Lei 125/2025, in force 3 April 2026 after the hundred
+and twenty days it names, the Medidas Mínimas de Cibersegurança, and MyCiber.
+Spain: the opposite kind of fact, since its transposition is still a bill and
+INCIBE itself writes that the competent authorities and the single point of
+contact have to wait for it.
+
+The other twenty carry the authority alone. That means nobody has read their
+site yet, not that there is nothing there.
+
+### What the directive says a late or absent measure costs
+
+Article 34 is widely quoted as "fines up to EUR 10 million", which reads as a cap
+and is the reassuring half of a sentence saying the opposite. The text sets a
+maximum of **at least** EUR 10 000 000 or at least 2 % of total worldwide annual
+turnover for an essential entity, whichever is higher, and EUR 7 000 000 or 1,4 %
+for an important one. It is a floor on the ceiling: a member state's law must
+allow at least that much, and may allow more.
+
+The audit document now carries both storeys and says which is which. The Union
+sets what every national law must at least permit; a member state adds penalties
+of its own for named failures, and Italy's 0.1 % sits on top of the article 34
+regime rather than replacing it. Read in the directive's own text rather than in
+a summary, which is how the "up to" reading survives everywhere.
+
 ## v0.10.0 — 2026-10-08
 
 The release that says which country audits you, and stops guessing it.
