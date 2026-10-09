@@ -15,7 +15,7 @@ BT 0 g /F2 15.0 Tf 56.00 769.89 Td (Rapport d'audit — Fixture) Tj ET
 0.85 G 0.4 w 56.00 745.19 m 539.28 745.19 l S
 BT 0 g /F1 9.5 Tf 56.00 739.19 Td (Rapport d'audit) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 710.08 Td (Fixture) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 690.21 Td (Exposition cryptographique et durées de confidentialité · 09/10/2026 00:27 UTC) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 690.21 Td (Exposition cryptographique et durées de confidentialité · 09/10/2026 00:45 UTC) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 661.10 Td (Sommaire) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 641.23 Td (-) Tj ET
 BT 0 g /F1 9.5 Tf 70.00 641.23 Td (Objet et périmètre) Tj ET
@@ -51,11 +51,11 @@ BT 0 g /F1 9.5 Tf 206.00 388.82 Td ([à compléter]) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 373.71 Td (Périmètre analysé) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 373.71 Td (tests/fixtures/sample) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 358.60 Td (Date de l'analyse) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 358.60 Td (09/10/2026 00:27 UTC) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 358.60 Td (09/10/2026 00:45 UTC) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 343.49 Td (Volume examiné) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 343.49 Td (3 fichiers lus) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 328.38 Td (Outil) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 328.38 Td (Sablier 0.11.0) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 328.38 Td (Sablier 0.11.1) Tj ET
 BT 0 g /F2 9.5 Tf 56.00 313.27 Td (Commande exécutée) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 313.27 Td (./bin/sablier scan tests/fixtures/sample --out=examples/report.html) Tj ET
 BT 0 g /F1 9.5 Tf 206.00 300.16 Td (--audit=examples/audit.html --pdf=examples/report.pdf) Tj ET
@@ -73,7 +73,7 @@ BT 0 g /F1 9.5 Tf 56.00 117.19 Td (L'inventaire est ensuite croisé avec la durée
 BT 0 g /F1 9.5 Tf 56.00 104.08 Td (confidentielle. Le raisonnement est celui de l'inégalité de Mosca \(2015\), simplifié :) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 85.97 Td (année de l'analyse + durée de confidentialité déclarée > péremption de l'algorithme  =>  la donnée déjà émise est) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 72.86 Td (exposée, et migrer ne la répare pas) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.0 · 1/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.1 · 1/6) Tj ET
 
 endstream
 endobj
@@ -137,7 +137,7 @@ BT 0 g /F1 8.5 Tf 297.64 208.73 Td (Échéances par usage : signature de logiciels
 BT 0 g /F1 8.5 Tf 297.64 197.00 Td (micrologiciels et équipements réseau en 2030, navigateurs,) Tj ET
 BT 0 g /F1 8.5 Tf 297.64 185.27 Td (services en nuage et systèmes d'exploitation en 2033.) Tj ET
 0.85 G 0.4 w 56.00 170.54 m 539.28 170.54 l S
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.0 · 2/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.1 · 2/6) Tj ET
 
 endstream
 endobj
@@ -219,7 +219,7 @@ BT 0 g /F1 8.5 Tf 345.97 100.11 Td (env:BACKUP_KEY >) Tj ET
 BT 0 g /F1 8.5 Tf 345.97 88.38 Td (dump.enc) Tj ET
 BT 0 g /F1 8.5 Tf 442.62 147.03 Td (haute) Tj ET
 0.85 G 0.4 w 56.00 73.65 m 539.28 73.65 l S
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.0 · 3/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.1 · 3/6) Tj ET
 
 endstream
 endobj
@@ -327,7 +327,7 @@ BT 0 g /F1 9.5 Tf 70.00 151.41 Td (backups — 10 ans — bascule franchie depuis 20
 BT 0 g /F1 9.5 Tf 56.00 135.30 Td (Une donnée chiffrée l'année Y reste sensible jusqu'à Y + sa durée. L'année de bascule est donc celle à partir de) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 122.19 Td (laquelle tout ce qui est chiffré survit à la péremption de 2035 : avant, le domaine tient ; à partir d'elle, ce qui est) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 109.08 Td (émis est déjà perdu le jour où l'algorithme tombe.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.0 · 4/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.1 · 4/6) Tj ET
 
 endstream
 endobj
@@ -380,7 +380,7 @@ BT 0 g /F1 9.5 Tf 70.00 134.96 Td (Remettre ce rapport au calendrierLa fenêtre s
 BT 0 g /F1 9.5 Tf 70.00 121.85 Td (\(2035\), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd'hui) Tj ET
 BT 0 g /F1 9.5 Tf 70.00 108.74 Td (avec une durée de neuf ans ne le sera plus l'an prochain. Rejouer l'analyse une fois par an suffit — et vérifier à) Tj ET
 BT 0 g /F1 9.5 Tf 70.00 95.63 Td (cette occasion que l'échéance réglementaire n'a pas bougé.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.0 · 5/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.1 · 5/6) Tj ET
 
 endstream
 endobj
@@ -428,7 +428,7 @@ BT 0 g /F1 9.5 Tf 56.00 386.51 Td (l'analyse avec l'option de signature.) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 357.40 Td (Déclaration de l'auditeur) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 339.60 Td (Aucune déclaration de l'auditeur n'a été fournie. Elle doit être rédigée, datée et signée avant que ce document soit) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 326.49 Td (produit devant un tiers.) Tj ET
-BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.0 · 6/6) Tj ET
+BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Rapport d'audit · Fixture · Sablier 0.11.1 · 6/6) Tj ET
 
 endstream
 endobj
@@ -442,7 +442,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 18 0 obj
-<< /Title (Rapport d'audit — Fixture) /Producer (Sablier 0.11.0) /CreationDate (D:20261009002757) >>
+<< /Title (Rapport d'audit — Fixture) /Producer (Sablier 0.11.1) /CreationDate (D:20261009004554) >>
 endobj
 xref
 0 19

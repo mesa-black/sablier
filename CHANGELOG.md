@@ -4,6 +4,28 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.11.1 — 2026-10-09
+
+### A seal older than the report now explains both of its halves
+
+Found by a reader, not by a test. A regenerated report shows today's date in its
+masthead while the seal below keeps the date the findings were first sealed — the
+rule this tool exists to defend, since re-attesting would throw away the
+antecedence a token buys. The sentence explaining that was attached to the
+attested date alone, so the "signed on" line one row higher raised exactly the
+same question and got no answer.
+
+The signature and the attestations are kept together or redone together, both
+hanging off the digest, so the explanation is now asked of the seal as a whole
+and names both. It also moved out of the timestamp block: a kept signature with
+no attestation raised the same question and the first version answered none of
+it.
+
+The sentence also says what re-signing on every run would cost, because that is
+the natural wrong move: the same findings hash to the same value, so a new
+signature carries no new information — and a new token replaces an older bound
+with a later one, for nothing.
+
 ## v0.11.0 — 2026-10-09
 
 The release that fills in the national frames, and says what a failure costs.

@@ -2114,6 +2114,35 @@ fi
 printf '  ✓ %-24s %-10s %s\n' "jurisdiction" "hds anssi" "one carries a country, one does not"
 rm -rf "$j"
 
+# --- a seal older than the run says why, for both of its halves ---------------
+# The signature and the attestation are kept together or redone together, both
+# hanging off the digest. The first version of this explanation was attached to
+# the token alone, so a reader comparing the masthead with the "signed on" line
+# one row higher got no answer — found by a reader, not by a test.
+sealed=$(mktemp -d)
+cp -R tests/fixtures/sample/. "$sealed/"
+./bin/sablier keygen --out="$sealed/k.json" >/dev/null 2>&1
+# the exit code carries the verdict, not an error: this fixture has findings
+./bin/sablier scan "$sealed" --out="$sealed/r.html" --no-probe --quiet --sign="$sealed/k.json" >/dev/null 2>&1 || true
+# a signature dated yesterday, with the digest left intact: the seal must be kept
+php -r '
+	$p = $argv[1];
+	$sig = json_decode(file_get_contents($p), true);
+	$sig["signed_at"] = (new DateTimeImmutable("-1 day"))->format(DateTimeInterface::ATOM);
+	file_put_contents($p, json_encode($sig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+' "$sealed/r.html.sig"
+./bin/sablier scan "$sealed" --out="$sealed/r.html" --no-probe --quiet --sign="$sealed/k.json" >/dev/null 2>&1 || true
+if ! grep -qE "antérieure à celle du rapport" "$sealed/r.html"; then
+	echo "✗ seal: a signature older than the run is not explained"
+	rm -rf "$sealed"; exit 1
+fi
+if ! grep -qE "signature et le jeton" "$sealed/r.html"; then
+	echo "✗ seal: the explanation still covers only one half of the seal"
+	rm -rf "$sealed"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "seal" "older run" "both halves explained, not just the token"
+rm -rf "$sealed"
+
 # --- a date somebody else attests ---------------------------------------------
 # Our own `signed_at` is covered by the signature and still worth nothing as
 # evidence: it comes from the clock of the machine that signed. These four checks

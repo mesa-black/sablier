@@ -507,12 +507,14 @@ final class AuditReporter implements ReporterInterface
                     ? Lang::t('seal.timestamp.proves', $token['algorithm'])
                     : Lang::t('seal.timestamp.proves.unnamed')).'</p>';
 
-                // Why this date can precede the one at the top of the page: the
-                // token is kept while the findings hash to the same value, and
-                // the earliest one is the only one worth having.
-                if (!str_starts_with(Timestamp::readable($token['time']), Rendered::day())) {
-                    $body .= '<p>'.htmlspecialchars(Lang::t('seal.timestamp.earlier', Rendered::at())).'</p>';
-                }
+            }
+
+            // Why the seal can precede the date at the top of the page: it is
+            // kept while the findings hash to the same value, and the earliest
+            // one is the only one worth having. Asked of the seal as a whole,
+            // because the signature and the attestations are kept together.
+            if ($this->analysis->sealPredatesRun()) {
+                $body .= '<p>'.htmlspecialchars(Lang::t('seal.earlier', Rendered::at())).'</p>';
             }
 
             // Which signatures the file carries. A report whose own signature

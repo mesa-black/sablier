@@ -82,4 +82,27 @@ final readonly class Analysis
     {
         return \array_slice($this->timestamps, 1);
     }
+
+    /**
+     * Whether the seal on this document predates the run that rendered it.
+     *
+     * The signature and the attestations are kept together or redone together —
+     * both hang off the digest — so one question answers for both halves, and a
+     * document that explained only the token left the reader with the same
+     * puzzle one line higher up.
+     */
+    public function sealPredatesRun(): bool
+    {
+        $signedAt = $this->signature['signed_at'] ?? '';
+        if ($signedAt !== '') {
+            $signed = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $signedAt);
+            if ($signed !== false && $signed->setTimezone(new \DateTimeZone('UTC'))->format('d/m/Y') !== Rendered::day()) {
+                return true;
+            }
+        }
+
+        $token = $this->timestamp();
+
+        return $token !== null && !str_starts_with(Timestamp::readable($token['time']), Rendered::day());
+    }
 }

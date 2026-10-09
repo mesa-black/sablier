@@ -507,19 +507,6 @@ final class HtmlReporter implements ReporterInterface
                     // nobody checked.
                     : Lang::t('seal.timestamp.proves.unnamed')).'</p>';
 
-                // Why the seal can be older than the masthead. The seal is kept
-                // as long as the findings hash to the same value, so a re-run
-                // that changes nothing shows today's date at the top and the
-                // first attestation at the bottom. Left unexplained, those two
-                // lines read as a document contradicting itself — and the rule
-                // behind them is the point: antecedence is what a token buys,
-                // and it is destroyed by replacing it.
-                $attested = Timestamp::readable($this->analysis->timestamp()['time']);
-                if (!str_starts_with($attested, Rendered::day())) {
-                    $caveat .= '<p class="legend">'
-                        .htmlspecialchars(Lang::t('seal.timestamp.earlier', Rendered::at())).'</p>';
-                }
-
                 // Three commands in a block rather than one line in prose, and
                 // the reason is in the note under them: the one-liner everybody
                 // publishes assumes the Debian certificate path and an openssl
@@ -552,6 +539,20 @@ final class HtmlReporter implements ReporterInterface
                     }
                     $caveat .= '</ul>';
                 }
+            }
+
+            // Why the seal can be older than the masthead. It is kept as long as
+            // the findings hash to the same value, so a re-run that changes
+            // nothing shows today's date at the top and the first signature and
+            // attestation below. Left unexplained, those lines read as a
+            // document contradicting itself — and the rule behind them is the
+            // point: antecedence is what a seal buys, and replacing it destroys
+            // it. Outside the timestamp block on purpose: a kept signature with
+            // no attestation raises exactly the same question, and the first
+            // version of this answered only half of it.
+            if ($this->analysis->sealPredatesRun()) {
+                $caveat .= '<p class="legend">'
+                    .htmlspecialchars(Lang::t('seal.earlier', Rendered::at())).'</p>';
             }
 
             // What it does not cover, first, because the earlier version of this
