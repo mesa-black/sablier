@@ -8,7 +8,7 @@
 #
 # One limitation, stated because it matters: Trivy applies an ignored id to
 # every image scanned, not to the one named below. So an entry here has to be
-# justified for all four, and narrow enough in time that the question comes
+# justified for all three, and narrow enough in time that the question comes
 # back quickly.
 vulnerabilities:
   - id: CVE-2026-103111
@@ -19,8 +19,43 @@ vulnerabilities:
       older tag would be older code, not safer code. The exposure is a crafted
       regular expression, and the only patterns reaching this container are the
       ones in this repository's own source, analysed by PHPStan on our own
-      machines and runners. The other three images are unaffected:
-      php:8.4-cli-alpine ships no pcre2 package, aquasec/trivy already carries
-      10.49-r0, and Trivy reports nothing against the Chromium image.
+      machines and runners. The other two images are unaffected:
+      php:8.4-cli-alpine ships no pcre2 package, and aquasec/trivy already
+      carries 10.49-r0.
       Re-checked every Monday by the scheduled run.
+    expired_at: 2026-10-22
+  # The three below are in the scanner itself: usr/local/bin/trivy in
+  # aquasec/trivy:0.75.0, built with Go stdlib 1.27.1 and golang.org/x/net
+  # 0.59.0, on both architectures. 0.75.0 is the latest release (2026-10-01);
+  # there is no rebuilt Trivy to move to, and an older one is older code. No
+  # other image here carries a Go binary Trivy reports against: PHP and PHPStan
+  # were clean on both architectures in the same run that found these.
+  - id: CVE-2026-78667
+    statement: >-
+      CPU exhaustion through a Range header with many small ranges, in Go's
+      FileServer, ServeContent and ServeFile. That is the serving side of
+      net/http. Trivy runs here only as a short-lived command (`image`, `fs`);
+      it never starts an HTTP server, so nothing can send it a Range header.
+      Re-checked every Monday by the scheduled run; the entry goes as soon as
+      a Trivy built with Go 1.27.2 is published.
+    expired_at: 2026-10-22
+  - id: CVE-2026-78669
+    statement: >-
+      CPU exhaustion from a malicious HTTP/2 peer sending many small SETTINGS
+      frames, in Go stdlib and golang.org/x/net. Unlike the other two this one
+      reaches clients, and Trivy is an HTTP/2 client: it downloads its database
+      and image manifests over TLS. The peer would have to be the registry
+      itself (mirror.gcr.io, ghcr.io, Docker Hub) or someone able to stand in
+      for it under a valid certificate, and the worst outcome is a scan that
+      burns CPU until the job times out. A hung job goes red; it does not
+      report a false "clean". Re-checked every Monday by the scheduled run;
+      the entry goes as soon as a Trivy built with Go 1.27.2 is published.
+    expired_at: 2026-10-22
+  - id: CVE-2026-97031
+    statement: >-
+      Memory exhaustion in a TLS server processing a ClientHello whose
+      Encrypted Client Hello repeats outer extension references. Only a
+      server decrypts ECH; Trivy is only ever a TLS client here and never
+      accepts a connection. Re-checked every Monday by the scheduled run; the
+      entry goes as soon as a Trivy built with Go 1.27.2 is published.
     expired_at: 2026-10-22
