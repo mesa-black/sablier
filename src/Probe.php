@@ -87,10 +87,69 @@ final class Probe
     }
 
     /**
+     * `mx://example.org` becomes the servers that receive the domain's mail,
+     * read from DNS at run time, best priority first: `smtp://mx1.example:25`…
+     * A list written by hand goes stale the day the mail moves to another
+     * provider; the MX records cannot. Any other target is returned as it is.
+     *
+     * Opt-in rather than implied by every declared host: port 25 is blocked on
+     * many networks, and a name like api.example.org receives no mail.
+     *
+     * When nothing usable is published (no MX, or the null MX of RFC 7505), the
+     * target comes back unchanged and run() says so rather than guessing.
+     *
+     * @param (\Closure(string): list<array{host:string, pri:int}>)|null $lookup DNS, replaceable in tests
+     *
+     * @return list<string>
+     */
+    public static function expand(string $target, ?\Closure $lookup = null): array
+    {
+        $domain = self::mxDomain($target);
+        if ($domain === null) {
+            return [$target];
+        }
+
+        $lookup ??= static function (string $domain): array {
+            $records = [];
+            foreach (@dns_get_record($domain, \DNS_MX) ?: [] as $record) {
+                $records[] = ['host' => Value::string($record['target'] ?? null), 'pri' => Value::int($record['pri'] ?? null)];
+            }
+
+            return $records;
+        };
+
+        $records = array_filter($lookup($domain), static fn (array $r): bool => trim($r['host'], '.') !== '');
+        usort($records, static fn (array $a, array $b): int => [$a['pri'], $a['host']] <=> [$b['pri'], $b['host']]);
+        $hosts = array_values(array_unique(array_map(static fn (array $r): string => strtolower(rtrim($r['host'], '.')), $records)));
+
+        return $hosts === [] ? [$target] : array_map(static fn (string $h): string => "smtp://$h:25", $hosts);
+    }
+
+    /** The domain of an `mx://` target, or null for any other target. */
+    private static function mxDomain(string $target): ?string
+    {
+        if (preg_match('#^mx://([^/:]+)/?$#i', trim($target), $m) !== 1) {
+            return null;
+        }
+
+        return strtolower(rtrim($m[1], '.'));
+    }
+
+    /**
      * @return array{findings: list<Finding>, facts: array<string, string>, notes: list<string>}
      */
     public function run(string $target): array
     {
+        // Only reached when expand() found no mail server to put in its place.
+        $domain = self::mxDomain($target);
+        if ($domain !== null) {
+            return [
+                'findings' => [],
+                'facts' => [Lang::t('probe.fact.service') => 'MX'],
+                'notes' => [Lang::t('probe.mx.none', $domain)],
+            ];
+        }
+
         // SSH never becomes TLS: there is no handshake to upgrade, only a
         // banner and a list of everything the server is willing to do. It gets
         // its own prober rather than a transport that would have to lie about

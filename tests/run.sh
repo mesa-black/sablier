@@ -772,6 +772,33 @@ for proto in smtp imap pop3; do
 done
 rm -rf "$tmp"
 
+# --- mx:// -------------------------------------------------------------------
+# A domain's mail servers come from its MX records, best priority first; a null
+# MX or no record leaves the target as declared, and the probe says so instead
+# of knocking on the domain's web server. DNS is replaced: CI has no say in it.
+mx=$(php -r '
+	spl_autoload_register(static function (string $c): void {
+		$p = "src/".str_replace("\\\\", "/", substr($c, 8)).".php";
+		if (is_file($p)) { require $p; }
+	});
+	$dns = static fn (array $records): Closure => static fn (string $d): array => $records;
+	$out = [
+		implode(",", Sablier\Probe::expand("mx://Example.org.", $dns([["host" => "b.example.net.", "pri" => 20], ["host" => "a.example.net", "pri" => 10], ["host" => "A.example.net", "pri" => 30]]))),
+		implode(",", Sablier\Probe::expand("mx://example.org", $dns([["host" => ".", "pri" => 0]]))),
+		implode(",", Sablier\Probe::expand("mx://example.org", $dns([]))),
+		implode(",", Sablier\Probe::expand("example.org", $dns([["host" => "a.example.net", "pri" => 10]]))),
+		Sablier\Lang::has("probe.mx.none") && (new Sablier\Probe())->run("mx://example.org")["notes"] !== [] ? "noted" : "silent",
+	];
+	echo implode("|", $out);
+')
+expected='smtp://a.example.net:25,smtp://b.example.net:25|mx://example.org|mx://example.org|example.org|noted'
+if [ "$mx" = "$expected" ]; then
+	printf '  ✓ %-24s %-10s %s\n' "mx" "expand" "by priority, null MX kept as declared"
+else
+	echo "✗ mx: expected \"$expected\", got \"$mx\""
+	exit 1
+fi
+
 # --- a session handed over through a tunnel ----------------------------------
 # A bind address is a bad judge of exposure: behind an SSH tunnel and a reverse
 # proxy the server stays on the loopback and the link is still public. --expose

@@ -124,6 +124,16 @@ function sablier_scanner(Declaration $declaration): Scanner
     ], $declaration->exclude);
 }
 
+/**
+ * The heading of one probed server. A server found through `mx://` says which
+ * domain sent the probe there: mx01.mail.icloud.com alone would read as a host
+ * somebody declared on purpose.
+ */
+function sablier_probe_heading(string $declared, string $host): string
+{
+    return $declared === $host ? $host : $host.' · '.Lang::t('probe.mx.of', substr($declared, \strlen('mx://')));
+}
+
 // --- keys and verification ---------------------------------------------
 if ($command === 'keygen') {
     $out = 'sablier.key';
@@ -1005,17 +1015,20 @@ if ($command === 'probe') {
         fwrite(\STDERR, '✗ '.Lang::t('cli.missing_host')."\n");
         exit(1);
     }
-    $result = (new Probe())->run($target);
-    printf("\n  %s\n\n", $target);
-    foreach ($result['facts'] as $key => $value) {
-        // mb_str_pad: printf counts bytes, so accents would shift the column.
-        printf("    %s %s\n", mb_str_pad((string) $key, 28), $value);
-    }
-    foreach ($result['notes'] as $note) {
-        printf("\n    ⚠ %s\n", wordwrap($note, 88, "\n      "));
-    }
-    foreach ($result['findings'] as $finding) {
-        printf("\n    · %s — %s\n", Catalogue::label($finding->algorithm), $finding->detail);
+    // mx://example.org stands for every server receiving its mail.
+    foreach (Probe::expand($target) as $host) {
+        $result = (new Probe())->run($host);
+        printf("\n  %s\n\n", sablier_probe_heading($target, $host));
+        foreach ($result['facts'] as $key => $value) {
+            // mb_str_pad: printf counts bytes, so accents would shift the column.
+            printf("    %s %s\n", mb_str_pad((string) $key, 28), $value);
+        }
+        foreach ($result['notes'] as $note) {
+            printf("\n    ⚠ %s\n", wordwrap($note, 88, "\n      "));
+        }
+        foreach ($result['findings'] as $finding) {
+            printf("\n    · %s — %s\n", Catalogue::label($finding->algorithm), $finding->detail);
+        }
     }
     echo "\n";
     exit(0);
@@ -1118,10 +1131,12 @@ if ($command === 'scan') {
     // blind spots, which is what that section is for.
     $airgapSkippedProbe = Airgap::on() && $declaration->probe !== [];
     if (!$options['no-probe'] && !Airgap::on()) {
-        foreach ($declaration->probe as $host) {
-            $result = (new Probe())->run($host);
-            $probes[] = ['target' => $host, 'facts' => $result['facts'], 'notes' => $result['notes']];
-            $probeFindings = [...$probeFindings, ...$result['findings']];
+        foreach ($declaration->probe as $declared) {
+            foreach (Probe::expand($declared) as $host) {
+                $result = (new Probe())->run($host);
+                $probes[] = ['target' => sablier_probe_heading($declared, $host), 'facts' => $result['facts'], 'notes' => $result['notes']];
+                $probeFindings = [...$probeFindings, ...$result['findings']];
+            }
         }
     }
 

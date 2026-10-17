@@ -95,6 +95,16 @@ $ make probe HOST=example.org
 
 La sonde n'a sa place que contre des hôtes dont vous êtes responsable.
 
+Le courrier passe ailleurs, souvent chez un prestataire : `mx://example.org` dans
+`probe` lit les enregistrements MX du domaine au moment du scan et sonde chaque
+serveur sur le port 25, par ordre de priorité — le rapport suit donc le courrier
+quand il déménage, ce qu'une liste d'hôtes écrite à la main ne fait pas. Ces
+serveurs ne sont pas les vôtres, mais la poignée de main est celle que fait tout
+serveur qui envoie un message, et le trafic qu'elle protège est votre courrier.
+Beaucoup de réseaux bloquent le port 25 sortant : lancez-la depuis un réseau qui
+le laisse passer, sinon la sonde déclare les serveurs injoignables et ne conclut
+rien.
+
 ## Ce qu'un framework déclare
 
 L'essentiel de cet outil lit du code. Les faits cryptographiques les plus utiles

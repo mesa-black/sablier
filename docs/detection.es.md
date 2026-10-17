@@ -95,6 +95,15 @@ $ make probe HOST=example.org
 
 La sonda solo tiene sentido contra equipos de los que usted es responsable.
 
+El correo pasa por otro sitio, a menudo por un proveedor: `mx://example.org` en
+`probe` lee los registros MX del dominio en el momento del análisis y sondea cada
+servidor en el puerto 25, por orden de prioridad — así el informe sigue al correo
+cuando cambia de sitio, algo que una lista de equipos escrita a mano no hace. Esos
+servidores no son suyos, pero el saludo es el mismo que hace cualquier servidor
+que envía un mensaje, y el tráfico que protege es su correo. Muchas redes
+bloquean el puerto 25 saliente: lánzela desde una que lo deje pasar, o la sonda
+declarará los servidores inalcanzables y no concluirá nada.
+
 ## Lo que declara un framework
 
 La mayor parte de esta herramienta lee código. Los hechos criptográficos más
