@@ -309,6 +309,8 @@ sablier verify %3$s --fingerprint="<the second line>"',
     'probe.fact.state' => 'state',
     'probe.state.plaintext' => 'answers, but refuses to encrypt',
     'probe.detail.no_upgrade' => 'The service accepts the connection and declines the upgrade to TLS: the session stays readable on the wire. No quantum reasoning here — it is cleartext today.',
+    'probe.mx.none' => 'No mail server published for %s: no MX record, or a null MX saying the domain receives no mail. Nothing to probe — and nothing concluded about where its mail actually goes.',
+    'probe.mx.of' => 'MX of %s',
     'algo.plaintext.note' => 'No protection at all.',
     'algo.plaintext.replacement' => 'Require TLS server-side and refuse cleartext connections',
 

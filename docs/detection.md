@@ -96,6 +96,14 @@ $ make probe HOST=example.org
 
 The probe only belongs against hosts you are responsible for.
 
+Mail goes elsewhere, often to a provider: `mx://example.org` in `probe` reads
+the domain's MX records at run time and probes each server on port 25, best
+priority first — so the report follows the mail when it moves, which a list of
+hosts written by hand does not. Those servers are not yours, but the handshake is
+the one every sending server performs, and the traffic it protects is your mail.
+Many networks block outgoing port 25: run it from one that does not, or the probe
+reports the servers as unreachable and concludes nothing.
+
 ## What a framework declares
 
 Most of this tool reads code. The most useful cryptographic facts about a web

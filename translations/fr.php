@@ -318,6 +318,8 @@ sablier verify %3$s --fingerprint="<la deuxième ligne>"',
     'probe.fact.state' => 'état',
     'probe.state.plaintext' => 'répond, mais refuse de chiffrer',
     'probe.detail.no_upgrade' => 'Le service accepte la connexion et décline le passage en TLS : la session reste lisible sur le réseau. Aucun raisonnement quantique ici — c\'est du texte clair aujourd\'hui.',
+    'probe.mx.none' => "Aucun serveur de courrier publié pour %s : pas d'enregistrement MX, ou un MX nul qui dit que le domaine ne reçoit pas de courrier. Rien à sonder — et rien de conclu sur l'endroit où son courrier passe réellement.",
+    'probe.mx.of' => 'MX de %s',
     'algo.plaintext.note' => 'Aucune protection.',
     'algo.plaintext.replacement' => 'Imposer TLS côté serveur et refuser les connexions en clair',
 

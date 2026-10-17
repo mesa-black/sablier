@@ -309,6 +309,8 @@ sablier verify %3$s --fingerprint="<la segunda línea>"',
     'probe.fact.state' => 'estado',
     'probe.state.plaintext' => 'responde, pero se niega a cifrar',
     'probe.detail.no_upgrade' => 'El servicio acepta la conexión y rechaza el paso a TLS: la sesión queda legible en la red. Aquí no hay razonamiento cuántico: es texto claro hoy.',
+    'probe.mx.none' => 'Ningún servidor de correo publicado para %s: sin registro MX, o un MX nulo que indica que el dominio no recibe correo. Nada que sondear — y nada concluido sobre por dónde pasa realmente su correo.',
+    'probe.mx.of' => 'MX de %s',
     'algo.plaintext.note' => 'Ninguna protección.',
     'algo.plaintext.replacement' => 'Exigir TLS en el servidor y rechazar las conexiones en claro',
 
