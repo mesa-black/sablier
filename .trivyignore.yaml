@@ -24,38 +24,18 @@ vulnerabilities:
       carries 10.49-r0.
       Re-checked every Monday by the scheduled run.
     expired_at: 2026-10-22
-  # The three below are in the scanner itself: usr/local/bin/trivy in
-  # aquasec/trivy:0.75.0, built with Go stdlib 1.27.1 and golang.org/x/net
-  # 0.59.0, on both architectures. 0.75.0 is the latest release (2026-10-01);
-  # there is no rebuilt Trivy to move to, and an older one is older code. No
-  # other image here carries a Go binary Trivy reports against: PHP and PHPStan
-  # were clean on both architectures in the same run that found these.
-  - id: CVE-2026-78667
+  - id: CVE-2026-77214
     statement: >-
-      CPU exhaustion through a Range header with many small ranges, in Go's
-      FileServer, ServeContent and ServeFile. That is the serving side of
-      net/http. Trivy runs here only as a short-lived command (`image`, `fs`);
-      it never starts an HTTP server, so nothing can send it a Range header.
-      Re-checked every Monday by the scheduled run; the entry goes as soon as
-      a Trivy built with Go 1.27.2 is published.
-    expired_at: 2026-10-22
-  - id: CVE-2026-78669
-    statement: >-
-      CPU exhaustion from a malicious HTTP/2 peer sending many small SETTINGS
-      frames, in Go stdlib and golang.org/x/net. Unlike the other two this one
-      reaches clients, and Trivy is an HTTP/2 client: it downloads its database
-      and image manifests over TLS. The peer would have to be the registry
-      itself (mirror.gcr.io, ghcr.io, Docker Hub) or someone able to stand in
-      for it under a valid certificate, and the worst outcome is a scan that
-      burns CPU until the job times out. A hung job goes red; it does not
-      report a false "clean". Re-checked every Monday by the scheduled run;
-      the entry goes as soon as a Trivy built with Go 1.27.2 is published.
-    expired_at: 2026-10-22
-  - id: CVE-2026-97031
-    statement: >-
-      Memory exhaustion in a TLS server processing a ClientHello whose
-      Encrypted Client Hello repeats outer extension references. Only a
-      server decrypts ECH; Trivy is only ever a TLS client here and never
-      accepts a connection. Re-checked every Monday by the scheduled run; the
-      entry goes as soon as a Trivy built with Go 1.27.2 is published.
-    expired_at: 2026-10-22
+      libexpat 2.8.5-r0 ships in ghcr.io/phpstan/phpstan:2-php8.4 and in
+      aquasec/trivy:0.76.0, on both architectures; php:8.4-cli-alpine carries
+      no libexpat at all. The fix is published by Alpine as 2.9.0-r0; neither
+      image has been rebuilt with it (PHPStan's latest build of the tag, and
+      Trivy's latest release, still carry 2.8.5), and we do not control those
+      rebuilds. The flaw is a heap over-read in XML_ParseBuffer on crafted XML.
+      In the Trivy image libexpat is only there for git, which Trivy does not
+      use when it scans an image, and Trivy's own XML parsing is Go's, not
+      expat. In the PHPStan image the only files read are this repository's
+      own sources and configuration, on our own machines and runners: no XML
+      from anyone else reaches expat. Re-checked every Monday by the scheduled
+      run; the entry goes as soon as either image ships 2.9.0.
+    expired_at: 2026-10-26

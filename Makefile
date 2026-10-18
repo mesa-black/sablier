@@ -21,7 +21,7 @@
 # when updating them is a decision somebody makes on purpose.
 PHP_IMAGE ?= php:8.4-cli-alpine@sha256:37c8c64177612b72e7f9d2c00481739c166a3708bea27c1cfd27fea1291d82d1
 PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4@sha256:96037250b0dd0c52519337f71e5e0aa91672534671356bb91f6db2b96fe67ace
-TRIVY_IMAGE ?= aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+TRIVY_IMAGE ?= aquasec/trivy:0.76.0@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222
 .PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples release images
 
 help: ## Show this help
