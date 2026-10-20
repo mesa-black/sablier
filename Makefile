@@ -19,8 +19,8 @@
 # Each digest points at the multi-architecture manifest, so `--platform` still
 # picks the right one. `make images` prints what the tags resolve to today, for
 # when updating them is a decision somebody makes on purpose.
-PHP_IMAGE ?= php:8.4-cli-alpine@sha256:37c8c64177612b72e7f9d2c00481739c166a3708bea27c1cfd27fea1291d82d1
-PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.4@sha256:96037250b0dd0c52519337f71e5e0aa91672534671356bb91f6db2b96fe67ace
+PHP_IMAGE ?= php:8.5-cli-alpine@sha256:93684051146ec037620855feb77f278090bde45ddc030801cd3f2a7685bc4deb
+PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.5@sha256:0da4c41673ad537b9e489b1f9f848976ca961f0ae841f05b6ab63866f9298754
 TRIVY_IMAGE ?= aquasec/trivy:0.76.0@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222
 .PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples release images
 

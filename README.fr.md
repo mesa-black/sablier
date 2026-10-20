@@ -84,7 +84,7 @@ make test                                   # le modèle de risque discrimine-t-
 
 **Pas de PHP sur cette machine ?** `./sablier` est le même outil à travers un
 conteneur : il utilise l'interpréteur local quand il est en 8.4 ou plus récent, et
-sinon exécute le code inchangé dans `php:8.4-cli-alpine`, **épinglée par digest**
+sinon exécute le code inchangé dans `php:8.5-cli-alpine`, **épinglée par digest**
 et non par ce tag — un tag est un pointeur que quelqu'un d'autre déplace, et le
 lanceur exécuterait sinon des octets que personne ici n'a vérifiés. Le même digest
 figure dans le `Makefile`, et la suite de tests refuse un commit où les deux

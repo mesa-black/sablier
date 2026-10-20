@@ -81,7 +81,7 @@ make test                                   # does the risk model still discrimi
 
 **No PHP on this machine?** `./sablier` is the same tool through a container:
 it uses the local interpreter when it is 8.4 or newer, and otherwise runs the
-unchanged code inside `php:8.4-cli-alpine`, **pinned by digest** rather than by
+unchanged code inside `php:8.5-cli-alpine`, **pinned by digest** rather than by
 that tag — a tag is a pointer somebody else moves, and the launcher would
 otherwise run bytes nobody here has checked. The same digest is in the
 `Makefile`, and the test suite refuses a commit where the two disagree.

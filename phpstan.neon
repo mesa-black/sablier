@@ -6,7 +6,11 @@
 #   make phpstan
 parameters:
 	level: max
-	phpVersion: 80400
+	# Every version the tool supports: 8.4, the minimum users may have, to 8.5,
+	# the one the launcher's image runs.
+	phpVersion:
+		min: 80400
+		max: 80500
 	paths:
 		- bin/sablier
 		- src
