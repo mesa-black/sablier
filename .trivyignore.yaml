@@ -11,23 +11,10 @@
 # justified for all three, and narrow enough in time that the question comes
 # back quickly.
 vulnerabilities:
-  - id: CVE-2026-103111
-    statement: >-
-      pcre2 10.48-r0 ships in ghcr.io/phpstan/phpstan:2-php8.4, on both
-      architectures. The fix is published upstream as 10.49-r0 and the image
-      has not been rebuilt yet; we do not control that rebuild, and pinning an
-      older tag would be older code, not safer code. The exposure is a crafted
-      regular expression, and the only patterns reaching this container are the
-      ones in this repository's own source, analysed by PHPStan on our own
-      machines and runners. The other two images are unaffected:
-      php:8.4-cli-alpine ships no pcre2 package, and aquasec/trivy already
-      carries 10.49-r0.
-      Re-checked every Monday by the scheduled run.
-    expired_at: 2026-10-22
   - id: CVE-2026-77214
     statement: >-
       libexpat 2.8.5-r0 ships in ghcr.io/phpstan/phpstan:2-php8.4 and in
-      aquasec/trivy:0.76.0, on both architectures; php:8.4-cli-alpine carries
+      aquasec/trivy:0.76.0, on both architectures; php:8.5-cli-alpine carries
       no libexpat at all. The fix is published by Alpine as 2.9.0-r0; neither
       image has been rebuilt with it (PHPStan's latest build of the tag, and
       Trivy's latest release, still carry 2.8.5), and we do not control those
@@ -37,5 +24,50 @@ vulnerabilities:
       expat. In the PHPStan image the only files read are this repository's
       own sources and configuration, on our own machines and runners: no XML
       from anyone else reaches expat. Re-checked every Monday by the scheduled
-      run; the entry goes as soon as either image ships 2.9.0.
-    expired_at: 2026-10-26
+      run; the entry goes as soon as either image ships 2.9.0. Still true on
+      2026-10-26: renewed for one week.
+    expired_at: 2026-11-02
+  - id: CVE-2026-111943
+    statement: >-
+      Go stdlib 1.27.2 in usr/local/bin/trivy, in aquasec/trivy:0.76.0, on both
+      architectures; neither PHP image carries a Go binary Trivy reports
+      against. 0.76.0 is the latest release (2026-10-14) and Go 1.27.3 came out
+      on 2026-10-20: there is no Trivy built with it to move to. This is not a
+      bug in code but a denylist: Go 1.27.3 stops trusting a few intermediate
+      certificates of one Certificate Authority. Trivy is a TLS client here, so
+      unlike the earlier server-side entries this one does reach it. Images are
+      fetched by digest, so a forged registry cannot change what is scanned.
+      What it could change is the vulnerability database, which is not
+      pinned: someone holding a certificate under those intermediates, and
+      able to stand in for mirror.gcr.io or ghcr.io on our network path, could
+      serve a database that reports "clean". That is a targeted attack on the
+      runner's network, not something a crafted input can do, which is why
+      this waits days and not longer. The entry goes as soon as a Trivy built
+      with Go 1.27.3 is published; re-checked every Monday by the scheduled
+      run. Still true on 2026-10-26: renewed for one week.
+    expired_at: 2026-11-02
+  - id: CVE-2026-111497
+    statement: >-
+      brotli-libs 1.2.0-r1 ships in all three images, on both architectures.
+      Alpine publishes the fix as 1.2.1-r0; none of the three has been rebuilt
+      with it, including the latest php:8.5-cli-alpine (sha256:e899a75c…,
+      checked 2026-10-26), and we do not control those rebuilds. The flaw is an
+      out-of-bounds write in the decoder, on crafted compressed input. Nothing
+      here decodes brotli: in the PHP images the only consumer is libcurl, and
+      sablier never calls curl (every probe goes through stream_socket_client
+      and OpenSSL); PHPStan reads this repository's own sources; Trivy is Go
+      and decompresses with Go's own code. Re-checked every Monday by the
+      scheduled run; the entry goes as soon as the images ship 1.2.1.
+    expired_at: 2026-11-02
+  - id: CVE-2026-92392
+    statement: >-
+      curl and libcurl 8.22.0-r0 ship in all three images, on both
+      architectures. Alpine publishes the fix as 8.23.0-r0; none of the three
+      has been rebuilt with it, including the latest php:8.5-cli-alpine
+      (checked 2026-10-26), and we do not control those rebuilds. The flaw is
+      a use-after-free during an HTTP/2 upload. Nothing here uploads with
+      curl, or uses it at all: sablier's probes open their own sockets
+      (stream_socket_client, OpenSSL), PHPStan makes no request, and Trivy
+      fetches with Go's HTTP client. Re-checked every Monday by the scheduled
+      run; the entry goes as soon as the images ship 8.23.0.
+    expired_at: 2026-11-02
