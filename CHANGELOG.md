@@ -4,7 +4,10 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
-## Unreleased
+## v0.12.0 — 2026-11-02
+
+The release that reports a checksum standing where a signature should be, and
+says out loud what it still cannot see.
 
 ### A checksum where a signature should be is red, and a Luhn check is declared unseen
 
@@ -28,6 +31,15 @@ stop believing the rest of the page.
 
 A hand-written Luhn check is not detected. Telling one apart by its shape is a
 project of its own; until it exists, every report says so in its blind spots.
+
+### The scanner and the analyser move to images with fewer decisions to defend
+
+`sablier advisories` and `make cve` now run Trivy 0.76.1, and `make phpstan`
+the latest phpstan:2-php8.5, both pinned by multi-arch digest. Two dated
+decisions went with the old images, as they said they would (Go 1.27.2 and
+libexpat 2.8.5). Three remain in `.trivyignore.yaml`, each with its reason and
+an expiry of 2026-11-09: brotli and curl, unfixed in every image we ask anyone
+to run, and go-jose in Trivy itself, which no Trivy release has picked up yet.
 
 ## v0.11.1 — 2026-10-09
 
