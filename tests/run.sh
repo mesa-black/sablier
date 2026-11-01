@@ -976,9 +976,9 @@ rm -rf "$tf"
 
 # --- telling an identifier from a security control ---------------------------
 # Every line of this fixture was taken from a public repository during the
-# false-positive measurement: 31 projects, 959 findings, and 89 of the 92 reds
-# that were wrong. The rules that fixed it are subtle enough to rot quietly, so
-# the verdicts are pinned here.
+# false-positive measurement (docs/false-positives.md): 82 of the first 20
+# repositories' 89 reds were wrong, and 3 of 21 still are across 31. The rules
+# that fixed it are subtle enough to rot quietly, so the verdicts are pinned here.
 dg=$(mktemp -d)
 ./bin/sablier scan tests/fixtures/digests --json="$dg/d.json" --airgap --quiet >/dev/null 2>&1 || true
 counts=$(php -r '
