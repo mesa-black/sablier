@@ -45,18 +45,18 @@ BT 0 g /F2 11.5 Tf 56.00 439.31 Td (COMPROMIS 1) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 408.44 Td (RSA backups) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 390.64 Td (Chiffré aujourd'hui, à garder confidentiel jusqu'en 2036 — soit 1 an après la péremption de RSA. Une capture faite) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 377.53 Td (maintenant sera lisible. Génération de clé RSA.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 359.42 Td (Accepter ce constat : sablier accept d45d9d61 --reason="…" --until=2027-04-09) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 359.42 Td (Accepter ce constat : sablier accept d45d9d61 --reason="…" --until=2027-05-01) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 341.31 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 312.20 Td (CASSÉ AUJOURD'HUI 1) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 281.33 Td (SHA-1 session tokens) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 263.53 Td (Cassé classiquement, indépendamment du quantique. L'échéance était hier.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 245.42 Td (Accepter ce constat : sablier accept d87d2d2b --reason="…" --until=2027-04-09) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 245.42 Td (Accepter ce constat : sablier accept d87d2d2b --reason="…" --until=2027-05-01) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 227.31 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 198.20 Td (SURVEILLER 2) Tj ET
 BT 0 g /F2 10.0 Tf 56.00 167.33 Td (RSA backups) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 149.53 Td (Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 136.42 Td (Génération de clé SSH.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 118.31 Td (Accepter ce constat : sablier accept e51683bf --reason="…" --until=2027-04-09) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 118.31 Td (Accepter ce constat : sablier accept e51683bf --reason="…" --until=2027-05-01) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 100.20 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Sablier — Fixture · 1/3) Tj ET
 
@@ -66,12 +66,12 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 9 0 R /F2 10 0 R /F3 11 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 5879 >>
+<< /Length 5765 >>
 stream
 BT 0 g /F2 10.0 Tf 56.00 785.89 Td (RSA session tokens) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 768.09 Td (Signature : pas de récolte possible. À migrer avant 2030 pour la conformité, sans urgence de confidentialité.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 754.98 Td (Algorithme JWT.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 736.87 Td (Accepter ce constat : sablier accept a994f9c6 --reason="…" --until=2027-04-09) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 736.87 Td (Accepter ce constat : sablier accept a994f9c6 --reason="…" --until=2027-05-01) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 718.76 Td (L'outil a tort ? Ouvrir un signalement pré-rempli) Tj ET
 BT 0 g /F2 11.5 Tf 56.00 689.65 Td (CONFORME 2) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 669.78 Td (-) Tj ET
@@ -100,46 +100,42 @@ BT 0 g /F1 9.5 Tf 56.00 426.72 Td (-) Tj ET
 BT 0 g /F1 9.5 Tf 70.00 426.72 Td (Échéance retenue : 2035, d'après NIST IR 8547. Un autre cadre — institutionnel, défense — donne une autre) Tj ET
 BT 0 g /F1 9.5 Tf 70.00 413.61 Td (date : voir `regime` dans la déclaration.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 397.50 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 397.50 Td (Les fichiers binaires \(images, polices, archives\) ne sont lus que sur leurs premiers méga-octets, et seulement) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 384.39 Td (pour trois signes vérifiables : un bloc de clé, des octets après la fin de l'image, une extension qui ment sur le) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 371.28 Td (contenu. Un message dissimulé dans les bits d'une image n'est pas détecté ici, et ne prétend pas l'être.) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 397.50 Td (Les sommes de contrôle \(CRC32, Adler-32\) ne sont signalées qu'à côté d'un jeton, d'un lien ou d'un secret.) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 384.39 Td (Une clé de Luhn ou un modulo écrits à la main ne le sont jamais : rien ne les distingue d'un calcul ordinaire, et) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 371.28 Td (un code qui accepte un numéro sur la foi de son chiffre de contrôle n'apparaît pas ici.) Tj ET
 BT 0 g /F1 9.5 Tf 56.00 355.17 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 355.17 Td (Les fichiers YAML de configuration sont lus comme du texte, pas interprétés : un algorithme défini par un) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 342.06 Td (paramètre, par un fichier importé ou par une variable d'environnement n'est pas vu ici.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 325.95 Td (Un inventaire qui ne dit pas ce qu'il n'a pas vu n'est pas un inventaire.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 296.84 Td (Ce qu'il a cherché et n'a pas trouvé) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 276.97 Td (Chaque ligne est un résultat, pas un silence : un détecteur a ouvert ces fichiers et n'en a rien tiré. Le nombre est là) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 263.86 Td (pour que vous puissiez juger la portée de la phrase plutôt que la croire.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 245.75 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 245.75 Td (3 fichier\(s\) lu\(s\) : aucune clé privée, aucun certificat, aucun magasin de clés dans l'arborescence versionnée.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 218.64 Td (Ce qu'il y a à changer) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 198.77 Td (4 emplacement\(s\) à reprendre, dans 2 fichier\(s\). Les lignes ci-dessous comptent des endroits, pas des semaines.) Tj ET
-BT 0 g /F2 8.5 Tf 56.00 174.66 Td (Algorithme) Tj ET
-BT 0 g /F2 8.5 Tf 152.66 174.66 Td (Appels) Tj ET
-BT 0 g /F2 8.5 Tf 249.31 174.66 Td (Fichiers) Tj ET
-BT 0 g /F2 8.5 Tf 345.97 174.66 Td (Domaines) Tj ET
-BT 0 g /F2 8.5 Tf 442.62 174.66 Td (Ce que cela change) Tj ET
-0.85 G 0.4 w 56.00 159.93 m 539.28 159.93 l S
-BT 0 g /F1 8.5 Tf 56.00 153.93 Td (RSA · signature) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 153.93 Td (2) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 153.93 Td (2) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 153.93 Td (2) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 153.93 Td () Tj ET
-0.85 G 0.4 w 56.00 139.20 m 539.28 139.20 l S
-BT 0 g /F1 8.5 Tf 56.00 133.20 Td (RSA · chiffrement) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 133.20 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 133.20 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 133.20 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 133.20 Td () Tj ET
-0.85 G 0.4 w 56.00 118.47 m 539.28 118.47 l S
-BT 0 g /F1 8.5 Tf 56.00 112.47 Td (SHA-1) Tj ET
-BT 0 g /F1 8.5 Tf 152.66 112.47 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 249.31 112.47 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 345.97 112.47 Td (1) Tj ET
-BT 0 g /F1 8.5 Tf 442.62 112.47 Td () Tj ET
-0.85 G 0.4 w 56.00 97.74 m 539.28 97.74 l S
-BT 0 g /F1 9.5 Tf 56.00 85.74 Td (La feuille de route européenne compte l'effort de migration parmi les trois facteurs du risque quantique. Cet outil le) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 72.63 Td (compte en emplacements parce que c'est ce qu'un dépôt sait dire ; il n'en fait pas une durée. Huit appels dans un) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 355.17 Td (Les fichiers binaires \(images, polices, archives\) ne sont lus que sur leurs premiers méga-octets, et seulement) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 342.06 Td (pour trois signes vérifiables : un bloc de clé, des octets après la fin de l'image, une extension qui ment sur le) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 328.95 Td (contenu. Un message dissimulé dans les bits d'une image n'est pas détecté ici, et ne prétend pas l'être.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 312.84 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 312.84 Td (Les fichiers YAML de configuration sont lus comme du texte, pas interprétés : un algorithme défini par un) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 299.73 Td (paramètre, par un fichier importé ou par une variable d'environnement n'est pas vu ici.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 283.62 Td (Un inventaire qui ne dit pas ce qu'il n'a pas vu n'est pas un inventaire.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 254.51 Td (Ce qu'il a cherché et n'a pas trouvé) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 234.64 Td (Chaque ligne est un résultat, pas un silence : un détecteur a ouvert ces fichiers et n'en a rien tiré. Le nombre est là) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 221.53 Td (pour que vous puissiez juger la portée de la phrase plutôt que la croire.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 203.42 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 203.42 Td (3 fichier\(s\) lu\(s\) : aucune clé privée, aucun certificat, aucun magasin de clés dans l'arborescence versionnée.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 176.31 Td (Ce qu'il y a à changer) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 156.44 Td (4 emplacement\(s\) à reprendre, dans 2 fichier\(s\). Les lignes ci-dessous comptent des endroits, pas des semaines.) Tj ET
+BT 0 g /F2 8.5 Tf 56.00 132.33 Td (Algorithme) Tj ET
+BT 0 g /F2 8.5 Tf 152.66 132.33 Td (Appels) Tj ET
+BT 0 g /F2 8.5 Tf 249.31 132.33 Td (Fichiers) Tj ET
+BT 0 g /F2 8.5 Tf 345.97 132.33 Td (Domaines) Tj ET
+BT 0 g /F2 8.5 Tf 442.62 132.33 Td (Ce que cela change) Tj ET
+0.85 G 0.4 w 56.00 117.60 m 539.28 117.60 l S
+BT 0 g /F1 8.5 Tf 56.00 111.60 Td (RSA · signature) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 111.60 Td (2) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 111.60 Td (2) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 111.60 Td (2) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 111.60 Td () Tj ET
+0.85 G 0.4 w 56.00 96.87 m 539.28 96.87 l S
+BT 0 g /F1 8.5 Tf 56.00 90.87 Td (RSA · chiffrement) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 90.87 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 90.87 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 90.87 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 90.87 Td () Tj ET
+0.85 G 0.4 w 56.00 76.14 m 539.28 76.14 l S
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Sablier — Fixture · 2/3) Tj ET
 
 endstream
@@ -148,47 +144,55 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 9 0 R /F2 10 0 R /F3 11 0 R >> >> /Contents 8 0 R >>
 endobj
 8 0 obj
-<< /Length 4801 >>
+<< /Length 5391 >>
 stream
-BT 0 g /F1 9.5 Tf 56.00 785.89 Td (fichier derrière une même fonction sont une après-midi ; huit répartis sur six services avec un protocole entre eux) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 772.78 Td (sont un trimestre, et rien dans les fichiers ne distingue les deux. Cette estimation vous appartient.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 743.67 Td (Ce qu'il faut faire, dans l'ordre) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 723.80 Td (Un inventaire qui ne conclut rien se range dans un dossier. Voici l'arbitrage — et l'ordre compte autant que la liste.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 705.69 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 705.69 Td (Décider du sort des données déjà émisesC'est la décision que personne ne prend, et elle vient avant la) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 692.58 Td (migration. Les domaines concernés \(backups\) sont protégés par un algorithme qui ne tiendra pas jusqu'au bout) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 679.47 Td (de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d'un correctif. Trois) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 666.36 Td (issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 653.25 Td (tourner les clés et réémettre ce qui peut l'être, ou acter par écrit qu'on accepte le risque sur les données) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 640.14 Td (antérieures à 2035. Migrer sans trancher cette question protège les données futures et laisse les anciennes) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 627.03 Td (exposées sans que personne ne l'ait décidé.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 610.92 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 610.92 Td (Remplacer ce qui est déjà casséUn usage repose sur un algorithme cassé classiquement. Aucun raisonnement) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 597.81 Td (quantique n'est nécessaire : l'échéance était il y a dix ans, le remplacement est connu et ne demande pas un) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 584.70 Td (projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c'est moins cher et déjà) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 571.59 Td (exploitable.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 555.48 Td (-) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 555.48 Td (Remettre ce rapport au calendrierLa fenêtre se referme d'elle-même : la date de péremption ne bouge pas) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 542.37 Td (\(2035\), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd'hui) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 529.26 Td (avec une durée de neuf ans ne le sera plus l'an prochain. Rejouer l'analyse une fois par an suffit — et vérifier à) Tj ET
-BT 0 g /F1 9.5 Tf 70.00 516.15 Td (cette occasion que l'échéance réglementaire n'a pas bougé.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 500.04 Td (Envoyer le résumé sur Threema) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 481.93 Td (Ouvre Threema sur un téléphone où l'application est installée. Sur un ordinateur, le schéma n'est en général pas) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 468.82 Td (enregistré et le navigateur refuse le lien : copiez le texte ci-dessous. Rien n'est transmis à un serveur tiers.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 439.71 Td (Faux positif ?) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 419.84 Td (Deux choses s'appellent « faux positif », et elles ne vont pas au même endroit.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 401.73 Td (1. L'outil a raison, mais ce constat est accepté ici. C'est une décision de projet : ajoutez ce bloc à votre déclaration,) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 388.62 Td (elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d'expiration sont obligatoires.) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 370.51 Td (En ligne de commande : sablier accept <empreinte> --reason="…" --until=2027-04-09) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 352.40 Td (2. L'outil a tort. C'est une règle à corriger, et sa place est dans le dépôt de Sablier : github.com/mesa-black/sablier) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 334.29 Td (L'empreinte imprimée à côté de chaque constat le désigne, et c'est elle qu'on cite dans les deux cas. Elle est) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 321.18 Td (calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code, et change le jour où la) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 308.07 Td (ligne change vraiment.) Tj ET
-BT 0 g /F2 11.5 Tf 56.00 278.96 Td (Empreinte et signature) Tj ET
-BT 0 g /F2 9.5 Tf 56.00 259.09 Td (empreinte des constats) Tj ET
-BT 0 g /F1 9.5 Tf 206.00 259.09 Td (92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 239.98 Td (L'empreinte porte sur les constats, pas sur ce fichier : deux rendus du même inventaire, dans deux langues,) Tj ET
-BT 0 g /F1 9.5 Tf 56.00 226.87 Td (donnent la même valeur.) Tj ET
+BT 0 g /F1 8.5 Tf 56.00 785.89 Td (SHA-1) Tj ET
+BT 0 g /F1 8.5 Tf 152.66 785.89 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 249.31 785.89 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 345.97 785.89 Td (1) Tj ET
+BT 0 g /F1 8.5 Tf 442.62 785.89 Td () Tj ET
+0.85 G 0.4 w 56.00 771.16 m 539.28 771.16 l S
+BT 0 g /F1 9.5 Tf 56.00 759.16 Td (La feuille de route européenne compte l'effort de migration parmi les trois facteurs du risque quantique. Cet outil le) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 746.05 Td (compte en emplacements parce que c'est ce qu'un dépôt sait dire ; il n'en fait pas une durée. Huit appels dans un) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 732.94 Td (fichier derrière une même fonction sont une après-midi ; huit répartis sur six services avec un protocole entre eux) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 719.83 Td (sont un trimestre, et rien dans les fichiers ne distingue les deux. Cette estimation vous appartient.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 690.72 Td (Ce qu'il faut faire, dans l'ordre) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 670.85 Td (Un inventaire qui ne conclut rien se range dans un dossier. Voici l'arbitrage — et l'ordre compte autant que la liste.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 652.74 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 652.74 Td (Décider du sort des données déjà émisesC'est la décision que personne ne prend, et elle vient avant la) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 639.63 Td (migration. Les domaines concernés \(backups\) sont protégés par un algorithme qui ne tiendra pas jusqu'au bout) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 626.52 Td (de leur durée de confidentialité : ce qui a déjà été chiffré et transmis est hors de portée d'un correctif. Trois) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 613.41 Td (issues, et il faut en choisir une explicitement — re-chiffrer le stock existant avec un algorithme qui tient, faire) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 600.30 Td (tourner les clés et réémettre ce qui peut l'être, ou acter par écrit qu'on accepte le risque sur les données) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 587.19 Td (antérieures à 2035. Migrer sans trancher cette question protège les données futures et laisse les anciennes) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 574.08 Td (exposées sans que personne ne l'ait décidé.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 557.97 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 557.97 Td (Remplacer ce qui est déjà casséUn usage repose sur un algorithme cassé classiquement. Aucun raisonnement) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 544.86 Td (quantique n'est nécessaire : l'échéance était il y a dix ans, le remplacement est connu et ne demande pas un) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 531.75 Td (projet. À traiter avant tout ce qui concerne la transition post-quantique, parce que c'est moins cher et déjà) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 518.64 Td (exploitable.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 502.53 Td (-) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 502.53 Td (Remettre ce rapport au calendrierLa fenêtre se referme d'elle-même : la date de péremption ne bouge pas) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 489.42 Td (\(2035\), mais chaque année qui passe rapproche vos données de cette ligne. Un domaine conforme aujourd'hui) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 476.31 Td (avec une durée de neuf ans ne le sera plus l'an prochain. Rejouer l'analyse une fois par an suffit — et vérifier à) Tj ET
+BT 0 g /F1 9.5 Tf 70.00 463.20 Td (cette occasion que l'échéance réglementaire n'a pas bougé.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 447.09 Td (Envoyer le résumé sur Threema) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 428.98 Td (Ouvre Threema sur un téléphone où l'application est installée. Sur un ordinateur, le schéma n'est en général pas) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 415.87 Td (enregistré et le navigateur refuse le lien : copiez le texte ci-dessous. Rien n'est transmis à un serveur tiers.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 386.76 Td (Faux positif ?) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 366.89 Td (Deux choses s'appellent « faux positif », et elles ne vont pas au même endroit.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 348.78 Td (1. L'outil a raison, mais ce constat est accepté ici. C'est une décision de projet : ajoutez ce bloc à votre déclaration,) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 335.67 Td (elle est versionnée, donc la relecture se fait en revue de code. La raison et la date d'expiration sont obligatoires.) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 317.56 Td (En ligne de commande : sablier accept <empreinte> --reason="…" --until=2027-05-01) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 299.45 Td (2. L'outil a tort. C'est une règle à corriger, et sa place est dans le dépôt de Sablier : github.com/mesa-black/sablier) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 281.34 Td (L'empreinte imprimée à côté de chaque constat le désigne, et c'est elle qu'on cite dans les deux cas. Elle est) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 268.23 Td (calculée sur la preuve, pas sur le numéro de ligne : elle survit à un déplacement du code, et change le jour où la) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 255.12 Td (ligne change vraiment.) Tj ET
+BT 0 g /F2 11.5 Tf 56.00 226.01 Td (Empreinte et signature) Tj ET
+BT 0 g /F2 9.5 Tf 56.00 206.14 Td (empreinte des constats) Tj ET
+BT 0 g /F1 9.5 Tf 206.00 206.14 Td (92cd7996cbe685ae50aae64e425865da36bd3c25b0ac6341ca1668dfd1e5431d) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 187.03 Td (L'empreinte porte sur les constats, pas sur ce fichier : deux rendus du même inventaire, dans deux langues,) Tj ET
+BT 0 g /F1 9.5 Tf 56.00 173.92 Td (donnent la même valeur.) Tj ET
 BT 0.45 g /F1 7.5 Tf 56.00 38.00 Td (Sablier — Fixture · 3/3) Tj ET
 
 endstream
@@ -203,7 +207,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 12 0 obj
-<< /Title (Sablier — Fixture) /Producer (Sablier 0.11.1) /CreationDate (D:20261009004554) >>
+<< /Title (Sablier — Fixture) /Producer (Sablier 0.11.1) /CreationDate (D:20261101225450) >>
 endobj
 xref
 0 13
@@ -214,14 +218,14 @@ xref
 0000000281 00000 n 
 0000004479 00000 n 
 0000004633 00000 n 
-0000010563 00000 n 
-0000010717 00000 n 
-0000015569 00000 n 
-0000015666 00000 n 
-0000015769 00000 n 
-0000015865 00000 n 
+0000010449 00000 n 
+0000010603 00000 n 
+0000016045 00000 n 
+0000016142 00000 n 
+0000016245 00000 n 
+0000016341 00000 n 
 trailer
 << /Size 13 /Root 1 0 R /Info 12 0 R >>
 startxref
-15974
+16450
 %%EOF

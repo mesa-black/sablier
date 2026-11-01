@@ -45,6 +45,13 @@ final class Catalogue
         // in the middle of an English report for as long as it existed.
         'plaintext' => ['label' => '@algo.plaintext.label', 'purpose' => self::PURPOSE_CONFIDENTIALITY, 'quantum' => false, 'broken' => true],
 
+        // Not broken either: CRC32 does exactly what it was made for, catching
+        // a file damaged in transit. What is broken is asking it to stop
+        // somebody, which needs no key to get past. The detector only files a
+        // checksum under this name when the line is doing security work, so
+        // "broken" here describes the use, never the algorithm.
+        'checksum' => ['label' => '@algo.checksum.label', 'purpose' => self::PURPOSE_AUTHENTICITY, 'quantum' => false, 'broken' => true],
+
         // Not an algorithm but a protocol version; it belongs here because the
         // report speaks about it in exactly the same terms: broken today,
         // nothing to do with quantum computing.
