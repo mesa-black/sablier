@@ -1000,6 +1000,36 @@ printf '  ✓ %-24s %-10s %s\n' "digests" "security" "tokens, fingerprints and K
 printf '  ✓ %-24s %-10s %s\n' "digests" "hmac" "a keyed digest is not its digest"
 printf '  ✓ %-24s %-10s %s\n' "digests" "tables" "a protocol's algorithm list is inventory"
 
+# --- a checksum where a signature should be -----------------------------------
+# Found by writing a blog post: a reset link signed with crc32() and an auth
+# token checked with hash('crc32b') produced nothing at all, and the report's
+# blind spots did not say so. The fixture keeps both sides: the same function
+# verifying a download, sharding a session or naming an ETag must stay silent,
+# and the keyed control beside them must stay clear.
+ck=$(mktemp -d)
+./bin/sablier scan tests/fixtures/checksums --json="$ck/c.json" --out="$ck/c.html" --airgap --quiet >/dev/null 2>&1 || true
+counts=$(php -r '
+	$f = json_decode(file_get_contents($argv[1]), true);
+	$v = [];
+	foreach ($f as $x) { $k = $x["verdict"]."/".$x["algorithm"]; $v[$k] = ($v[$k] ?? 0) + 1; }
+	printf("%d/%d/%d/%d", $v["urgent/checksum"] ?? 0, $v["noise/md5"] ?? 0, $v["clear/hmac-sha256"] ?? 0, count($f));
+' "$ck/c.json")
+# Three checksums doing a signature's job, the md5 its function name still
+# files as an identifier, the HMAC — and nothing from Integrity.php or from
+# the Luhn check, which no rule can see.
+if [ "$counts" != "3/1/1/5" ]; then
+	echo "✗ checksums: a lock and an integrity check no longer tell apart (urgent/noise/clear/total = $counts)"
+	rm -rf "$ck"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "checksums" "locks" "crc32 beside a token or a link is red"
+printf '  ✓ %-24s %-10s %s\n' "checksums" "integrity" "crc32 on a file, a shard or an etag is silent"
+if ! grep -q "Luhn" "$ck/c.html"; then
+	echo "✗ checksums: the report no longer says it cannot see a Luhn check"
+	rm -rf "$ck"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "checksums" "blind spot" "a hand-written Luhn is declared unseen"
+rm -rf "$ck"
+
 # --- health data, where the lifetime is written in law -----------------------
 # The input this tool normally has to go and ask for is, in health, set by the
 # Code de la santé publique: twenty years for a patient record, up to seventy

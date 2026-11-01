@@ -55,11 +55,36 @@ final class PhpDetector extends PatternDetector
         .'|(md5|sha1)\s*\(\s*(serialize|json_encode|var_export|print_r)\s*\('
         .'|\w*_?path\s*\(|define\s*\(\s*[\'"][A-Z_]*HASH/i';
 
+    /**
+     * What a checksum has to be next to before it counts as a lock.
+     *
+     * Almost every crc32() in the wild verifies a file or shards a key, and
+     * reporting those would be the noise the digest rules spent a measurement
+     * removing. So a checksum is reported only beside something an outsider
+     * would want to forge, read against the line, the enclosing function and
+     * the file name: `crc32($payload)` says nothing, ResetLink.php does.
+     * "checksum" is deliberately absent — it is the word for the thing itself,
+     * and it is the word that used to silence this finding. So are "session"
+     * and "cookie": `crc32($sessionId) % $shards` picks a server, and bucketing
+     * a visitor by cookie is the same arithmetic.
+     */
+    private const string CHECKSUM_GUARD = '/token|reset|password|passwd|secret|signature|signed|\bsign|auth(?!or)|nonce|csrf|otp\b|voucher|coupon|invite|api_?key/i';
+
     private const array HASHES = ['md5', 'sha1', 'sha256', 'sha512'];
 
     public function supports(SourceFile $file): bool
     {
         return $file->hasExtension('php');
+    }
+
+    /**
+     * A Luhn check is a loop, a doubling and a modulo: no call to recognise.
+     * Telling one apart by its shape is a project of its own, and until it
+     * exists the report has to say it does not look.
+     */
+    public function blindSpots(): array
+    {
+        return [Lang::t('blind.checksum')];
     }
 
     protected function rules(): array
@@ -87,6 +112,12 @@ final class PhpDetector extends PatternDetector
             // they are two different rules: one pattern matching both produced
             // the finding twice, once correctly and once as broken.
             ['/\bhash_hmac\s*\(\s*[\'"]([a-z0-9\-]+)[\'"]/i', self::CAPTURE_HMAC, Catalogue::PURPOSE_INTEGRITY, 'detail.hmac_legacy'],
+            // A checksum where a signature should be. Its own rule rather than
+            // a catalogue name for `crc32b`, so that hash('crc32b', $file)
+            // stays silent everywhere else — the generic rule below sees it,
+            // does not know the name, and drops it.
+            ['/\bhash\s*\(\s*[\'"](?:crc32\w*|adler32)[\'"]/i', 'checksum', Catalogue::PURPOSE_AUTHENTICITY, 'detail.checksum'],
+            ['/\bcrc32\s*\(/', 'checksum', Catalogue::PURPOSE_AUTHENTICITY, 'detail.checksum'],
             ['/\bhash\s*\(\s*[\'"]([a-z0-9\-]+)[\'"]/i', self::CAPTURE, Catalogue::PURPOSE_INTEGRITY, ''],
             // A hand-rolled HMAC is still an HMAC: the inner and outer pads are
             // the construction, written out because the function was not there.
@@ -142,6 +173,14 @@ final class PhpDetector extends PatternDetector
                 $finding->evidence, $finding->confidence, $finding->likelyNonCrypto,
                 Lang::t('detail.capability_table'), inventory: true,
             );
+        }
+
+        // Outside a security context a checksum is not a finding at all, not
+        // even noise: it is what a checksum is for.
+        if ($algorithm === 'checksum') {
+            $context = $file->lineTextAt($offset).' '.$file->functionAt($offset).' '.$file->name;
+
+            return !$file->isTestCode() && preg_match(self::CHECKSUM_GUARD, $context) === 1 ? $finding : null;
         }
 
         if (!\in_array($algorithm, self::HASHES, true)) {

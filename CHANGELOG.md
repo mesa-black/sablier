@@ -4,6 +4,31 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+### A checksum where a signature should be is red, and a Luhn check is declared unseen
+
+Found by writing a blog post about the Luhn formula, not by a test. A
+four-file project with a password-reset link "signed" with `crc32()`, an auth
+token checked with `hash('crc32b', …)` and a voucher accepted on its Luhn check
+digit produced nothing for any of the three — the only places in it where a
+stranger could get something that was not theirs. `crc32()` had no rule;
+`hash('crc32b')` was seen and dropped as an algorithm the catalogue does not
+know; the Luhn check is a loop with no call to recognise. And the report's
+blind spots said none of this, so its reader had every reason to believe the
+reset links had been looked at.
+
+CRC32 and Adler-32 are now reported, as broken today, only beside a token, a
+link, a password or a secret — read on the line, the enclosing function and the
+file name. Everywhere else they are what they are for (a download verified, a
+session sharded, an ETag) and stay silent: reporting those would be the noise
+the digest rules spent a measurement removing. The verdict says what is broken
+is the use, not CRC32, because a reader who knows CRC32 is not broken would
+stop believing the rest of the page.
+
+A hand-written Luhn check is not detected. Telling one apart by its shape is a
+project of its own; until it exists, every report says so in its blind spots.
+
 ## v0.11.1 — 2026-10-09
 
 ### A seal older than the report now explains both of its halves

@@ -179,7 +179,9 @@ final class Assessor
                 return [self::WATCH, Lang::t('reason.inventory_broken', Catalogue::label($finding->algorithm))];
             }
 
-            return [self::URGENT, Lang::t('reason.broken')];
+            // "Broken classically" would be false of CRC32, and the reader who
+            // knows it would stop believing the rest of the page.
+            return [self::URGENT, Lang::t($finding->algorithm === 'checksum' ? 'reason.checksum' : 'reason.broken')];
         }
 
         // A quantum-vulnerable algorithm kept beside a post-quantum one is the
