@@ -1068,8 +1068,10 @@ hyb=$(mktemp -d)
 cp -R tests/fixtures/sample/. "$hyb/"
 before=$(./bin/sablier scan "$hyb" --json="$hyb/a.json" --no-probe --quiet >/dev/null 2>&1 || true; php -r '
 	$f = json_decode(file_get_contents($argv[1]), true);
-	foreach ($f as $x) { if ($x["algorithm"] === "rsa-sign") { echo $x["verdict"]; return; } }
+	foreach ($f as $x) { if ($x["algorithm"] === "rsa-sign" && $x["file"] === "deploy/backup.sh") { echo $x["verdict"]; return; } }
 ' "$hyb/a.json")
+# The fixture signs with RSA twice (deploy/backup.sh, src/Tokens.php): the one
+# read is named, not the first found.
 # On the domain that already owns the finding: resolve() keeps the first glob
 # that matches, so a domain appended at the end would never be reached.
 php -r '
@@ -1079,7 +1081,7 @@ php -r '
 ' "$hyb/sablier.json"
 after=$(./bin/sablier scan "$hyb" --json="$hyb/b.json" --out="$hyb/b.html" --no-probe --quiet >/dev/null 2>&1 || true; php -r '
 	$f = json_decode(file_get_contents($argv[1]), true);
-	foreach ($f as $x) { if ($x["algorithm"] === "rsa-sign") { echo $x["verdict"]; return; } }
+	foreach ($f as $x) { if ($x["algorithm"] === "rsa-sign" && $x["file"] === "deploy/backup.sh") { echo $x["verdict"]; return; } }
 ' "$hyb/b.json")
 if [ "$before" != "watch" ] || [ "$after" != "clear" ]; then
 	echo "✗ hybrid: a declared pairing did not change the verdict ($before → $after)"
