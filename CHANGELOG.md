@@ -4,6 +4,15 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+### Findings in path order, on every machine
+
+Files were read in the order the filesystem lists them, so the same project
+gave its findings in a different order on another machine, and a test that
+read "the first RSA signature" of its fixture passed or failed by the disk's
+mood. Files are now read in path order; the test names the file it reads.
+
 ## v0.12.0 — 2026-11-02
 
 The release that reports a checksum standing where a signature should be, and

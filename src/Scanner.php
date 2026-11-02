@@ -105,6 +105,10 @@ final class Scanner
             ),
         );
 
+        // In path order, not the filesystem's: a directory lists its entries in
+        // whatever order the filesystem keeps them, so the same project gave its
+        // findings in another order on another machine.
+        $sources = [];
         foreach ($iterator as $file) {
             if (!$file instanceof \SplFileInfo || !$file->isFile() || $file->getSize() > self::MAX_BYTES) {
                 continue;
@@ -117,7 +121,10 @@ final class Scanner
                 }
             }
 
-            yield $source;
+            $sources[$source->relativePath] = $source;
         }
+        ksort($sources, \SORT_STRING);
+
+        yield from $sources;
     }
 }
