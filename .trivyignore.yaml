@@ -11,45 +11,26 @@
 # justified for all three, and narrow enough in time that the question comes
 # back quickly.
 vulnerabilities:
-  - id: CVE-2026-116587
-    statement: >-
-      go-jose/v4 4.1.5 in usr/local/bin/trivy, in aquasec/trivy:0.76.1, on both
-      architectures; neither PHP image carries a Go binary Trivy reports
-      against. The fix is go-jose 4.1.6, and no Trivy release is built with it:
-      0.76.1 (2026-10-21) is the latest, checked 2026-11-02. The flaw is a
-      denial of service when parsing a JWK with crafted RSA parameters. The
-      way we run Trivy (`image --scanners vuln`, images fetched by digest)
-      verifies no signature and no attestation, so it parses no JWK from
-      anyone; and the impact class fails closed in any case: a scanner that
-      hangs or crashes turns the job red, it cannot report "clean". The entry
-      goes as soon as a Trivy built with go-jose 4.1.6 is published;
-      re-checked every Monday by the scheduled run.
-    expired_at: 2026-11-09
   - id: CVE-2026-111497
     statement: >-
-      brotli-libs 1.2.0-r1 ships in all three images, on both architectures.
-      Alpine publishes the fix as 1.2.1-r0; none of the three has been rebuilt
-      with it, including the latest php:8.5-cli-alpine (sha256:e899a75c…),
-      phpstan:2-php8.5 (sha256:7585cc6c…) and trivy:0.76.1, checked
-      2026-11-02, and we do not control those rebuilds. The flaw is an
-      out-of-bounds write in the decoder, on crafted compressed input. Nothing
-      here decodes brotli: in the PHP images the only consumer is libcurl, and
-      sablier never calls curl (every probe goes through stream_socket_client
-      and OpenSSL); PHPStan reads this repository's own sources; Trivy is Go
-      and decompresses with Go's own code. Re-checked every Monday by the
-      scheduled run; the entry goes as soon as the images ship 1.2.1. Still
-      true on 2026-11-02: renewed for one week.
-    expired_at: 2026-11-09
+      brotli-libs 1.2.0-r1 ships in phpstan:2-php8.5 (sha256:61bce0b7…), the
+      latest, on both architectures. Alpine publishes the fix as 1.2.1-r0;
+      php:8.5-cli-alpine and trivy:0.76.2 have been rebuilt with it, PHPStan's
+      image has not (checked 2026-11-09), and we do not control that rebuild.
+      The flaw is an out-of-bounds write in the decoder, on crafted compressed
+      input. PHPStan reads this repository's own sources and decodes no
+      brotli. Re-checked every Monday by the scheduled run; the entry goes as
+      soon as the image ships 1.2.1. Still true on 2026-11-09: renewed for one
+      week.
+    expired_at: 2026-11-16
   - id: CVE-2026-92392
     statement: >-
-      curl and libcurl 8.22.0-r0 ship in all three images, on both
-      architectures. Alpine publishes the fix as 8.23.0-r0; none of the three
-      has been rebuilt with it, including the latest of each (checked
-      2026-11-02), and we do not control those rebuilds. The flaw is a
-      use-after-free during an HTTP/2 upload. Nothing here uploads with curl,
-      or uses it at all: sablier's probes open their own sockets
-      (stream_socket_client, OpenSSL), PHPStan makes no request, and Trivy
-      fetches with Go's HTTP client. Re-checked every Monday by the scheduled
-      run; the entry goes as soon as the images ship 8.23.0. Still true on
-      2026-11-02: renewed for one week.
-    expired_at: 2026-11-09
+      curl and libcurl 8.22.0-r0 ship in phpstan:2-php8.5 (sha256:61bce0b7…),
+      the latest, on both architectures. Alpine publishes the fix as
+      8.23.0-r0; the other two images have it, PHPStan's has not been rebuilt
+      (checked 2026-11-09), and we do not control that rebuild. The flaw is a
+      use-after-free during an HTTP/2 upload. PHPStan makes no request, with
+      curl or otherwise. Re-checked every Monday by the scheduled run; the
+      entry goes as soon as the image ships 8.23.0. Still true on 2026-11-09:
+      renewed for one week.
+    expired_at: 2026-11-16

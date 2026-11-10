@@ -31,7 +31,7 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 # The digest is the same string as PHP_IMAGE in the Makefile, and the test suite
 # refuses a commit where the two disagree. `make images` prints what the tag
 # resolves to today, for updating it on purpose.
-image=${SABLIER_PHP_IMAGE:-php:8.5-cli-alpine@sha256:93684051146ec037620855feb77f278090bde45ddc030801cd3f2a7685bc4deb}
+image=${SABLIER_PHP_IMAGE:-php:8.5-cli-alpine@sha256:d1fbbe78850d1eb9aa8f7da652ec5db61eb4c9377c8215cf5e23f3b528ed4f2b}
 
 if command -v php >/dev/null 2>&1 && php -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' 2>/dev/null; then
     exec php "$root/bin/sablier" "$@"

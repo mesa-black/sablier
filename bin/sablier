@@ -970,7 +970,7 @@ if ($command === 'advisories') {
     // and a name can be re-pointed, and `make cve` proves something about bytes.
     // Override it with SABLIER_TRIVY_IMAGE when your site mirrors its own.
     $scanner = getenv('SABLIER_TRIVY_IMAGE')
-        ?: 'aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c';
+        ?: 'aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb';
     $cache = (getenv('HOME') ?: sys_get_temp_dir()).'/.cache/trivy';
     @mkdir($cache, 0o755, true);
     printf("\n  %s\n", Lang::t('advisories.running', $scanner));
