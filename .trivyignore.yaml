@@ -11,26 +11,42 @@
 # justified for all three, and narrow enough in time that the question comes
 # back quickly.
 vulnerabilities:
-  - id: CVE-2026-111497
+  - id: CVE-2026-105437
     statement: >-
-      brotli-libs 1.2.0-r1 ships in phpstan:2-php8.5 (sha256:61bce0b7…), the
-      latest, on both architectures. Alpine publishes the fix as 1.2.1-r0;
-      php:8.5-cli-alpine and trivy:0.76.2 have been rebuilt with it, PHPStan's
-      image has not (checked 2026-11-09), and we do not control that rebuild.
-      The flaw is an out-of-bounds write in the decoder, on crafted compressed
-      input. PHPStan reads this repository's own sources and decodes no
-      brotli. Re-checked every Monday by the scheduled run; the entry goes as
-      soon as the image ships 1.2.1. Still true on 2026-11-09: renewed for one
-      week.
-    expired_at: 2026-11-16
-  - id: CVE-2026-92392
+      Heap corruption through an integer overflow in merge size calculations. git and git-init-template 2.54.0-r0 ship in aquasec/trivy:0.76.2
+      (sha256:8f6bb947…), the latest Trivy, on both architectures; neither PHP
+      image carries git. Alpine publishes the fix as 2.54.1-r0 and no Trivy
+      image has been rebuilt with it (checked 2026-11-16); we do not control
+      that rebuild. Trivy never runs the git binary the way we call it
+      (`image --image-src remote` and `fs --scanners vuln`): both scans give
+      the same result with /usr/bin/git replaced by a tripwire that fails on
+      any call, and the tripwire never fired (checked 2026-11-16). Re-checked
+      every Monday by the scheduled run; the entry goes as soon as a Trivy
+      image ships git 2.54.1.
+    expired_at: 2026-11-23
+  - id: CVE-2026-111760
     statement: >-
-      curl and libcurl 8.22.0-r0 ship in phpstan:2-php8.5 (sha256:61bce0b7…),
-      the latest, on both architectures. Alpine publishes the fix as
-      8.23.0-r0; the other two images have it, PHPStan's has not been rebuilt
-      (checked 2026-11-09), and we do not control that rebuild. The flaw is a
-      use-after-free during an HTTP/2 upload. PHPStan makes no request, with
-      curl or otherwise. Re-checked every Monday by the scheduled run; the
-      entry goes as soon as the image ships 8.23.0. Still true on 2026-11-09:
-      renewed for one week.
-    expired_at: 2026-11-16
+      Code execution through unsafe submodule metadata in a recursive clone. git and git-init-template 2.54.0-r0 ship in aquasec/trivy:0.76.2
+      (sha256:8f6bb947…), the latest Trivy, on both architectures; neither PHP
+      image carries git. Alpine publishes the fix as 2.54.1-r0 and no Trivy
+      image has been rebuilt with it (checked 2026-11-16); we do not control
+      that rebuild. Trivy never runs the git binary the way we call it
+      (`image --image-src remote` and `fs --scanners vuln`): both scans give
+      the same result with /usr/bin/git replaced by a tripwire that fails on
+      any call, and the tripwire never fired (checked 2026-11-16). Re-checked
+      every Monday by the scheduled run; the entry goes as soon as a Trivy
+      image ships git 2.54.1.
+    expired_at: 2026-11-23
+  - id: CVE-2026-114466
+    statement: >-
+      File system access through fast-import features. git and git-init-template 2.54.0-r0 ship in aquasec/trivy:0.76.2
+      (sha256:8f6bb947…), the latest Trivy, on both architectures; neither PHP
+      image carries git. Alpine publishes the fix as 2.54.1-r0 and no Trivy
+      image has been rebuilt with it (checked 2026-11-16); we do not control
+      that rebuild. Trivy never runs the git binary the way we call it
+      (`image --image-src remote` and `fs --scanners vuln`): both scans give
+      the same result with /usr/bin/git replaced by a tripwire that fails on
+      any call, and the tripwire never fired (checked 2026-11-16). Re-checked
+      every Monday by the scheduled run; the entry goes as soon as a Trivy
+      image ships git 2.54.1.
+    expired_at: 2026-11-23

@@ -20,7 +20,7 @@
 # picks the right one. `make images` prints what the tags resolve to today, for
 # when updating them is a decision somebody makes on purpose.
 PHP_IMAGE ?= php:8.5-cli-alpine@sha256:d1fbbe78850d1eb9aa8f7da652ec5db61eb4c9377c8215cf5e23f3b528ed4f2b
-PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.5@sha256:61bce0b764be16b6985949b00769f774a47665742b5ba1e1032a6d6a07fbe0f7
+PHPSTAN_IMAGE ?= ghcr.io/phpstan/phpstan:2-php8.5@sha256:a0f51e0f80a0a4c204ec2c734dc2914a1e4bf836377d0e401da843b59c85f82f
 TRIVY_IMAGE ?= aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb
 .PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples release images
 
