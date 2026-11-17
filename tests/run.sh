@@ -2571,6 +2571,25 @@ if ! grep -q "127.0.0.1:9/again" "$ots/err" || grep -q "block 358391" "$ots/k.ht
 fi
 printf '  ✓ %-24s %-10s %s\n' "ots" "keep" "same digest kept, another digest never claimed"
 
+# 10b. A SHA-1 step is never part of an anchoring. Its collisions are within a
+#      budget, so a proof through it could date either of two documents. Here
+#      a SHA-1 step leads to the real block 358391's attestation, with its real
+#      header at hand: whatever SHA-1 would have given, the anchoring must not
+#      come out as checked.
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	$bytes = "\x00OpenTimestamps\x00\x00Proof\x00\xbf\x89\xe2\xe8\x84\xe8\x92\x94\x01\x08".str_repeat("\x22", 32)
+		."\x02"."\x00\x05\x88\x96\x0d\x73\xd7\x19\x01\x03\xf7\xef\x15";
+	$proof = Sablier\Ots\Proof::parse($bytes);
+	if ($proof->attestations()[0]["message"] !== null) { fwrite(STDERR, "✗ ots: a SHA-1 step was computed\n"); exit(1); }
+	$check = Sablier\OpenTimestamps::check($proof, [Sablier\Ots\BlockHeader::fromHex($argv[1])], false);
+	foreach ($check["anchors"] as $anchor) {
+		if ($anchor["state"] === "valid") { fwrite(STDERR, "✗ ots: an anchoring through SHA-1 was said to check out\n"); exit(1); }
+	}
+	if (Sablier\OpenTimestamps::summary($check)["state"] === "anchored") { fwrite(STDERR, "✗ ots: a proof through SHA-1 was summarised as anchored\n"); exit(1); }
+	printf("  ✓ %-24s %-10s %s\n", "ots", "sha1", "a step through SHA-1 is never an anchoring");
+' "$header" || { rm -rf "$ots"; exit 1; }
+
 # 11. Where an upgrade may send this machine. A pending attestation is a URL
 #     written by whoever made the file; one with a port, a path or a host
 #     outside the calendars' operators is refused before any connection.

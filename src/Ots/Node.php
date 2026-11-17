@@ -252,9 +252,20 @@ final class Node
     }
 
     /**
-     * One edge of the tree. Null for Keccak-256 only: PHP has SHA3-256, which
-     * pads differently and gives another answer, and computing the wrong hash
-     * would turn "not checked" into "does not match".
+     * One edge of the tree. Null where the result cannot be trusted or cannot
+     * be computed, which leaves every attestation under it "not checked":
+     *
+     * - Keccak-256: PHP has SHA3-256, which pads differently and gives another
+     *   answer, and computing the wrong hash would turn "not checked" into
+     *   "does not match".
+     * - SHA-1: computable, and the format allows it, but its collisions are
+     *   within reach of a budget, and a step that collides lets two documents
+     *   share one anchoring — a proof through it would date whichever of the
+     *   two its author hands out. This tool never writes one; a proof from
+     *   somebody else that goes through SHA-1 is read, kept, and never said to
+     *   be anchored. Not computing it at all is what makes that a fact rather
+     *   than a branch somebody has to remember (decided 2026-11-17, when this
+     *   tool's own scan of itself flagged the call).
      */
     public static function apply(int $op, string $arg, string $message): ?string
     {
@@ -264,7 +275,7 @@ final class Node
         }
 
         $result = match ($op) {
-            self::SHA1 => hash('sha1', $message, true),
+            self::SHA1 => null,
             self::RIPEMD160 => hash('ripemd160', $message, true),
             self::SHA256 => hash('sha256', $message, true),
             self::KECCAK256 => null,

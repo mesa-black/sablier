@@ -67,7 +67,10 @@ operations, is refused before it is walked, in a sentence rather than a
 crash; duplicate branches are found in one lookup, so a wide proof cannot make
 the check slow. Upgrades only follow the calendars the official client
 trusts, or one named with `--calendar-url`, and a rewritten proof is read back
-before it replaces the one on disk.
+before it replaces the one on disk. A step through SHA-1, which the format allows, is not
+computed: its collisions are within a budget, so a proof through it could
+date either of two documents, and it is never said to be anchored. This
+tool's scan of itself flagged the call before the release did.
 
 ## v0.12.2 — 2026-11-17
 
