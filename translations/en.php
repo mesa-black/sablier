@@ -664,7 +664,7 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'crossing.calendar.summary' => 'Crossing of the %s domain (%s)',
     'crossing.calendar.description' => 'From this day, data in the %s domain encrypted with a vulnerable algorithm stays confidential for %d years, which is past the %d expiry. Migrating after this date no longer protects what has already been emitted.',
     // --- binary assets: what hides where nobody reads ---
-    'blind.assets' => 'Binary files (images, fonts, archives) are read over their first few megabytes only, and only for three verifiable signs: a key block, bytes after the end of the image, an extension that lies about the content. A message hidden in the bits of an image is not detected here, and does not claim to be.',
+    'blind.assets' => 'Binary files (images, fonts, archives) are read in full up to 8 MiB (8,388,608 bytes) — anything larger is not read at all — and only for three verifiable signs: a key block, bytes after the end of the image, an extension that lies about the content. A message hidden in the bits of an image is not detected here, and does not claim to be.',
     'detail.asset.key' => 'Key block found at byte %2$d of a .%1$s file. A binary asset is not a place key material arrives in by accident.',
     'detail.asset.trailing' => 'The image ends at byte %d and the file carries on past it. Often harmless — a colour profile, a watermark added by some tool — and sometimes not. To open and confirm, not to fix on sight.',
     'detail.asset.magic' => 'The content does not match the extension. A renamed file is ordinary; a disguised one is less so. To confirm.',
