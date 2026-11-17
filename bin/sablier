@@ -519,11 +519,55 @@ if ($command === 'verify') {
 // check for a reader who holds only the proof — or a proof this tool did not
 // make: it names the digest the file covers, completes it when the calendars
 // have, and checks every block it claims.
+//
+// Handed any other file, it anchors that file: its SHA-256 goes to the
+// calendars and the proof is written beside it as <file>.ots, the name the
+// official client uses. That is how this project dates its own release
+// archives, and a date worth having for one file is worth having for others —
+// a SBOM, a signed declaration, minutes. A proof already beside the file that
+// covers these very bytes is kept and only completed: the oldest anchoring is
+// the one worth having, as everywhere else in this tool.
 if ($command === 'anchor') {
     $path = $argv[2] ?? '';
     if (!is_file($path)) {
         fwrite(\STDERR, '✗ '.Lang::t('cli.anchor_usage')."\n");
         exit(1);
+    }
+    if (!str_ends_with($path, '.ots')) {
+        $proofPath = $path.'.ots';
+        $digest = (string) hash_file('sha256', $path);
+        if (is_file($proofPath)) {
+            $held = OpenTimestamps::load($proofPath);
+            if (isset($held['proof']) && hash_equals($held['proof']->hex(), $digest)) {
+                printf("  %s\n", Lang::t('anchor.file.kept', $proofPath));
+                exit(sablier_anchor_check($proofPath, $held['proof'], \array_slice($argv, 3)) ? 1 : 0);
+            }
+            // Never overwritten: a proof for other bytes is somebody's evidence
+            // about something, and the file it dated may be the one that changed.
+            fwrite(\STDERR, '✗ '.Lang::t('anchor.file.other', $proofPath, $path)."\n");
+            exit(1);
+        }
+        if (Airgap::on()) {
+            Airgap::refuse('anchor');
+        }
+        $asked = [];
+        foreach (\array_slice($argv, 3) as $arg) {
+            if (preg_match('/^--anchor=(.+)$/', $arg, $m) === 1) {
+                foreach (explode(',', $m[1]) as $calendar) {
+                    $asked[] = trim($calendar);
+                }
+            }
+        }
+        $stamped = OpenTimestamps::stamp($digest, OpenTimestamps::calendars($asked === [] ? [OpenTimestamps::KEYWORD] : $asked));
+        foreach ($stamped['errors'] as $error) {
+            fwrite(\STDERR, '✗ '.Lang::t($error['error'], $error['detail'])."\n");
+        }
+        if ($stamped['proof'] === null) {
+            exit(1);
+        }
+        file_put_contents($proofPath, $stamped['proof']->serialise());
+        printf("  %s\n", Lang::t('anchor.file.stamped', $proofPath, $digest, implode(', ', $stamped['reached'])));
+        exit(0);
     }
     $loaded = OpenTimestamps::load($path);
     if (isset($loaded['error'])) {

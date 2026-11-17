@@ -207,6 +207,7 @@ return [
   bin/sablier keygen                write a signing key (default: sablier.key)
   bin/sablier verify <file.sig>     check a signature, its attested date, its anchoring and its chain
   bin/sablier anchor <file.ots>     complete and check an OpenTimestamps proof on its own
+  bin/sablier anchor <file>         anchor any file in the Bitcoin chain: <file>.ots beside it
   bin/sablier version               the version (also --version)
   bin/sablier help                  this text
 
@@ -760,7 +761,7 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'worksheet.written' => 'Worksheet written to %s. Open it in a browser, offline.',
     // --- anchoring in the Bitcoin chain (OpenTimestamps) ---
     'cli.anchor_needs_sign' => '--anchor needs --sign: the proof anchors the signed digest and is filed beside the signature.',
-    'cli.anchor_usage' => 'usage: sablier anchor <file.ots> [--block-header=HEX] [--calendar-url=URL]',
+    'cli.anchor_usage' => 'usage: sablier anchor <file.ots> [--block-header=HEX] [--calendar-url=URL], or sablier anchor <file> [--anchor=URL]',
     'cli.anchored' => '%1$s — anchored in the Bitcoin chain at block %2$d, %3$s',
     'cli.anchor.pending' => '%1$s — anchoring pending: submitted to %2$s, completes within a few hours (sablier verify finishes it)',
     'cli.anchor.claimed' => '%1$s — anchoring at block %2$d, not checked from here',
@@ -785,6 +786,9 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'anchor.header.rpc' => 'the Bitcoin node in SABLIER_BITCOIN_RPC (%s) did not give the header',
     'anchor.header.bad_hex' => '--block-header: %s… is not an 80-byte header in hex.',
     'verify.anchor.digest' => '%1$s anchors the digest %2$s',
+    'anchor.file.stamped' => '%1$s written: the digest %2$s submitted to %3$s. Pending until a block; `sablier anchor %1$s` completes it in a few hours.',
+    'anchor.file.kept' => '%1$s already anchors these bytes: kept, and completed if the calendars have.',
+    'anchor.file.other' => '%1$s anchors other bytes than %2$s: left as it is. Move it aside to anchor the file as it is now.',
     'verify.anchor.valid' => 'anchored in the Bitcoin chain at block %1$d, %2$s — header from %3$s, merkle root and proof of work checked here.',
     'verify.anchor.invalid' => 'the Bitcoin anchoring at block %1$d does NOT hold: %2$s.',
     'verify.anchor.unchecked' => 'Bitcoin anchoring claimed at block %1$d, not checked: %2$s.',

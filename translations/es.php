@@ -207,6 +207,7 @@ return [
   bin/sablier keygen                escribir una clave de firma (por defecto: sablier.key)
   bin/sablier verify <archivo.sig>  verificar una firma, su fecha atestiguada, su anclaje y su cadena
   bin/sablier anchor <archivo.ots>  completar y verificar una prueba OpenTimestamps por sí sola
+  bin/sablier anchor <archivo>      anclar cualquier archivo en la cadena de Bitcoin: <archivo>.ots a su lado
   bin/sablier version               la versión (también --version)
   bin/sablier help                  este texto
 
@@ -760,7 +761,7 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'worksheet.written' => 'Cuestionario escrito en %s. Ábralo en un navegador, sin conexión.',
     // --- anclaje en la cadena Bitcoin (OpenTimestamps) ---
     'cli.anchor_needs_sign' => '--anchor necesita --sign: la prueba ancla la huella firmada y se guarda junto a la firma.',
-    'cli.anchor_usage' => 'uso: sablier anchor <archivo.ots> [--block-header=HEX] [--calendar-url=URL]',
+    'cli.anchor_usage' => 'uso: sablier anchor <archivo.ots> [--block-header=HEX] [--calendar-url=URL], o sablier anchor <archivo> [--anchor=URL]',
     'cli.anchored' => '%1$s — anclado en la cadena Bitcoin en el bloque %2$d, %3$s',
     'cli.anchor.pending' => '%1$s — anclaje pendiente: enviado a %2$s, completo en unas horas (sablier verify lo termina)',
     'cli.anchor.claimed' => '%1$s — anclaje en el bloque %2$d, no verificado desde aquí',
@@ -785,6 +786,9 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'anchor.header.rpc' => 'el nodo Bitcoin de SABLIER_BITCOIN_RPC (%s) no dio la cabecera',
     'anchor.header.bad_hex' => '--block-header: %s… no es una cabecera de 80 bytes en hexadecimal.',
     'verify.anchor.digest' => '%1$s ancla la huella %2$s',
+    'anchor.file.stamped' => '%1$s escrito: la huella %2$s enviada a %3$s. Pendiente de un bloque; `sablier anchor %1$s` la completa en unas horas.',
+    'anchor.file.kept' => '%1$s ya ancla estos bytes: se conserva, y se completa si los calendarios lo han hecho.',
+    'anchor.file.other' => '%1$s ancla otros bytes que %2$s: se deja como está. Apártelo para anclar el archivo tal como está ahora.',
     'verify.anchor.valid' => 'anclado en la cadena Bitcoin en el bloque %1$d, %2$s — cabecera obtenida de %3$s, raíz de Merkle y prueba de trabajo verificadas aquí.',
     'verify.anchor.invalid' => 'el anclaje Bitcoin en el bloque %1$d NO SE SOSTIENE: %2$s.',
     'verify.anchor.unchecked' => 'anclaje Bitcoin reivindicado en el bloque %1$d, no verificado: %2$s.',
