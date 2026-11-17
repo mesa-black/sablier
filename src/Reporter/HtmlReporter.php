@@ -16,6 +16,7 @@ use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Rendered;
 use Sablier\Signature;
+use Sablier\OpenTimestamps;
 use Sablier\Timestamp;
 use Sablier\Version;
 
@@ -223,6 +224,12 @@ final class HtmlReporter implements ReporterInterface
                 // stop, and the sentence added a second one.
                 rtrim($this->analysis->timestamp()['authority'], '.'),
             );
+        }
+        // And the block, once there is one. A pending anchoring is left out:
+        // a message read once should not promise something a few hours away.
+        $anchor = $this->analysis->anchor;
+        if ($anchor !== null && $anchor['state'] === 'anchored') {
+            $summary .= "\n\n".Lang::t('share.text.anchored', $anchor['height'], OpenTimestamps::readable($anchor['time']));
         }
         // The scheme is the phone's. A desktop that has never registered it
         // answers with a browser error nobody can act on, so the text it would
@@ -472,6 +479,14 @@ final class HtmlReporter implements ReporterInterface
                         .($token['authority'] !== '' ? ' · '.$token['authority'] : '')).'</dd></div>';
             }
 
+            // The anchoring beside the attested date, and visibly not one more
+            // of them: the line above is an authority's word, this one is
+            // arithmetic anybody can redo.
+            if ($this->analysis->anchor !== null) {
+                $rows .= '<div><dt>'.htmlspecialchars(Lang::t('seal.anchor')).'</dt><dd>'
+                    .htmlspecialchars(self::anchorLine($this->analysis->anchor)).'</dd></div>';
+            }
+
             $caveat = '<p class="seal-caveat">'.htmlspecialchars(\is_array($hybrid)
                 ? Lang::t('seal.hybrid', $hybrid['algorithm'])
                 : Lang::t('seal.caveat', $this->analysis->declaration->expiryYear)).'</p>';
@@ -541,6 +556,24 @@ final class HtmlReporter implements ReporterInterface
                 }
             }
 
+            // What the anchoring establishes, how to check it without this tool,
+            // and where it stops. After the tokens, because the reader has just
+            // been told what an authority's date is worth, and this is the
+            // answer to the limit printed there.
+            $anchor = $this->analysis->anchor;
+            if ($anchor !== null) {
+                $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t(
+                    $anchor['state'] === 'pending' ? 'seal.anchor.proves.pending' : 'seal.anchor.proves',
+                )).'</p>'
+                    .'<p class="legend">'.htmlspecialchars(Lang::t('seal.anchor.verify')).'</p>'
+                    .'<pre class="recipe">'.htmlspecialchars(Lang::t(
+                        'seal.anchor.command',
+                        Signature::digest($this->analysis),
+                        basename($anchor['path']),
+                    )).'</pre>'
+                    .'<p class="legend">'.htmlspecialchars(Lang::t('seal.anchor.command.note')).'</p>';
+            }
+
             // Why the seal can be older than the masthead. It is kept as long as
             // the findings hash to the same value, so a re-run that changes
             // nothing shows today's date at the top and the first signature and
@@ -581,6 +614,25 @@ final class HtmlReporter implements ReporterInterface
             .'<dl class="probe-facts">'.$rows.'</dl>'
             .'<p class="legend">'.htmlspecialchars(Lang::t('seal.legend')).'</p>'
             .$caveat.'</section>';
+    }
+
+    /**
+     * The anchoring in one line: the block and its date, the block that could
+     * not be checked, or the calendars still working on it.
+     *
+     * Shared with the audit document, which says the same thing to a reader in
+     * another room.
+     *
+     * @param array{state:string, height:int, time:int, calendars:list<string>, path:string, since:string} $anchor
+     */
+    public static function anchorLine(array $anchor): string
+    {
+        return match ($anchor['state']) {
+            'anchored' => Lang::t('seal.anchor.anchored', $anchor['height'], OpenTimestamps::readable($anchor['time'])),
+            'invalid' => Lang::t('seal.anchor.invalid', $anchor['height']),
+            'unchecked' => Lang::t('seal.anchor.claimed', $anchor['height']),
+            default => Lang::t('seal.anchor.pending', implode(', ', $anchor['calendars']), $anchor['since']),
+        };
     }
 
     private function probeBlock(): string
