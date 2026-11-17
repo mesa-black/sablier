@@ -200,26 +200,60 @@ return [
   bin/sablier init <path>           write a starter declaration, to be corrected
   bin/sablier declare <path>        interview: the confidentiality lifetimes, in business terms
   bin/sablier serve <path>          the same interview in a browser, with a clock
+  bin/sablier worksheet <path>      the same interview as one offline HTML file (default: worksheet.html)
   bin/sablier advisories <path>     collect published vulnerabilities of the dependencies
   bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
   bin/sablier endorse <sablier.json>  sign the declaration: the durations, by whoever commits to them
+  bin/sablier keygen                write a signing key (default: sablier.key)
+  bin/sablier verify <file.sig>     check a signature, its attested date and its chain
+  bin/sablier version               the version (also --version)
+  bin/sablier help                  this text
 
+  scan, judge:
     --declare=FILE      data domain declaration (default: sablier.json at the scanned root)
     --out=FILE          HTML report (default: report.html)
+    --pdf=FILE          the report as PDF too (and the audit report, with --audit)
     --json=FILE         raw inventory as JSON
     --cbom=FILE         inventory as CycloneDX 1.6 (CBOM)
-    --log=FILE          interview log: time per area, answers, skips (declare command)
     --audit=FILE        audit report: numbered facts, method, limits, opinion
     --calendar=FILE     crossing dates as iCalendar (.ics)
     --advisories=FILE   collected published vulnerabilities (see the advisories command)
     --baseline=FILE     compare against a reference JSON inventory (exit 2 when a decision is due)
     --breached=DATE     a breach was declared on YYYY-MM-DD: count what stays readable
     --incident=FILE     post-breach document: what left, and how long it keeps hurting
+    --year=YYYY         project the verdicts into a future year (marked as a projection)
+    --sign=KEY          sign the report with a keygen key, or --sign=ephemeral: a key used once
     --timestamp=URL     have the digest\'s date attested by an RFC 3161 authority (with --sign)
                         repeatable, or comma-separated: one authority is one point of trust
-    --lang=fr|en|es     report language
     --no-probe          do not probe the declared hosts
-    --quiet             no terminal summary',
+    --quiet             no terminal summary
+
+  init, declare, serve, worksheet, advisories, keygen:
+    --out=FILE          the file written (declaration, worksheet, advisories or key)
+  declare:
+    --import=FILE       take the answers brought back from a worksheet
+    --log=FILE          interview log: time per area, answers, skips
+  serve:
+    --port=N            listening port (default: 8765)
+    --host=ADDR         listening address (default: 127.0.0.1)
+    --expose            reached from outside (tunnel, proxy): the link carries a token
+    --public=URL        the address handed to the person (implies --expose)
+  accept:
+    --reason=TEXT       why (required)
+    --until=DATE        YYYY-MM-DD (default: in six months)
+    --declare=FILE      the declaration written to (default: sablier.json)
+  endorse:
+    --sign=KEY          a keygen key (default: a key used once, its fingerprint printed)
+  verify:
+    --declare=FILE      the declaration holding the expected keys (required for an endorsement)
+    --fingerprint=HEX   compare the keys with a fingerprint received through another channel
+    --timestamp=FILE    an RFC 3161 token (default: those beside the signature)
+    --timestamp-ca=FILE certificate authority to check the token\'s chain against
+    --previous=FILE     the earlier signature this one claims to follow
+
+  everywhere:
+    --lang=fr|en|es     language (default: SABLIER_LANG, or fr)
+    --airgap            refuse whatever reaches the network: probe, advisories, --timestamp (or SABLIER_AIRGAP=1)',
     'cli.declaration' => 'declaration:',
 
     // --- comparison with a reference run ---

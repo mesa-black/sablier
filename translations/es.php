@@ -200,26 +200,60 @@ return [
   bin/sablier init <ruta>           escribir una declaración inicial, para corregir
   bin/sablier declare <ruta>        entrevista: las duraciones de confidencialidad, en términos de negocio
   bin/sablier serve <ruta>          la misma entrevista en un navegador, con cronómetro
+  bin/sablier worksheet <ruta>      la misma entrevista en un solo archivo HTML sin conexión (por defecto: worksheet.html)
   bin/sablier advisories <ruta>     recopilar las vulnerabilidades publicadas de las dependencias
   bin/sablier accept <huella> --reason=…  aceptar un hallazgo, con su fecha de caducidad
   bin/sablier endorse <sablier.json>  firmar la declaración: las duraciones, por quien se compromete
+  bin/sablier keygen                escribir una clave de firma (por defecto: sablier.key)
+  bin/sablier verify <archivo.sig>  verificar una firma, su fecha atestiguada y su cadena
+  bin/sablier version               la versión (también --version)
+  bin/sablier help                  este texto
 
+  scan, judge:
     --declare=ARCHIVO   declaración de dominios de datos (por defecto: sablier.json en la raíz analizada)
     --out=ARCHIVO       informe HTML (por defecto: report.html)
+    --pdf=ARCHIVO       el informe también en PDF (y el informe de auditoría, con --audit)
     --json=ARCHIVO      inventario en bruto en JSON
     --cbom=ARCHIVO      inventario en formato CycloneDX 1.6 (CBOM)
-    --log=ARCHIVO       registro de la entrevista: tiempo por zona, respuestas, saltos (comando declare)
     --audit=ARCHIVO     informe de auditoría: hechos numerados, método, límites, dictamen
     --calendar=ARCHIVO  fechas de cruce en formato iCalendar (.ics)
     --advisories=ARCHIVO  vulnerabilidades publicadas recopiladas (ver el comando advisories)
     --baseline=ARCHIVO  comparar con un inventario JSON de referencia (salida 2 si hay que decidir)
     --breached=FECHA    una fuga constatada el AAAA-MM-DD: contar lo que queda legible
     --incident=ARCHIVO  documento posfuga: lo que salió, y cuánto tiempo hace daño
+    --year=AAAA         proyectar los veredictos a un año futuro (marcado como proyección)
+    --sign=CLAVE        firmar el informe con una clave de keygen, o --sign=ephemeral: una clave de un solo uso
     --timestamp=URL     hacer atestiguar la fecha de la huella por una autoridad RFC 3161 (con --sign)
                         repetible, o separada por comas: una autoridad es un único punto de confianza
-    --lang=fr|en|es     idioma del informe
     --no-probe          no sondear los hosts declarados
-    --quiet             sin resumen en el terminal',
+    --quiet             sin resumen en el terminal
+
+  init, declare, serve, worksheet, advisories, keygen:
+    --out=ARCHIVO       el archivo escrito (declaración, cuestionario, vulnerabilidades o clave)
+  declare:
+    --import=ARCHIVO    tomar las respuestas traídas de un cuestionario (worksheet)
+    --log=ARCHIVO       registro de la entrevista: tiempo por zona, respuestas, saltos
+  serve:
+    --port=N            puerto de escucha (por defecto: 8765)
+    --host=DIRECCIÓN    dirección de escucha (por defecto: 127.0.0.1)
+    --expose            accesible desde fuera (túnel, proxy): el enlace lleva un token
+    --public=URL        la dirección entregada a la persona (implica --expose)
+  accept:
+    --reason=TEXTO      por qué (obligatorio)
+    --until=FECHA       AAAA-MM-DD (por defecto: dentro de seis meses)
+    --declare=ARCHIVO   la declaración donde escribir (por defecto: sablier.json)
+  endorse:
+    --sign=CLAVE        una clave de keygen (por defecto: una clave de un solo uso, con su huella impresa)
+  verify:
+    --declare=ARCHIVO   la declaración que contiene las claves esperadas (obligatoria para una declaración firmada)
+    --fingerprint=HEX   comparar las claves con una huella recibida por otro canal
+    --timestamp=ARCHIVO un token RFC 3161 (por defecto: los que están junto a la firma)
+    --timestamp-ca=ARCHIVO  autoridad de certificación para verificar la cadena del token
+    --previous=ARCHIVO  la firma anterior a la que esta dice suceder
+
+  en todas partes:
+    --lang=fr|en|es     idioma (por defecto: SABLIER_LANG, si no fr)
+    --airgap            rechazar todo lo que toca la red: probe, advisories, --timestamp (o SABLIER_AIRGAP=1)',
     'cli.declaration' => 'declaración:',
 
     // --- comparison with a reference run ---

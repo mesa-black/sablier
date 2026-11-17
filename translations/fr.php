@@ -209,26 +209,60 @@ return [
   bin/sablier init <chemin>         écrire une déclaration de départ, à corriger
   bin/sablier declare <chemin>      entretien : les durées de confidentialité, en langage métier
   bin/sablier serve <chemin>        le même entretien dans un navigateur, avec chronomètre
+  bin/sablier worksheet <chemin>    le même entretien en un seul fichier HTML hors ligne (défaut : worksheet.html)
   bin/sablier advisories <chemin>   collecter les vulnérabilités publiées des dépendances
   bin/sablier accept <empreinte> --reason=…  accepter un constat, avec sa date d\'expiration
   bin/sablier endorse <sablier.json>  signer la déclaration : les durées, par qui s\'y engage
+  bin/sablier keygen                écrire une clé de signature (défaut : sablier.key)
+  bin/sablier verify <fichier.sig>  vérifier une signature, sa date attestée et sa chaîne
+  bin/sablier version               la version (aussi --version)
+  bin/sablier help                  ce texte
 
+  scan, judge :
     --declare=FICHIER   déclaration des domaines de données (défaut : sablier.json à la racine analysée)
     --out=FICHIER       rapport HTML (défaut : report.html)
+    --pdf=FICHIER       le rapport en PDF aussi (et le rapport d\'audit, avec --audit)
     --json=FICHIER      inventaire brut en JSON
     --cbom=FICHIER      inventaire au format CycloneDX 1.6 (CBOM)
-    --log=FICHIER       journal de l\'entretien : temps par zone, réponses, zones passées (commande declare)
     --audit=FICHIER     rapport d\'audit : faits numérotés, méthode, limites, avis
     --calendar=FICHIER  dates de bascule au format iCalendar (.ics)
     --advisories=FICHIER  vulnérabilités publiées collectées (voir la commande advisories)
     --baseline=FICHIER  comparer à un inventaire JSON de référence (sortie 2 s\'il faut décider)
     --breached=DATE     une fuite constatée le AAAA-MM-JJ : compter ce qui reste lisible
     --incident=FICHIER  document post-fuite : ce qui est sorti, et combien de temps ça nuit
+    --year=AAAA         projeter les verdicts sur une année future (marqué comme projection)
+    --sign=CLÉ          signer le rapport avec une clé keygen, ou --sign=ephemeral : une clé à usage unique
     --timestamp=URL     faire attester la date de l\'empreinte par une autorité RFC 3161 (avec --sign)
                         répétable, ou séparée par des virgules : une autorité est un point de confiance unique
-    --lang=fr|en|es     langue du rapport
     --no-probe          ne pas sonder les hôtes déclarés
-    --quiet             pas de résumé au terminal',
+    --quiet             pas de résumé au terminal
+
+  init, declare, serve, worksheet, advisories, keygen :
+    --out=FICHIER       le fichier écrit (déclaration, questionnaire, vulnérabilités ou clé)
+  declare :
+    --import=FICHIER    reprendre les réponses rapportées d\'un questionnaire (worksheet)
+    --log=FICHIER       journal de l\'entretien : temps par zone, réponses, zones passées
+  serve :
+    --port=N            port d\'écoute (défaut : 8765)
+    --host=ADRESSE      adresse d\'écoute (défaut : 127.0.0.1)
+    --expose            joint de l\'extérieur (tunnel, proxy) : le lien porte un jeton
+    --public=URL        l\'adresse donnée à la personne (implique --expose)
+  accept :
+    --reason=TEXTE      pourquoi (obligatoire)
+    --until=DATE        AAAA-MM-JJ (défaut : dans six mois)
+    --declare=FICHIER   la déclaration où écrire (défaut : sablier.json)
+  endorse :
+    --sign=CLÉ          une clé keygen (défaut : une clé à usage unique, son empreinte affichée)
+  verify :
+    --declare=FICHIER   la déclaration qui porte les clés attendues (obligatoire pour une déclaration signée)
+    --fingerprint=HEX   comparer les clés à une empreinte reçue par un autre canal
+    --timestamp=FICHIER un jeton RFC 3161 (défaut : ceux posés à côté de la signature)
+    --timestamp-ca=FICHIER  autorité de certification pour vérifier la chaîne du jeton
+    --previous=FICHIER  la signature précédente que celle-ci dit suivre
+
+  partout :
+    --lang=fr|en|es     langue (défaut : SABLIER_LANG, sinon fr)
+    --airgap            refuser tout ce qui touche le réseau : probe, advisories, --timestamp (ou SABLIER_AIRGAP=1)',
     'cli.declaration' => 'déclaration :',
 
     // --- comparison with a reference run ---

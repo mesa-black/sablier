@@ -4,9 +4,8 @@
 /*
  * Sablier — cryptographic inventory, and the expiry date of each protection.
  *
- *   bin/sablier scan <path> [--declare=sablier.json] [--out=report.html] [--pdf=report.pdf]
- *   bin/sablier judge <cbom.json>
- *   bin/sablier probe <host>
+ *   bin/sablier help      every command and option (the text is cli.usage in
+ *                         translations/, one per language)
  *
  * No dependency, no network call of its own, no telemetry. On a tool that reads
  * where the keys are, that is not a posture: every dependency would be one more
