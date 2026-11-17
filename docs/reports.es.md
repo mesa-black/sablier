@@ -209,7 +209,8 @@ un agujero en ella.
 ## La fecha del sello, y qué la verifica
 
 Un informe firmado termina con su sello: la huella de los hallazgos, la firma que la
-cubre y — cuando se pidieron — dos tipos distintos de prueba de su fecha, impresos
+cubre, el nombre de la firma propia de la página (`report.html.page.sig`, que hace fallar
+la verificación si cambia un solo carácter de la página) y — cuando se pidieron — dos tipos distintos de prueba de su fecha, impresos
 uno bajo otro para que el lector vea cuál es cuál.
 
 - **Las fechas atestiguadas** (`--timestamp`): la palabra firmada de una autoridad

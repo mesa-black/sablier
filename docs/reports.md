@@ -210,7 +210,8 @@ someone looking for a hole in it.
 ## The date on the seal, and what checks it
 
 A signed report ends with its seal: the digest of the findings, the signature
-over it, and — when they were asked for — two different kinds of evidence about
+over it, the name of the page's own signature (`report.html.page.sig`, which
+fails the check if a single character of the page changes), and — when they were asked for — two different kinds of evidence about
 its date, printed one under the other so a reader sees which is which.
 
 - **Attested dates** (`--timestamp`): an RFC 3161 authority's signed word that it

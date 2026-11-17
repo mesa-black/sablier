@@ -70,6 +70,33 @@ esta firma existe: el que ya sabe falsificar la otra mitad.
 difieren byte a byte —una fecha de renderizado, una duración— mientras dicen exactamente
 lo mismo; dos renderizados en dos idiomas dan la misma huella.
 
+**Y la página, al lado.** Esa huella no puede cubrir la página que la muestra —un
+archivo que imprime su propia firma tendría que contenerla antes de calcularla—, así que
+hasta la 0.13.1 un informe publicado y editado a mano seguía verificándose. Ahora cada
+página se firma además tal como es, una vez escrita: `report.html.page.sig` junto a
+`report.html`, y lo mismo para el documento de auditoría, el documento post-brecha y los
+PDF cuando se piden. Lo que se firma es el SHA-256 del archivo exacto —una huella que
+cambia por completo en cuanto cambia un solo carácter—, con la misma clave y los mismos
+dos esquemas, y la firma nombra la huella de los hallazgos que la página muestra. Al ser
+un archivo aparte, no tiene por qué estar dentro de la página, y el problema de la
+autorreferencia desaparece.
+
+```bash
+sablier verify report.html.sig --declare=sablier.json    # los hallazgos, luego la página
+sablier verify audit.html.page.sig --declare=sablier.json # una página sola
+```
+
+`verify` sobre el `.sig` de un informe comprueba el `.page.sig` que tiene al lado cuando
+existe, con las mismas claves: una página que ya no corresponde falla, con la palabra
+*modificada*; una firma de página hecha por otra clave, sobre otros hallazgos, o sin la
+mitad post-cuántica que lleva la firma de los hallazgos, también falla. Un informe
+anterior a la 0.13.1 no la tiene, y se le dice —una nota, no un fallo—. Lo que ninguna
+firma impide: quien tiene la clave puede firmar otra página; para eso están la clave
+declarada y las fechas atestiguadas más abajo. A diferencia de la firma de los
+hallazgos, una firma de página no se conserva de una ejecución a otra: una página lleva
+la fecha de su renderizado, así que una página nueva recibe una firma nueva (solo se
+conserva si el archivo es idéntico).
+
 **Cada informe nombra al anterior.** Una segunda ejecución sobre la misma ruta de salida
 lee la firma que va a reemplazar y registra esa huella dentro de lo que firma, sin
 bandera que recordar — de modo que una carpeta de informes es un rastro de auditoría y

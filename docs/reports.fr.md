@@ -212,7 +212,8 @@ qui y cherche un trou.
 ## La date du sceau, et ce qui la vérifie
 
 Un rapport signé se termine par son sceau : l'empreinte des constats, la signature
-qui la couvre, et — quand on les a demandées — deux sortes de preuves de sa date,
+qui la couvre, le nom de la signature propre de la page (`report.html.page.sig`, qui fait
+échouer la vérification si un seul caractère de la page change), et — quand on les a demandées — deux sortes de preuves de sa date,
 imprimées l'une sous l'autre pour que le lecteur voie laquelle est laquelle.
 
 - **Les dates attestées** (`--timestamp`) : la parole signée d'une autorité RFC 3161
