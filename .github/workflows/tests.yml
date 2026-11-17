@@ -15,7 +15,7 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # 8.4 is the minimum users may have; 8.5 is what the launcher's image runs.
     strategy:
       fail-fast: false
@@ -50,7 +50,7 @@ jobs:
         run: ./bin/sablier scan . --no-probe --baseline=.sablier/baseline.json --out=self.html --lang=en
 
   static-analysis:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
 
@@ -60,7 +60,7 @@ jobs:
         run: make phpstan
 
   containers:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
 
@@ -76,7 +76,7 @@ jobs:
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [tests, static-analysis, containers]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:
