@@ -778,7 +778,7 @@ rm -rf "$tmp"
 # of knocking on the domain's web server. DNS is replaced: CI has no say in it.
 mx=$(php -r '
 	spl_autoload_register(static function (string $c): void {
-		$p = "src/".str_replace("\\\\", "/", substr($c, 8)).".php";
+		$p = "src/".str_replace("\\", "/", substr($c, 8)).".php";
 		if (is_file($p)) { require $p; }
 	});
 	$dns = static fn (array $records): Closure => static fn (string $d): array => $records;
@@ -1217,7 +1217,13 @@ if SABLIER_AIRGAP=1 ./bin/sablier scan tests/fixtures/sample --out=/tmp/sablier-
 	echo "✗ airgap: --timestamp reached for an authority anyway"
 	exit 1
 fi
-printf '  ✓ %-24s %-10s %s\n' "airgap" "refuses" "probe, advisories and --timestamp stop, loudly"
+# --anchor reaches a calendar the same way, and was wired in from the start.
+if SABLIER_AIRGAP=1 ./bin/sablier scan tests/fixtures/sample --out=/tmp/sablier-gap.html \
+	--sign=ephemeral --anchor=http://example.org --quiet >/dev/null 2>&1; then
+	echo "✗ airgap: --anchor reached for a calendar anyway"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "airgap" "refuses" "probe, advisories, --timestamp and --anchor stop, loudly"
 
 gap=$(mktemp -d)
 SABLIER_AIRGAP=1 ./bin/sablier scan tests/fixtures/sample --out="$gap/r.html" \
@@ -2311,6 +2317,138 @@ if ! grep -qi "invalid" "$ts/out2"; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "timestamp" "slot 2" "every token verified, not the first"
 rm -rf "$ts"
+
+# --- a date nobody has to be believed about -----------------------------------
+# An OpenTimestamps proof is SHA-256 from the digest to a Bitcoin block header.
+# Every check here runs offline: the proofs are the official client's own
+# examples and the one header they need is a fixture (tests/fixtures/ots/).
+ots=$(mktemp -d)
+for name in hello-world two-calendars known-and-unknown-notary; do
+	php -r 'echo base64_decode(file_get_contents($argv[1]));' "tests/fixtures/ots/$name.txt.ots.base64" > "$ots/$name.ots"
+done
+header=$(cat tests/fixtures/ots/block-358391.hex)
+
+# 1. The format, both ways. A proof this tool rewrites after an upgrade must
+#    still be one the official client reads, and an attestation from a notary
+#    nobody knows must come back as it went in.
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	foreach (array_slice($argv, 1) as $path) {
+		$bytes = file_get_contents($path);
+		$proof = Sablier\Ots\Proof::parse($bytes);
+		if ($proof->serialise() !== $bytes) { fwrite(STDERR, "✗ ots: ".basename($path)." does not come back byte for byte\n"); exit(1); }
+		$copy = Sablier\Ots\Proof::parse($bytes);
+		$copy->root->merge(Sablier\Ots\Proof::parse($bytes)->root);
+		if ($copy->serialise() !== $bytes) { fwrite(STDERR, "✗ ots: merging ".basename($path)." with itself changed it\n"); exit(1); }
+	}
+	$unknown = Sablier\Ots\Proof::parse(file_get_contents($argv[3]));
+	$tags = array_map(static fn (array $a): string => bin2hex($a["tag"]), $unknown->attestations());
+	if (!in_array("0102030405060708", $tags, true)) { fwrite(STDERR, "✗ ots: the unknown notary was dropped\n"); exit(1); }
+	printf("  ✓ %-24s %-10s %s\n", "ots", "format", "three real proofs parsed, written back byte for byte");
+' "$ots/hello-world.ots" "$ots/two-calendars.ots" "$ots/known-and-unknown-notary.ots" || { rm -rf "$ots"; exit 1; }
+
+# 2. A real, complete proof, checked with no network: the path recomputed, its
+#    end compared with the block's merkle root, the header's work checked.
+if ! ./bin/sablier anchor "$ots/hello-world.ots" --airgap --lang=en --block-header="$header" >"$ots/out" 2>&1; then
+	echo "✗ ots: a real proof with its real header did not verify"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+if ! grep -q "block 358391, 28/05/2015" "$ots/out"; then
+	echo "✗ ots: the block and its date are not what the proof says"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "ots" "offline" "block 358391 checked from the header alone"
+
+# 3. The same proof about another digest. Offline, nothing else can be matched,
+#    so the header handed in for this block must fail loudly rather than be
+#    quietly set aside.
+php -r '
+	$b = file_get_contents($argv[1]);
+	$at = strlen("\x00OpenTimestamps\x00\x00Proof\x00\xbf\x89\xe2\xe8\x84\xe8\x92\x94") + 2;
+	$b[$at] = chr(ord($b[$at]) ^ 1);
+	file_put_contents($argv[2], $b);
+' "$ots/hello-world.ots" "$ots/tampered.ots"
+if ./bin/sablier anchor "$ots/tampered.ots" --airgap --lang=en --block-header="$header" >"$ots/out" 2>&1; then
+	echo "✗ ots: a proof of a tampered digest verified"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+if grep -q "anchored in the Bitcoin chain" "$ots/out"; then
+	echo "✗ ots: a tampered digest was still reported as anchored"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "ots" "tampered" "another digest, refused"
+
+# 4. A header is not believed because somebody served it. One that carries the
+#    right merkle root with a trivial target is minable in a second, and one
+#    whose nonce was touched no longer meets its own target: both are refused,
+#    for the reason that is theirs.
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	$real = Sablier\Ots\BlockHeader::fromHex($argv[1]);
+	$root = substr($real, 36, 32);
+	$easy = substr($real, 0, 72).pack("V", 0x207fffff);
+	for ($nonce = 0; ; ++$nonce) {
+		$h = $easy.pack("V", $nonce);
+		if (ord(hash("sha256", hash("sha256", $h, true), true)[31]) < 0x7f) { break; }
+	}
+	$cases = [
+		"anchor.header.floor" => Sablier\Ots\BlockHeader::check($h, $root, 358391),
+		"anchor.header.work" => Sablier\Ots\BlockHeader::check(substr($real, 0, 76).pack("V", 0), $root, 358391),
+		"anchor.header.merkle" => Sablier\Ots\BlockHeader::check($real, str_repeat("\0", 32), 358391),
+		"anchor.header.too_old" => Sablier\Ots\BlockHeader::check($real, $root, 100000),
+		"" => Sablier\Ots\BlockHeader::check($real, $root, 358391),
+	];
+	foreach ($cases as $expected => $got) {
+		if ($got["reason"] !== $expected || $got["ok"] !== ($expected === "")) {
+			fwrite(STDERR, "✗ ots: expected ".($expected ?: "valid")." got ".($got["reason"] ?: "valid")."\n"); exit(1);
+		}
+	}
+	printf("  ✓ %-24s %-10s %s\n", "ots", "work", "too little work, a touched nonce and a wrong root refused");
+' "$header" || { rm -rf "$ots"; exit 1; }
+
+# 5. A pending proof says pending: which calendars, and that nothing is in a
+#    block yet. Silence here would read as "nothing to check".
+if ! ./bin/sablier anchor "$ots/two-calendars.ots" --airgap --lang=en >"$ots/out" 2>&1; then
+	echo "✗ ots: a pending proof failed instead of saying pending"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+if ! grep -q "pending" "$ots/out" || ! grep -q "alice.btc.calendar.opentimestamps.org" "$ots/out"; then
+	echo "✗ ots: a pending proof was not reported as pending, with its calendars"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "ots" "pending" "calendars named, nothing claimed"
+
+# 6. The scan side, without a calendar to reach: refused without --sign, loud
+#    and harmless when no calendar answers, and a proof about another digest
+#    beside a signature fails verify before any question of blocks.
+mkdir -p "$ots/project"
+cp -R tests/fixtures/sample/. "$ots/project/"
+./bin/sablier keygen --out="$ots/k.json" >/dev/null 2>&1
+if ./bin/sablier scan "$ots/project" --out="$ots/a.html" --no-probe --quiet --anchor=opentimestamps >/dev/null 2>&1 || [ -e "$ots/a.html.ots" ]; then
+	echo "✗ ots: --anchor without --sign was accepted"
+	rm -rf "$ots"; exit 1
+fi
+./bin/sablier scan "$ots/project" --out="$ots/b.html" --no-probe --quiet --sign="$ots/k.json" \
+	--anchor=http://127.0.0.1:9/one,http://127.0.0.1:9/two 2>"$ots/err" >/dev/null || true
+if [ ! -s "$ots/b.html.sig" ] || [ -e "$ots/b.html.ots" ]; then
+	echo "✗ ots: unreachable calendars cost the signature, or left a proof behind"
+	rm -rf "$ots"; exit 1
+fi
+if ! grep -q "/one" "$ots/err" || ! grep -q "/two" "$ots/err"; then
+	echo "✗ ots: an unreachable calendar failed silently"
+	cat "$ots/err"; rm -rf "$ots"; exit 1
+fi
+cp "$ots/hello-world.ots" "$ots/b.html.ots"
+if ./bin/sablier verify "$ots/b.html.sig" --airgap --lang=en >"$ots/out" 2>&1; then
+	echo "✗ ots: a proof of another digest beside the signature was accepted"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+if ! grep -q "another digest" "$ots/out"; then
+	echo "✗ ots: verify did not say the proof is about another digest"
+	cat "$ots/out"; rm -rf "$ots"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "ots" "scan" "needs --sign, loud when unreachable, bound to the digest"
+rm -rf "$ots"
 
 # --- a half not checked is not a half this machine cannot check ------------------
 # When the Ed25519 signature fails, the post-quantum half is never examined. The
