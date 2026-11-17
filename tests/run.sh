@@ -778,6 +778,58 @@ if [ ! -s "$keydir/p-audit.html.page.sig" ] || ! grep -q "sablier verify p-audit
 fi
 printf '  ✓ %-24s %-10s %s\n' "page" "audit" "signed, named, checked"
 
+# --- the footer says what left the machine -----------------------------------
+# It used to promise that nothing was sent, which stopped being true with the
+# probe, the timestamps and the anchoring. It now says, for the report it ends,
+# what did leave — and "nothing" only when nothing did. Rendered in process:
+# the variants that involve the network are built, not dialled.
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	Sablier\Lang::use("fr");
+	$base = "Sablier n\x27enregistre rien et ne dépend de rien. ";
+	$file = " Ce fichier ne charge aucune ressource externe : il se lit hors ligne et se transmet tel quel — par Threema.";
+	$probe = ["target" => "example.org:443", "facts" => [], "notes" => []];
+	$token = ["time" => "20261117000000Z", "authority" => "Example TSA", "algorithm" => "", "serial" => "1", "imprint" => str_repeat("ab", 32), "path" => "r.html.tsr"];
+	$anchor = ["state" => "anchored", "height" => 975744, "time" => 1763337600, "calendars" => [], "path" => "r.html.ots", "since" => ""];
+	$cases = [
+		"nothing" => [[], [], null, "Pour ce rapport, rien n\x27est sorti de cette machine."],
+		"probe" => [[$probe], [], null, "Pour ce rapport, rien d\x27autre n\x27est sorti de cette machine que : une poignée de main TLS, celle de n\x27importe quel navigateur, avec l\x27hôte déclaré (example.org:443)."],
+		"timestamp" => [[], [$token], null, "Pour ce rapport, rien d\x27autre n\x27est sorti de cette machine que : l\x27empreinte des constats — 32 octets, dans une requête d\x27environ 70, jamais le code ni les constats eux-mêmes — vers l\x27autorité d\x27horodatage (Example TSA)."],
+		"anchor" => [[], [$token], $anchor, "l\x27autorité d\x27horodatage (Example TSA) ; une empreinte de cette empreinte, mêlée à un nombre tiré au hasard (32 octets), vers les calendriers OpenTimestamps ; le numéro du bloc 975 744, pour lire son en-tête public dans la chaîne Bitcoin."],
+	];
+	foreach ($cases as $name => [$probes, $timestamps, $anchored, $expected]) {
+		$analysis = new Sablier\Analysis([], Sablier\Declaration::load(null), "t", 0, [], 2026, probes: $probes, timestamps: $timestamps, anchor: $anchored);
+		$html = (new Sablier\Reporter\HtmlReporter())->render($analysis);
+		preg_match("#<footer>(.*)</footer>#s", $html, $m);
+		$footer = html_entity_decode(strip_tags($m[1] ?? ""), ENT_QUOTES);
+		if (!str_starts_with($footer, $base) || !str_contains($footer, $expected) || !str_ends_with($footer, $file) || str_contains($footer, "n\x27envoie rien")) {
+			fwrite(STDERR, "✗ footer $name: [$footer]\n"); exit(1);
+		}
+		if (!str_contains($m[1], "<a href=\"#partager\">par Threema</a>") || !str_contains($html, "<p class=\"share\" id=\"partager\">")) {
+			fwrite(STDERR, "✗ footer $name: the Threema link or its anchor is missing\n"); exit(1);
+		}
+	}
+	printf("  ✓ %-24s %-10s %s\n", "footer", "egress", "nothing, probe, timestamp, anchor: each said, with its figures");
+' || exit 1
+
+# The PDF beside the report is linked, relatively, and hidden in print; one the
+# report cannot reach with a relative link is not linked at all.
+pdfdir=$(mktemp -d)
+mkdir -p "$pdfdir/sub"
+./bin/sablier scan tests/fixtures/sample --no-probe --quiet --out="$pdfdir/r.html" --pdf="$pdfdir/r.pdf" >/dev/null 2>&1 || true
+./bin/sablier scan tests/fixtures/sample --no-probe --quiet --out="$pdfdir/b.html" --pdf="$pdfdir/sub/b 1.pdf" >/dev/null 2>&1 || true
+./bin/sablier scan tests/fixtures/sample --no-probe --quiet --out="$pdfdir/sub/c.html" --pdf="$pdfdir/c.pdf" >/dev/null 2>&1 || true
+if ! grep -q '<span class="footer-pdf">, ou <a href="r.pdf">en PDF</a></span>.</footer>' "$pdfdir/r.html" \
+	|| ! grep -q '<a href="sub/b%201.pdf">en PDF</a>' "$pdfdir/b.html" \
+	|| grep -q 'footer-pdf">' "$pdfdir/sub/c.html" || ! grep -q '#partager' "$pdfdir/sub/c.html" \
+	|| ! grep -q '\.footer-pdf{display:none}' "$pdfdir/r.html"; then
+	echo "✗ footer: the PDF link is wrong (same directory, below, above)"
+	grep -o '<footer>.*</footer>' "$pdfdir/r.html" "$pdfdir/b.html" "$pdfdir/sub/c.html"
+	rm -rf "$pdfdir"; exit 1
+fi
+rm -rf "$pdfdir"
+printf '  ✓ %-24s %-10s %s\n' "footer" "pdf" "beside and below: linked; above: not; hidden in print"
+
 # --- one report succeeding another -------------------------------------------
 # A chain nobody has to ask for: a second run over the same output path names
 # the digest it replaces, inside what is signed. A pile of reports becomes an

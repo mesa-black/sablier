@@ -40,6 +40,16 @@ final class Lang
         return $args === [] ? $message : \sprintf($message, ...$args);
     }
 
+    /**
+     * A whole number the way the reader's language writes it: 29 612, 29,612,
+     * 29.612. The separator is a translation like any other sentence, so a
+     * figure never reads as a decimal in the wrong language.
+     */
+    public static function number(int $value): string
+    {
+        return number_format($value, 0, '', self::t('number.thousands'));
+    }
+
     public static function has(string $key): bool
     {
         return isset(self::messages(self::$locale)[$key]) || isset(self::messages(self::FALLBACK)[$key]);
