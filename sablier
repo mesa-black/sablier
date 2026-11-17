@@ -87,11 +87,21 @@ if [ "${1:-}" = serve ]; then
     publish="--init --env SABLIER_LISTEN=0.0.0.0 --publish $host:$port:$port"
 fi
 
+# `declare` is an interview: it reads its answers on standard input. Without -i
+# the container's stdin is closed, every question reads end-of-file and the whole
+# interview is recorded as skipped, in zero seconds, with exit 0. So stdin is
+# always attached, which also lets answers be piped in; and a terminal is
+# allocated only when there is one on both ends, because -t on a pipe fails.
+interactive=-i
+if [ -t 0 ] && [ -t 1 ]; then
+    interactive=-it
+fi
+
 # --user keeps the report owned by whoever ran the command rather than by root;
 # the repository is mounted read-only because the tool never writes into itself.
 # $publish is unquoted on purpose: empty, it has to vanish rather than pass "".
 # shellcheck disable=SC2086
-exec docker run --rm $publish \
+exec docker run --rm $interactive $publish \
     --user "$(id -u):$(id -g)" \
     --volume "$root":/sablier:ro \
     --volume "$PWD":/work \
