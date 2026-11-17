@@ -225,6 +225,7 @@ return [
   bin/sablier endorse <sablier.json>  firmar la declaración: las duraciones, por quien se compromete
   bin/sablier keygen                escribir una clave de firma (por defecto: sablier.key)
   bin/sablier verify <archivo.sig>  verificar una firma, su fecha atestiguada, su anclaje y su cadena
+  bin/sablier seal <directorio>     sellar cada archivo de un directorio: una lista firmada, su fecha atestiguada, su anclaje
   bin/sablier anchor <archivo.ots>  completar y verificar una prueba OpenTimestamps por sí sola
   bin/sablier anchor <archivo>      anclar cualquier archivo en la cadena de Bitcoin: <archivo>.ots a su lado
   bin/sablier version               la versión (también --version)
@@ -267,6 +268,10 @@ return [
     --declare=ARCHIVO   la declaración donde escribir (por defecto: sablier.json)
   endorse:
     --sign=CLAVE        una clave de keygen (por defecto: una clave de un solo uso, con su huella impresa)
+  seal:
+    --sign=CLAVE        una clave de keygen (por defecto: una clave de un solo uso, con su huella impresa)
+    --timestamp=URL     hacer atestiguar la fecha por una autoridad RFC 3161; repetible, o separado por comas
+    --anchor=URL        anclarla en la cadena Bitcoin (--anchor=opentimestamps: los calendarios públicos)
   verify:
     --declare=ARCHIVO   la declaración que contiene las claves esperadas (obligatoria para una declaración firmada)
     --fingerprint=HEX   comparar las claves con una huella recibida por otro canal
@@ -274,6 +279,7 @@ return [
     --timestamp-ca=ARCHIVO  autoridad de certificación para verificar la cadena del token
     --previous=ARCHIVO  la firma anterior a la que esta dice suceder
     --anchor=ARCHIVO    una prueba OpenTimestamps (por defecto: el .ots junto a la firma)
+    --json=ARCHIVO      el resultado para un programa: firma, fechas, bloques, archivos, en JSON
   verify, anchor:
     --block-header=HEX  la cabecera de 80 bytes del bloque de anclaje, para verificar sin red
     --calendar-url=URL  un calendario donde completar la prueba, además de los públicos
@@ -964,4 +970,26 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'breach.held' => '%s — protegido por un algoritmo que aguanta al menos hasta %d: lo robado sigue siendo ilegible mientras la clave no haya salido con ello.',
     'breach.sound' => '%s — protegido por criptografía que un ordenador cuántico no alcanza. Nada se vuelve legible por ese lado.',
     'breach.limit' => 'Esta herramienta no sabe qué salió realmente, ni si salió cifrado, ni si las claves salieron con ello. Razona sobre los dominios que usted declaró afectados y las duraciones que declaró. Contar registros corresponde al equipo de incidentes; contar años es de aquí.',
+
+    // --- a directory, sealed as its files ---
+    'cli.seal_usage' => 'uso: sablier seal <directorio> [--sign=clave.key] [--timestamp=URL] [--anchor=opentimestamps]',
+    'files.refused' => 'nada sellado: %s es un enlace simbólico o no se puede leer. Un sello cubre los archivos del directorio, no aquello a lo que apunta un enlace.',
+    'files.empty' => '%s no contiene ningún archivo: no hay nada que sellar.',
+    'files.kept' => '%1$s conservado: %2$s archivos, %3$s bytes, sin cambios desde su sellado del %4$s. El primer sello es el que cuenta.',
+    'files.stale' => '%s eliminado: fechaba los archivos tal como eran, no como son ahora. Sigue en su historial.',
+    'files.written' => '%1$s escrito: %2$s archivos, %3$s bytes.',
+    'files.signed.hybrid' => 'huella %s, firmada con Ed25519 y ML-DSA-65.',
+    'files.signed.single' => 'huella %s, firmada solo con Ed25519: esta máquina no puede hacer la firma poscuántica (hace falta OpenSSL 3.5 o posterior).',
+    'files.attested' => 'fecha atestiguada el %1$s por %2$s.',
+    'files.anchored' => 'anclado en la cadena Bitcoin en el bloque %1$d, %2$s.',
+    'files.pending' => 'anclaje enviado, pendiente: un calendario lo completa en unas horas, luego sablier anchor %s',
+    'files.ephemeral.done' => 'Clave creada para este sello, usada una vez, destruida. Huella de ambas claves públicas:',
+    'files.verify_hint' => 'Verificar con: sablier verify %s --declare=sablier.json',
+    'files.verify.unreadable' => '%s: la lista de archivos sellados no es legible para esta herramienta.',
+    'files.verify.list_altered' => 'la lista de archivos del sello ya no coincide con lo firmado: el sello fue modificado',
+    'files.verify.modified' => '%1$s: modificado desde el sellado (%2$s bytes sellados, %3$s bytes ahora)',
+    'files.verify.missing' => '%s: sellado, y ya no está',
+    'files.verify.added' => '%s: presente, y no está en el sello',
+    'files.verify.link' => '%s: un enlace simbólico, que un sello no puede cubrir',
+    'files.verify.match' => 'los %1$s archivos (%2$s bytes) coinciden con el sello, byte a byte.',
 ];

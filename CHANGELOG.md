@@ -4,6 +4,37 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+Sealing data, not only a report.
+
+### `sablier seal <directory>`
+
+A seal lists every file of a directory, recursively, with its size and its
+SHA-256, signs a digest of that list (Ed25519 + ML-DSA-65, label
+`sablier-files/1`), and dates it like a report: `--timestamp` for RFC 3161
+tokens, `--anchor=opentimestamps` for the Bitcoin chain. Everything is written
+in the directory: `seal.sig`, `seal.tsr`, `seal.2.tsr`…, `seal.ots`. An
+unchanged directory keeps its seal and its date; a changed one is sealed again,
+chained to the old seal, and the attestations of the old files are removed.
+Symbolic links are refused.
+
+`sablier verify <dir>/seal.sig` recomputes the list into the digest (a list
+edited by hand fails before any file is read), judges the signature on its own,
+and names each file changed (both sizes), missing or added.
+
+### `verify --json=FILE`
+
+The result for a program, whatever the outcome: when it was checked, the
+signature and both halves, each token's date and authority, each block, the
+pending calendars, and for a seal the files that differ. For a seal or a
+findings signature.
+
+### Internal
+
+The RFC 3161 and OpenTimestamps steps of `scan` moved into two functions that
+`seal` shares, unchanged in behaviour.
+
 ## v0.13.2 — 2026-11-17
 
 The footer, true for the report it ends.

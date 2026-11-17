@@ -70,6 +70,7 @@ use Sablier\Reporter\IncidentReporter;
 use Sablier\Reporter\HtmlReporter;
 use Sablier\Reporter\JsonReporter;
 use Sablier\Scanner;
+use Sablier\Seal;
 use Sablier\Signature;
 use Sablier\Timestamp;
 use Sablier\Value;
@@ -178,10 +179,12 @@ function sablier_probe_heading(string $declared, string $host): string
  * into evidence.
  *
  * @param list<string> $args the command's own arguments
+ * @param array{anchors?:list<array{height:int, state:string, reason:string, detail:string, time:int, source:string}>, pending?:list<string>} $found
+ *                     filled with what the check found, for `verify --json`
  *
  * @return bool whether the proof failed
  */
-function sablier_anchor_check(string $path, Proof $proof, array $args): bool
+function sablier_anchor_check(string $path, Proof $proof, array $args, array &$found = []): bool
 {
     $headers = [];
     $named = [];
@@ -228,6 +231,7 @@ function sablier_anchor_check(string $path, Proof $proof, array $args): bool
     }
 
     $check = OpenTimestamps::check($proof, $headers, !Airgap::on());
+    $found = ['anchors' => $check['anchors'], 'pending' => $check['pending']];
     $valid = false;
     foreach ($check['anchors'] as $anchor) {
         $reason = $anchor['reason'] !== '' ? Lang::t($anchor['reason'], $anchor['detail']) : '';
@@ -389,6 +393,132 @@ function sablier_page_check(string $signaturePath, array $block, array $report, 
     return $result['valid'];
 }
 
+/**
+ * Ask each authority to attest a digest, keeping any token that already does.
+ *
+ * Shared by `scan` and `seal`: one slot per authority, in the order they were
+ * named, so an authority that was unreachable on one run does not push the
+ * others down a slot and lose their antecedence. A failure is loud on stderr
+ * and leaves its slot empty; it never fails the command.
+ *
+ * @param list<string> $authorities
+ *
+ * @return list<array{time:string, authority:string, algorithm:string, serial:string, imprint:string, path:string}>
+ */
+function sablier_attest_tokens(string $base, string $digest, array $authorities): array
+{
+    $timestamps = [];
+    foreach ($authorities as $slot => $authority) {
+        $tokenPath = Timestamp::path($base, $slot);
+
+        // An existing token that attests this very digest is kept, and that is
+        // the whole point rather than an optimisation: the claim worth making is
+        // that these findings existed **as early as** some date, so overwriting
+        // the first attestation with a later one throws away the evidence the
+        // flag exists to produce.
+        $held = is_file($tokenPath) ? (string) file_get_contents($tokenPath) : '';
+        $previous = $held !== '' ? Timestamp::read($held) : null;
+        if ($previous !== null && hash_equals($previous['imprint'], $digest)) {
+            $timestamps[] = [...$previous, 'path' => $tokenPath];
+            continue;
+        }
+
+        $attested = Timestamp::request($digest, $authority);
+        if (isset($attested['token'])) {
+            file_put_contents($tokenPath, $attested['token']);
+            $read = Timestamp::read($attested['token']);
+            if ($read !== null) {
+                $timestamps[] = [...$read, 'path' => $tokenPath];
+            }
+        } else {
+            // Loud, and the other authorities are still asked: corroboration
+            // whose point is to survive one operator having a bad day would be
+            // a strange thing to abandon the moment one operator has a bad day.
+            fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
+        }
+    }
+
+    return $timestamps;
+}
+
+/**
+ * Anchor a digest through the OpenTimestamps calendars, beside `$base`.
+ *
+ * Shared by `scan` and `seal`, with the rules of the tokens: loud but not
+ * fatal when no calendar answers, and the oldest anchoring kept — an existing
+ * proof of this digest is completed in place, never replaced by a newer one.
+ *
+ * @param list<string> $asked the calendars named on the command line
+ *
+ * @return array{state:string, height:int, time:int, calendars:list<string>, path:string, since:string}|null
+ */
+function sablier_attest_anchor(string $base, string $digest, array $asked): ?array
+{
+    $anchor = null;
+    $anchorPath = OpenTimestamps::path($base);
+    $calendars = OpenTimestamps::calendars($asked);
+    $proof = null;
+    $blocked = false;
+    if (is_file($anchorPath)) {
+        $held = OpenTimestamps::load($anchorPath);
+        if (isset($held['error'])) {
+            // Not overwritten: a file that does not read here may be a
+            // proof in a format this version does not know, and replacing
+            // it would destroy the one thing this flag exists to keep.
+            fwrite(\STDERR, '✗ '.Lang::t('anchor.kept_unreadable', $anchorPath)."\n");
+            $blocked = true;
+        } elseif (hash_equals($held['proof']->hex(), $digest)) {
+            $proof = $held['proof'];
+            $upgrade = OpenTimestamps::upgrade($proof, $calendars);
+            if ($upgrade['changed'] && !OpenTimestamps::save($anchorPath, $proof)) {
+                fwrite(\STDERR, '✗ '.Lang::t('anchor.unsaved', $anchorPath)."\n");
+                // Back to what is on disk, which stays the evidence; and if
+                // even that no longer reads, nothing is stamped over it.
+                $proof = OpenTimestamps::load($anchorPath)['proof'] ?? null;
+                $blocked = $proof === null;
+            }
+        }
+        // A proof of another digest belongs to findings that no longer
+        // exist, exactly like a token with another imprint: it is replaced.
+    }
+
+    if ($proof === null && !$blocked) {
+        $stamped = OpenTimestamps::stamp($digest, $calendars);
+        foreach ($stamped['errors'] as $error) {
+            fwrite(\STDERR, '✗ '.Lang::t($error['error'], $error['detail'])."\n");
+        }
+        if ($stamped['proof'] !== null) {
+            $proof = $stamped['proof'];
+            file_put_contents($anchorPath, $proof->serialise());
+        } else {
+            fwrite(\STDERR, '✗ '.Lang::t('anchor.none')."\n");
+        }
+    }
+
+    if ($proof !== null) {
+        $mtime = filemtime($anchorPath);
+        $anchor = OpenTimestamps::summary(OpenTimestamps::check($proof)) + [
+            'path' => $anchorPath,
+            // When it was handed to the calendars, for the pending line. The
+            // proof itself carries no date — that is the block's job — so
+            // the file's own is the best witness of the submission there is.
+            'since' => OpenTimestamps::readable($mtime === false ? time() : $mtime),
+        ];
+    }
+
+    return $anchor;
+}
+
+/** A token's time as ISO 8601 in UTC, for a program; as given when it does not parse. */
+function sablier_iso(string $time): string
+{
+    try {
+        return (new \DateTimeImmutable($time))->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::ATOM);
+    } catch (\Exception) {
+        return $time;
+    }
+}
+
 // --- keys and verification ---------------------------------------------
 if ($command === 'keygen') {
     $out = 'sablier.key';
@@ -497,15 +627,166 @@ if ($command === 'endorse') {
     exit(0);
 }
 
+// --- a directory, sealed as the files it holds: bin/sablier seal <dir> ---
+// The findings signature covers what a scan found, the page signature one
+// page. Neither covers data a project publishes — a month of measurements, a
+// folder of evidence — and those are the files whose date a reader questions.
+// The seal lists every file with its size and SHA-256, signs that list, and
+// dates it the way a report is dated: tokens and a proof beside it.
+//
+// An unchanged directory keeps its seal, its tokens and its proof: the date
+// worth having is the earliest one. A changed one is sealed again, the new
+// seal names the digest of the old one, and the attestations of the old one
+// are removed — they date files that are no longer these, and left beside the
+// new seal they would read as a forgery. They remain in the history of
+// whatever versions the directory.
+if ($command === 'seal') {
+    $dir = rtrim($argv[2] ?? '', '/');
+    $key = 'ephemeral';
+    $authorities = [];
+    $calendars = [];
+    foreach (\array_slice($argv, 3) as $arg) {
+        if (preg_match('/^--sign=(.+)$/', $arg, $m) === 1) {
+            $key = $m[1];
+        } elseif (preg_match('/^--(timestamp|anchor)=(.+)$/', $arg, $m) === 1) {
+            foreach (explode(',', $m[2]) as $url) {
+                $url = trim($url);
+                if ($url === '') {
+                    continue;
+                }
+                if ($m[1] === 'timestamp' && !\in_array($url, $authorities, true)) {
+                    $authorities[] = $url;
+                } elseif ($m[1] === 'anchor' && !\in_array($url, $calendars, true)) {
+                    $calendars[] = $url;
+                }
+            }
+        }
+    }
+    if ($dir === '' || !is_dir($dir)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.seal_usage')."\n");
+        exit(1);
+    }
+    if (Airgap::on() && $authorities !== []) {
+        Airgap::refuse('--timestamp');
+    }
+    if (Airgap::on() && $calendars !== []) {
+        Airgap::refuse('--anchor');
+    }
+
+    $inventory = Seal::inventory($dir);
+    if ($inventory['refused'] !== []) {
+        fwrite(\STDERR, '✗ '.Lang::t('files.refused', implode(', ', $inventory['refused']))."\n");
+        exit(1);
+    }
+    if ($inventory['files'] === []) {
+        fwrite(\STDERR, '✗ '.Lang::t('files.empty', $dir)."\n");
+        exit(1);
+    }
+    $digest = Seal::digest($inventory['files']);
+    $bytes = array_sum(array_map(static fn (array $f): int => $f['size'], $inventory['files']));
+
+    $ephemeral = $key === 'ephemeral';
+    $fingerprint = '';
+    if ($ephemeral) {
+        $pair = Signature::keypair();
+        $pq = MlDsa::keypair();
+        $secret = $pair['secret'];
+        $pqSecret = $pq['secret'] ?? '';
+        $fingerprint = Signature::fingerprint($pair['public'], $pq['public'] ?? '');
+    } else {
+        if (!is_file($key)) {
+            fwrite(\STDERR, '✗ '.Lang::t('cli.key_missing', $key)."\n");
+            exit(1);
+        }
+        $hybridKey = Signature::hybridKeyPath($key);
+        $secret = trim((string) file_get_contents($key));
+        $pqSecret = is_file($hybridKey) ? (string) file_get_contents($hybridKey) : '';
+    }
+
+    $path = Seal::path($dir);
+    $base = Seal::base($dir);
+    $existing = is_file($path) ? Value::map(json_decode((string) file_get_contents($path), true)) : [];
+    $wasSeal = Value::string($existing['covers'] ?? null) === 'files';
+    $raw = $ephemeral ? false : base64_decode($secret, true);
+    $publicKey = \is_string($raw) && \strlen($raw) === \SODIUM_CRYPTO_SIGN_SECRETKEYBYTES
+        ? base64_encode(sodium_crypto_sign_publickey_from_secretkey($raw))
+        : '';
+
+    if (!$ephemeral && $publicKey !== '' && $wasSeal
+        && Value::string($existing['digest'] ?? null) === $digest
+        && Value::string($existing['public_key'] ?? null) === $publicKey) {
+        printf("  %s\n", Lang::t('files.kept', $path, Lang::number(\count($inventory['files'])), Lang::number($bytes), Timestamp::readable(Value::string($existing['signed_at'] ?? null))));
+    } else {
+        // What dated the files before is not about these files.
+        if ($wasSeal) {
+            $stale = [];
+            foreach (Timestamp::paths($base) as $tokenPath) {
+                $read = Timestamp::read((string) file_get_contents($tokenPath));
+                if ($read === null || !hash_equals($read['imprint'], $digest)) {
+                    $stale[] = $tokenPath;
+                }
+            }
+            $proofPath = OpenTimestamps::path($base);
+            if (is_file($proofPath)) {
+                $held = OpenTimestamps::load($proofPath);
+                if (!isset($held['proof']) || !hash_equals($held['proof']->hex(), $digest)) {
+                    $stale[] = $proofPath;
+                }
+            }
+            foreach ($stale as $stalePath) {
+                unlink($stalePath);
+                printf("  %s\n", Lang::t('files.stale', $stalePath));
+            }
+        }
+        $block = ['covers' => 'files', 'files' => $inventory['files']] + Signature::sign(
+            $digest,
+            $secret,
+            $wasSeal ? Value::string($existing['digest'] ?? null) : '',
+            $pqSecret,
+        );
+        if ($ephemeral) {
+            $block['ephemeral'] = true;
+        }
+        file_put_contents($path, json_encode($block, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+        printf("  %s\n", Lang::t('files.written', $path, Lang::number(\count($inventory['files'])), Lang::number($bytes)));
+        printf("  %s\n", Lang::t(isset($block['hybrid']) ? 'files.signed.hybrid' : 'files.signed.single', $digest));
+    }
+    sodium_memzero($secret);
+    if ($pqSecret !== '') {
+        sodium_memzero($pqSecret);
+    }
+
+    foreach (sablier_attest_tokens($base, $digest, $authorities) as $token) {
+        printf("  %s\n", Lang::t('files.attested', Timestamp::readable($token['time']), $token['authority'] !== '' ? $token['authority'] : $token['path']));
+    }
+    if ($calendars !== []) {
+        $anchor = sablier_attest_anchor($base, $digest, $calendars);
+        if ($anchor !== null) {
+            printf("  %s\n", $anchor['state'] === 'anchored'
+                ? Lang::t('files.anchored', $anchor['height'], OpenTimestamps::readable($anchor['time']))
+                : Lang::t('files.pending', $anchor['path']));
+        }
+    }
+
+    if ($fingerprint !== '') {
+        printf("\n  %s\n\n    %s\n\n  %s\n", Lang::t('files.ephemeral.done'), $fingerprint, Lang::t('cli.endorse_send'));
+    }
+    printf("\n  %s\n", Lang::t('files.verify_hint', $path));
+    exit(0);
+}
+
 if ($command === 'verify') {
     $signaturePath = $argv[2] ?? '';
     $declarePath = null;
     $claimed = '';
+    $jsonPath = '';
     foreach (\array_slice($argv, 3) as $arg) {
         if (preg_match('/^--declare=(.+)$/', $arg, $m) === 1) {
             $declarePath = $m[1];
         } elseif (preg_match('/^--fingerprint=(.+)$/', $arg, $m) === 1) {
             $claimed = $m[1];
+        } elseif (preg_match('/^--json=(.+)$/', $arg, $m) === 1) {
+            $jsonPath = $m[1];
         }
     }
     if (!is_file($signaturePath)) {
@@ -554,6 +835,52 @@ if ($command === 'verify') {
         exit($endorsement !== null && $endorsement['valid'] ? 0 : 1);
     }
 
+    // What a program reading the result needs, beside what a person reads:
+    // `--json=FILE` writes it whatever the outcome, so a dashboard can show
+    // the date a seal was checked and what that check said, in its own words,
+    // without parsing sentences that change with the language.
+    $summary = [
+        'checked_at' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+        'sablier' => Version::NUMBER,
+        'covers' => Value::string($block['covers'] ?? null, 'findings'),
+        'digest' => Value::string($block['digest'] ?? null),
+        'signed_at' => Value::string($block['signed_at'] ?? null),
+        'previous' => Value::string($block['previous'] ?? null),
+        'signature' => [],
+        'timestamps' => [],
+        'anchors' => [],
+        'pending' => [],
+    ];
+    // Filled as the checks run, and joined to the summary at the end.
+    /** @var list<array<string, int|string>> $timestampsSeen */
+    $timestampsSeen = [];
+    /** @var list<array<string, int|string>> $anchorsSeen */
+    $anchorsSeen = [];
+    $finish = static function (bool $held) use (&$summary, &$timestampsSeen, &$anchorsSeen, $jsonPath): never {
+        if ($jsonPath !== '') {
+            $summary['timestamps'] = $timestampsSeen;
+            $summary['anchors'] = $anchorsSeen;
+            $summary['valid'] = $held;
+            file_put_contents($jsonPath, json_encode($summary, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+        }
+        exit($held ? 0 : 1);
+    };
+
+    // A seal covers the files of the directory it sits in. Its list is in
+    // the file for the reader, and recomputed into the digest the signature
+    // covers: a list edited by hand fails as an altered signature, before any
+    // file on disk is compared with it.
+    $sealed = null;
+    $filesHeld = true;
+    if ($summary['covers'] === 'files') {
+        $sealed = Seal::listed($block);
+        if ($sealed === null) {
+            printf("  ✗ %s\n", Lang::t('files.verify.unreadable', $signaturePath));
+            $summary['files'] = ['state' => 'unreadable'];
+            $finish(false);
+        }
+    }
+
     $expectedKey = $declaration?->signingPublicKey;
     $expectedPqKey = $declaration?->signingPublicKeyPq;
     $previous = Value::string($block['previous'] ?? null);
@@ -567,9 +894,20 @@ if ($command === 'verify') {
         'signature' => Value::string($block['signature'] ?? null),
         'previous' => $previous,
         'hybrid' => $hybridClaim,
-    ], null, $expectedKey, $expectedPqKey);
+    ], $sealed !== null ? Seal::digest($sealed) : null, $expectedKey, $expectedPqKey);
 
-    printf("  %s\n", Lang::t($result['reason']));
+    // "The findings changed" is about a report; for a seal, the list it signs
+    // is what no longer matches its digest.
+    printf("  %s\n", Lang::t($sealed !== null && $result['reason'] === 'verify.changed' ? 'files.verify.list_altered' : $result['reason']));
+    $summary['signature'] = [
+        'valid' => $result['valid'],
+        'reason' => $result['reason'],
+        'algorithm' => Value::string($block['algorithm'] ?? null),
+        'hybrid' => $hybridClaim !== [] ? ($result['hybrid'] ?? 'unavailable') : 'none',
+        'hybrid_algorithm' => Value::string($hybridClaim['algorithm'] ?? null),
+        'fingerprint' => Signature::fingerprint(Value::string($block['public_key'] ?? null), Value::string($hybridClaim['public_key'] ?? null)),
+        'ephemeral' => ($block['ephemeral'] ?? false) === true,
+    ];
 
     // The keys in this file against the line that came by another road. With an
     // ephemeral key there is nothing else to compare them to: the channel is
@@ -583,7 +921,7 @@ if ($command === 'verify') {
         $same = hash_equals($normalise($actual), $normalise($claimed));
         printf("  %s\n", Lang::t($same ? 'seal.fingerprint.match' : 'seal.fingerprint.differs', $actual));
         if (!$same) {
-            exit(1);
+            $finish(false);
         }
     }
 
@@ -598,6 +936,38 @@ if ($command === 'verify') {
         }, Value::string($hybridClaim['algorithm'] ?? null)));
     } else {
         printf("  %s\n", Lang::t('verify.hybrid.none'));
+    }
+
+    // The files themselves, against the list. Each difference is named, with
+    // its kind: a file changed, gone, or added since the seal was made.
+    if ($sealed !== null) {
+        $present = Seal::inventory(dirname($signaturePath));
+        $diff = Seal::compare($sealed, $present['files']);
+        $bytes = array_sum(array_map(static fn (array $f): int => $f['size'], $sealed));
+        foreach ($diff['modified'] as $file) {
+            printf("  ✗ %s\n", Lang::t('files.verify.modified', $file['path'], Lang::number($file['sealed']), Lang::number($file['size'])));
+        }
+        foreach ($diff['missing'] as $file) {
+            printf("  ✗ %s\n", Lang::t('files.verify.missing', $file));
+        }
+        foreach ($diff['added'] as $file) {
+            printf("  ✗ %s\n", Lang::t('files.verify.added', $file));
+        }
+        foreach ($present['refused'] as $file) {
+            printf("  ✗ %s\n", Lang::t('files.verify.link', $file));
+        }
+        $filesHeld = $diff['modified'] === [] && $diff['missing'] === [] && $diff['added'] === [] && $present['refused'] === [];
+        if ($filesHeld) {
+            printf("  %s\n", Lang::t('files.verify.match', Lang::number(\count($sealed)), Lang::number($bytes)));
+        }
+        $summary['files'] = [
+            'state' => $filesHeld ? 'match' : 'differs',
+            'count' => \count($sealed),
+            'bytes' => $bytes,
+            'modified' => array_map(static fn (array $f): string => $f['path'], $diff['modified']),
+            'missing' => $diff['missing'],
+            'added' => [...$diff['added'], ...$present['refused']],
+        ];
     }
 
     // The date, when somebody else attested it. Found beside the signature
@@ -650,6 +1020,13 @@ if ($command === 'verify') {
             // token attests something other than this document.
             $attestedFailed = $attestedFailed || $state['state'] === 'invalid';
         }
+        $timestampsSeen[] = [
+            'file' => basename($tokenPath),
+            'state' => $read === null ? 'unreadable' : $state['state'],
+            'time' => $read === null ? '' : sablier_iso($read['time']),
+            'authority' => $read['authority'] ?? '',
+            'algorithm' => $read['algorithm'] ?? '',
+        ];
     }
 
     // The anchoring, when there is a proof beside the signature. Discovered
@@ -666,11 +1043,23 @@ if ($command === 'verify') {
         if (isset($loaded['error'])) {
             printf("  ✗ %s\n", Lang::t($loaded['error'], $loaded['detail']));
             $attestedFailed = true;
+            $anchorsSeen[] = ['state' => 'unreadable', 'height' => 0, 'time' => '', 'source' => ''];
         } elseif (!hash_equals(strtolower(Value::string($block['digest'] ?? null)), $loaded['proof']->hex())) {
             printf("  ✗ %s\n", Lang::t('verify.anchor.other_digest', $anchorPath));
             $attestedFailed = true;
+            $anchorsSeen[] = ['state' => 'other_digest', 'height' => 0, 'time' => '', 'source' => ''];
         } else {
-            $attestedFailed = sablier_anchor_check($anchorPath, $loaded['proof'], \array_slice($argv, 3)) || $attestedFailed;
+            $found = [];
+            $attestedFailed = sablier_anchor_check($anchorPath, $loaded['proof'], \array_slice($argv, 3), $found) || $attestedFailed;
+            foreach ($found['anchors'] ?? [] as $anchor) {
+                $anchorsSeen[] = [
+                    'state' => $anchor['state'],
+                    'height' => $anchor['height'],
+                    'time' => $anchor['time'] > 0 ? gmdate(\DateTimeInterface::ATOM, $anchor['time']) : '',
+                    'source' => $anchor['source'],
+                ];
+            }
+            $summary['pending'] = $found['pending'] ?? [];
         }
     }
 
@@ -689,8 +1078,13 @@ if ($command === 'verify') {
             ? Lang::t('verify.previous', substr($previous, 0, 16))
             : Lang::t($earlier === $previous ? 'verify.previous.match' : 'verify.previous.mismatch', substr($previous, 0, 16)));
         if ($earlier !== null && $earlier !== $previous) {
-            exit(1);
+            $finish(false);
         }
+    }
+
+    // A seal covers its files, which were compared above; there is no page.
+    if ($sealed !== null) {
+        $finish($result['valid'] && !$attestedFailed && $filesHeld);
     }
 
     // The page, when its own signature is filed beside it. The findings
@@ -711,7 +1105,7 @@ if ($command === 'verify') {
         printf("  %s\n", Lang::t('verify.page.none', basename($pageSignature)));
     }
 
-    exit($result['valid'] && !$attestedFailed && $pageHeld ? 0 : 1);
+    $finish($result['valid'] && !$attestedFailed && $pageHeld);
 }
 
 // --- an OpenTimestamps proof on its own: bin/sablier anchor <file.ots> ----
@@ -1738,91 +2132,14 @@ if ($options['sign'] !== null) {
     // across runs: an authority that was unreachable today leaves its slot empty
     // rather than shifting the others down, which is what keeps each
     // attestation's antecedence attached to the authority that made it.
-    foreach ($options['timestamp'] as $slot => $authority) {
-        $tokenPath = Timestamp::path($reportPath, $slot);
-
-        // An existing token that attests this very digest is kept, and that is
-        // the whole point rather than an optimisation: the claim worth making is
-        // that these findings existed **as early as** some date, so overwriting
-        // the first attestation with a later one throws away the evidence the
-        // flag exists to produce.
-        $held = is_file($tokenPath) ? (string) file_get_contents($tokenPath) : '';
-        $previous = $held !== '' ? Timestamp::read($held) : null;
-        if ($previous !== null && hash_equals($previous['imprint'], $digest)) {
-            $timestamps[] = [...$previous, 'path' => $tokenPath];
-            continue;
-        }
-
-        $attested = Timestamp::request($digest, $authority);
-        if (isset($attested['token'])) {
-            file_put_contents($tokenPath, $attested['token']);
-            $read = Timestamp::read($attested['token']);
-            if ($read !== null) {
-                $timestamps[] = [...$read, 'path' => $tokenPath];
-            }
-        } else {
-            // Loud, and the other authorities are still asked: corroboration
-            // whose point is to survive one operator having a bad day would be
-            // a strange thing to abandon the moment one operator has a bad day.
-            fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
-        }
-    }
+    $timestamps = sablier_attest_tokens($reportPath, $digest, $options['timestamp']);
 
     // The same date, anchored where nobody has to be believed about it. Same
     // digest, same rules as the tokens above: loud but not fatal when no
     // calendar answers, and the oldest anchoring kept — an existing proof of
     // this digest is completed in place, never replaced by a newer one.
     if ($options['anchor'] !== []) {
-        $anchorPath = OpenTimestamps::path($reportPath);
-        $calendars = OpenTimestamps::calendars($options['anchor']);
-        $proof = null;
-        $blocked = false;
-        if (is_file($anchorPath)) {
-            $held = OpenTimestamps::load($anchorPath);
-            if (isset($held['error'])) {
-                // Not overwritten: a file that does not read here may be a
-                // proof in a format this version does not know, and replacing
-                // it would destroy the one thing this flag exists to keep.
-                fwrite(\STDERR, '✗ '.Lang::t('anchor.kept_unreadable', $anchorPath)."\n");
-                $blocked = true;
-            } elseif (hash_equals($held['proof']->hex(), $digest)) {
-                $proof = $held['proof'];
-                $upgrade = OpenTimestamps::upgrade($proof, $calendars);
-                if ($upgrade['changed'] && !OpenTimestamps::save($anchorPath, $proof)) {
-                    fwrite(\STDERR, '✗ '.Lang::t('anchor.unsaved', $anchorPath)."\n");
-                    // Back to what is on disk, which stays the evidence; and if
-                    // even that no longer reads, nothing is stamped over it.
-                    $proof = OpenTimestamps::load($anchorPath)['proof'] ?? null;
-                    $blocked = $proof === null;
-                }
-            }
-            // A proof of another digest belongs to findings that no longer
-            // exist, exactly like a token with another imprint: it is replaced.
-        }
-
-        if ($proof === null && !$blocked) {
-            $stamped = OpenTimestamps::stamp($digest, $calendars);
-            foreach ($stamped['errors'] as $error) {
-                fwrite(\STDERR, '✗ '.Lang::t($error['error'], $error['detail'])."\n");
-            }
-            if ($stamped['proof'] !== null) {
-                $proof = $stamped['proof'];
-                file_put_contents($anchorPath, $proof->serialise());
-            } else {
-                fwrite(\STDERR, '✗ '.Lang::t('anchor.none')."\n");
-            }
-        }
-
-        if ($proof !== null) {
-            $mtime = filemtime($anchorPath);
-            $anchor = OpenTimestamps::summary(OpenTimestamps::check($proof)) + [
-                'path' => $anchorPath,
-                // When it was handed to the calendars, for the pending line. The
-                // proof itself carries no date — that is the block's job — so
-                // the file's own is the best witness of the submission there is.
-                'since' => OpenTimestamps::readable($mtime === false ? time() : $mtime),
-            ];
-        }
+        $anchor = sablier_attest_anchor($reportPath, $digest, $options['anchor']);
     }
 }
 

@@ -3667,6 +3667,84 @@ php -r '
 ' || exit 1
 
 # --- what --quiet writes, and what it does not -------------------------------
+# --- a directory, sealed as its files ----------------------------------------
+# What a project publishes besides its code — a month of measurements — is what
+# a reader asks the date of. The seal must name every change by its kind, keep
+# its first date while nothing changed, and never let its own list be edited.
+seal=$(mktemp -d)
+mkdir -p "$seal/r/sub"
+printf 'one\n' > "$seal/r/a.jsonl"
+printf 'two\n' > "$seal/r/sub/2"
+./bin/sablier keygen --out="$seal/k.key" >/dev/null 2>&1
+pub=$(php -r 'echo base64_encode(sodium_crypto_sign_publickey_from_secretkey(base64_decode(trim(file_get_contents($argv[1])))));' "$seal/k.key")
+printf '{"signing_public_key": "%s"}\n' "$pub" > "$seal/sablier.json"
+seal_fail() { echo "✗ seal: $1"; cat "$seal/out" 2>/dev/null; rm -rf "$seal"; exit 1; }
+seal_json() { php -r '$j = json_decode(file_get_contents($argv[1]), true); $v = $j; foreach (explode(".", $argv[2]) as $k) { $v = $v[$k] ?? null; } echo is_array($v) ? implode(",", $v) : (is_string($v) ? $v : var_export($v, true));' "$seal/v.json" "$1"; }
+
+./bin/sablier seal "$seal/r" --sign="$seal/k.key" --lang=en >"$seal/out" 2>&1 || seal_fail "sealing a plain directory failed"
+./bin/sablier verify "$seal/r/seal.sig" --declare="$seal/sablier.json" --json="$seal/v.json" --lang=en >"$seal/out" 2>&1 || seal_fail "a fresh seal does not verify"
+grep -q "the 2 files (8 bytes) match the seal" "$seal/out" || seal_fail "the match line does not count the files and their bytes"
+[ "$(seal_json valid)" = "true" ] && [ "$(seal_json files.state)" = "match" ] && [ "$(seal_json covers)" = "files" ] || seal_fail "the JSON result does not say the seal holds"
+printf '  ✓ %-24s %-10s %s\n' "seal" "verify" "every file, its size, its digest; and the result as JSON"
+
+first=$(seal_json signed_at)
+./bin/sablier seal "$seal/r" --sign="$seal/k.key" --lang=en >"$seal/out" 2>&1 || seal_fail "resealing an unchanged directory failed"
+grep -q "kept" "$seal/out" || seal_fail "an unchanged directory was sealed again"
+./bin/sablier verify "$seal/r/seal.sig" --json="$seal/v.json" >/dev/null 2>&1
+[ "$(seal_json signed_at)" = "$first" ] || seal_fail "an unchanged directory got a new date"
+printf '  ✓ %-24s %-10s %s\n' "seal" "kept" "nothing changed, the first date stays"
+
+printf 'one, edited\n' > "$seal/r/a.jsonl"
+mv "$seal/r/sub/2" "$seal/gone"
+printf 'new\n' > "$seal/r/new"
+if ./bin/sablier verify "$seal/r/seal.sig" --declare="$seal/sablier.json" --json="$seal/v.json" --lang=en >"$seal/out" 2>&1; then
+	seal_fail "changed files still verified"
+fi
+grep -q "a.jsonl: changed since the seal (4 bytes sealed, 12 bytes now)" "$seal/out" || seal_fail "a changed file is not named with its two sizes"
+grep -q "sub/2: sealed, and no longer here" "$seal/out" || seal_fail "a missing file is not named"
+grep -q "new: here, and not in the seal" "$seal/out" || seal_fail "an added file is not named"
+grep -q "signature valid" "$seal/out" || seal_fail "the signature itself was condemned along with the files"
+[ "$(seal_json valid)" = "false" ] && [ "$(seal_json files.modified)" = "a.jsonl" ] && [ "$(seal_json files.missing)" = "sub/2" ] && [ "$(seal_json files.added)" = "new" ] || seal_fail "the JSON result does not list the differences"
+printf '  ✓ %-24s %-10s %s\n' "seal" "changes" "changed, missing, added: each named, the signature still judged on its own"
+
+# Resealed: the new seal names the old one, and what dated the old files goes.
+old=$(seal_json digest)
+printf 'not a token' > "$seal/r/seal.tsr"
+printf 'not a proof' > "$seal/r/seal.ots"
+./bin/sablier seal "$seal/r" --sign="$seal/k.key" --lang=en >"$seal/out" 2>&1 || seal_fail "resealing a changed directory failed"
+[ ! -e "$seal/r/seal.tsr" ] && [ ! -e "$seal/r/seal.ots" ] || seal_fail "a token or a proof of the old files was left beside the new seal"
+./bin/sablier verify "$seal/r/seal.sig" --declare="$seal/sablier.json" --json="$seal/v.json" >"$seal/out" 2>&1 || seal_fail "the new seal does not verify"
+[ "$(seal_json previous)" = "$old" ] || seal_fail "the new seal does not name the one it replaces"
+printf '  ✓ %-24s %-10s %s\n' "seal" "resealed" "chained to the old seal, its stale attestations removed"
+
+# The list is in clear for the reader, never trusted: edited, it fails.
+php -r '$j = json_decode(file_get_contents($argv[1]), true); $j["files"][0]["sha256"] = str_repeat("0", 64); file_put_contents($argv[1], json_encode($j, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));' "$seal/r/seal.sig"
+if ./bin/sablier verify "$seal/r/seal.sig" --declare="$seal/sablier.json" --lang=en >"$seal/out" 2>&1; then
+	seal_fail "an edited list verified"
+fi
+grep -q "the list of files in the seal no longer matches what was signed" "$seal/out" || seal_fail "an edited list is not called that"
+printf '  ✓ %-24s %-10s %s\n' "seal" "list" "edited by hand, it fails before any file is read"
+
+# Another key than the declared one.
+./bin/sablier seal "$seal/r" --lang=en >/dev/null 2>&1 || seal_fail "an ephemeral seal failed"
+if ./bin/sablier verify "$seal/r/seal.sig" --declare="$seal/sablier.json" --lang=en >"$seal/out" 2>&1; then
+	seal_fail "a seal made with another key passed against the declaration"
+fi
+grep -q "signed with a key other than the declared one" "$seal/out" || seal_fail "the wrong key is not named"
+printf '  ✓ %-24s %-10s %s\n' "seal" "key" "another key than the declared one fails"
+
+# A link is refused: its target is not in the directory.
+ln -s "$seal/gone" "$seal/r/link"
+if ./bin/sablier seal "$seal/r" --sign="$seal/k.key" --lang=en >"$seal/out" 2>&1; then
+	seal_fail "a symbolic link was sealed"
+fi
+grep -q "link is a symbolic link" "$seal/out" || seal_fail "the refused link is not named"
+if ./bin/sablier seal "$seal/r" --airgap --timestamp=http://127.0.0.1:9/ >"$seal/out" 2>&1; then
+	seal_fail "--timestamp reached for an authority under --airgap"
+fi
+printf '  ✓ %-24s %-10s %s\n' "seal" "refused" "a symbolic link; --timestamp under --airgap"
+rm -rf "$seal"
+
 # A pipeline asking for the verdict in the exit code must not find an
 # unrequested 27 kB page at the root of the repository afterwards. It is still
 # written when something downstream reads it back — the signature is filed

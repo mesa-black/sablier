@@ -55,7 +55,8 @@ and a pre-filled way to contest it.
 
 **Then what.** Sign the report and have its date attested by somebody who is not
 you (`--sign`, `--timestamp`), or anchored in the Bitcoin chain where nobody has
-to be believed (`--anchor=opentimestamps`), file the audit document (`--audit`), put the
+to be believed (`--anchor=opentimestamps`), seal the data you publish beside it
+(`sablier seal <dir>`, see [signing](docs/signing.md)), file the audit document (`--audit`), put the
 switch-over dates in a calendar (`--calendar`), and re-run it once a year —
 deadlines move, and a confidential lifetime of nine years is compliant this year
 and not the next.

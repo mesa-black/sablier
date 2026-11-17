@@ -336,3 +336,45 @@ The key is ephemeral by default, like the reports'. A declaration endorsed at th
 end of an interview, in front of the person who declared it, is exactly the case
 that key was invented for: nothing to store, nothing to rotate, and the
 fingerprint travels by the channel that already proves who they are.
+
+### Sealing data, not only a report
+
+A report is about a project. What a project *publishes* — a month of
+measurements, a folder of evidence, the files behind a chart — is what a reader
+asks the date of, and none of the signatures above covered it.
+
+```bash
+sablier seal releves/4 --sign=sablier.key \
+  --timestamp=http://timestamp.digicert.com --anchor=opentimestamps
+sablier verify releves/4/seal.sig --declare=sablier.json --json=result.json
+```
+
+`seal.sig` lists every file of the directory, recursively, with its size and
+its SHA-256, and signs a digest of that list with the same key and the same two
+schemes as a report. The tokens and the proof sit beside it under the names a
+report's do: `seal.tsr`, `seal.2.tsr`, `seal.ots`.
+
+- **The list is for the reader, not trusted.** It is recomputed into the digest
+  the signature covers, so a list edited by hand fails as such before any file
+  is compared. The digest starts with its own label, `sablier-files/1`, so a seal
+  cannot be passed off as a findings signature.
+- **Every difference is named by its kind**: a file changed (with the size
+  sealed and the size now), a file gone, a file added. The signature is judged
+  on its own, so "the seal is genuine and one file changed since" is a sentence
+  `verify` can say.
+- **The first date stays.** Sealing an unchanged directory again with the same
+  key keeps the seal, its tokens and its proof. A changed directory is sealed
+  again; the new seal names the digest of the old one, and the tokens and the
+  proof of the old files are removed, since beside the new seal they would read
+  as a forgery. The history of whatever versions the directory keeps them.
+- **A symbolic link is refused**: what it points at is not in the directory, and
+  can change without a byte of the directory changing.
+
+`--json=FILE` writes what a program needs, whatever the outcome: when it was
+checked, the signature and both its halves, each token's date and authority,
+each block, and the files that differ. It is how a dashboard shows *sealed on*
+and *checked on* without parsing sentences that change with the language — and
+it works for a findings signature too.
+
+Checking needs only the public keys. The machine that seals holds the private
+ones; the machine that shows the result never has to.
