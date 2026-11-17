@@ -2448,6 +2448,145 @@ if ! grep -q "another digest" "$ots/out"; then
 	cat "$ots/out"; rm -rf "$ots"; exit 1
 fi
 printf '  ✓ %-24s %-10s %s\n' "ots" "scan" "needs --sign, loud when unreachable, bound to the digest"
+
+# 7. Hostile proofs, found by review. A file of under a megabyte with 65,536
+#    forks once exhausted PHP's memory, and a node with 40,000 branches took a
+#    minute to parse: a file handed to verify must be refused, quickly, with a
+#    sentence — never a fatal error or a hang.
+php -r '
+	$head = "\x00OpenTimestamps\x00\x00Proof\x00\xbf\x89\xe2\xe8\x84\xe8\x92\x94\x01\x08".str_repeat("\x11", 32);
+	$leaf = static fn (int $i): string => "\xf0".chr(4).pack("N", $i)."\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00";
+	$wide = static function (int $n) use ($leaf): string { $b = ""; for ($i = 0; $i < $n - 1; ++$i) { $b .= "\xff".$leaf($i); } return $b.$leaf($n); };
+	file_put_contents($argv[1]."/big.ots", $head.$wide(6000));
+	file_put_contents($argv[1]."/many.ots", $head.$wide(3000));
+	file_put_contents($argv[1]."/wide.ots", $head.$wide(1000));
+	file_put_contents($argv[1]."/none.ots", $head."\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00");
+' "$ots"
+for hostile in big many; do
+	if ./bin/sablier anchor "$ots/$hostile.ots" --airgap --lang=en >"$ots/out" 2>&1 || ! grep -q "unreadable OpenTimestamps proof" "$ots/out" || grep -qi "fatal\|memory" "$ots/out"; then
+		echo "✗ ots: the hostile proof $hostile.ots was not refused cleanly"
+		cat "$ots/out"; rm -rf "$ots"; exit 1
+	fi
+done
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	$start = microtime(true);
+	$proof = Sablier\Ots\Proof::parse(file_get_contents($argv[1]));
+	$count = count($proof->attestations());
+	$elapsed = microtime(true) - $start;
+	if ($count !== 1000 || $elapsed > 1.0) { fwrite(STDERR, sprintf("✗ ots: a 1,000-branch proof gave %d attestations in %.2f s\n", $count, $elapsed)); exit(1); }
+	printf("  ✓ %-24s %-10s %s\n", "ots", "hostile", sprintf("oversized and overfull refused, 1,000 branches in %.0f ms", $elapsed * 1000));
+' "$ots/wide.ots" || { rm -rf "$ots"; exit 1; }
+
+# 8. Backdating with a header nobody mined at the difficulty it claims. The
+#    floor once came from the height alone, which the attestation chooses: a
+#    2015 height with a 2026 time was worth a hundred dollars of hash. A time
+#    its height cannot have is now refused before any question of work.
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	$real = Sablier\Ots\BlockHeader::fromHex($argv[1]);
+	$root = substr($real, 36, 32);
+	$modern = substr($real, 0, 68).pack("V", 1767225600).substr($real, 72);
+	$cases = [
+		"2015 height, 2026 time" => [Sablier\Ots\BlockHeader::check($modern, $root, 354816), "anchor.header.time"],
+		"2026 height, 2015 header" => [Sablier\Ots\BlockHeader::check($real, $root, 980000), "anchor.header.time"],
+	];
+	foreach ($cases as $what => [$got, $expected]) {
+		if ($got["ok"] || $got["reason"] !== $expected) { fwrite(STDERR, "✗ ots: $what gave ".($got["reason"] ?: "valid")."\n"); exit(1); }
+	}
+	printf("  ✓ %-24s %-10s %s\n", "ots", "backdating", "a time its height cannot have, refused");
+' "$header" || { rm -rf "$ots"; exit 1; }
+
+# 9. Every state says what it is, in the terminal and in both documents. Only
+#    an anchoring that checked may say it "establishes" a date: the first
+#    version said so under an invalid one too.
+php -r '
+	$b = file_get_contents($argv[1]);
+	$h = hex2bin($argv[2]);
+	file_put_contents($argv[3], bin2hex(substr($h, 0, 68).pack("V", 1767225600).substr($h, 72)));
+' "$ots/hello-world.ots" "$header" "$ots/forged.hex"
+./bin/sablier anchor "$ots/hello-world.ots" --airgap --lang=en --block-header="$(cat "$ots/forged.hex")" >"$ots/invalid" 2>&1 && { echo "✗ ots: a forged header passed"; cat "$ots/invalid"; rm -rf "$ots"; exit 1; }
+grep -q "does NOT hold" "$ots/invalid" || { echo "✗ ots: invalid not said"; cat "$ots/invalid"; rm -rf "$ots"; exit 1; }
+./bin/sablier anchor "$ots/none.ots" --airgap --lang=en >"$ots/none" 2>&1 && { echo "✗ ots: a proof with nothing checkable passed"; cat "$ots/none"; rm -rf "$ots"; exit 1; }
+grep -q "holds no attestation" "$ots/none" || { echo "✗ ots: none not said"; cat "$ots/none"; rm -rf "$ots"; exit 1; }
+./bin/sablier anchor "$ots/hello-world.ots" --airgap --lang=en >"$ots/unchecked" 2>&1 || { echo "✗ ots: an unchecked anchoring failed offline"; rm -rf "$ots"; exit 1; }
+grep -q "not checked" "$ots/unchecked" || { echo "✗ ots: unchecked not said"; cat "$ots/unchecked"; rm -rf "$ots"; exit 1; }
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	Sablier\Lang::use("en");
+	$signature = ["algorithm" => "Ed25519", "digest" => str_repeat("ab", 32), "signed_at" => "2026-11-17T00:00:00+00:00", "public_key" => base64_encode(str_repeat("k", 32)), "signature" => "x"];
+	$expect = [
+		"anchored" => ["establishes: the digest above existed", "block 358391 · 28/05/2015"],
+		"pending" => ["will establish", "pending · submitted to alice"],
+		"invalid" => ["establishes: nothing", "does NOT check out"],
+		"unchecked" => ["does not rely on it yet", "not checked when this report"],
+		"none" => ["establishes nothing here", "nothing this tool can check"],
+	];
+	foreach ($expect as $state => [$meaning, $line]) {
+		$anchor = ["state" => $state, "height" => $state === "pending" || $state === "none" ? 0 : 358391, "time" => $state === "anchored" ? 1432827678 : 0,
+			"calendars" => $state === "pending" ? ["alice.btc.calendar.opentimestamps.org"] : [], "path" => "r.html.ots", "since" => "17/11/2026 05:00 UTC"];
+		$analysis = new Sablier\Analysis([], Sablier\Declaration::load(null), "t", 0, [], 2026, signature: $signature, anchor: $anchor);
+		foreach ([new Sablier\Reporter\HtmlReporter(), new Sablier\Reporter\AuditReporter()] as $reporter) {
+			$text = html_entity_decode(strip_tags($reporter->render($analysis)), ENT_QUOTES);
+			if (!str_contains($text, $meaning) || !str_contains($text, $line)) { fwrite(STDERR, "✗ ots: $state wording missing in ".$reporter::class."\n"); exit(1); }
+			if ($state !== "anchored" && str_contains($text, "What the anchoring establishes: the digest")) { fwrite(STDERR, "✗ ots: $state claims a date\n"); exit(1); }
+		}
+	}
+	printf("  ✓ %-24s %-10s %s\n", "ots", "wording", "anchored, pending, invalid, unchecked, none: each its own, in both documents");
+' || { rm -rf "$ots"; exit 1; }
+
+# 10. The keep-oldest rule, with no calendar to reach. A proof of this very
+#     digest beside the report is kept as it is — a newer anchoring would throw
+#     away the antecedence — and a proof of findings that no longer exist is
+#     not passed off as this report's.
+./bin/sablier scan "$ots/project" --out="$ots/k.html" --no-probe --quiet --sign="$ots/k.json" >/dev/null 2>&1 || true
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	$sig = json_decode(file_get_contents($argv[1]), true);
+	$root = Sablier\Ots\Node::pending("https://calendar.invalid");
+	file_put_contents($argv[2], (new Sablier\Ots\Proof(hex2bin($sig["digest"]), $root))->serialise());
+' "$ots/k.html.sig" "$ots/k.html.ots"
+cp "$ots/k.html.ots" "$ots/kept.ots"
+touch -t 202601010000 "$ots/k.html.ots"
+./bin/sablier scan "$ots/project" --out="$ots/k.html" --no-probe --quiet --sign="$ots/k.json" \
+	--anchor=http://127.0.0.1:9/never --lang=en >/dev/null 2>"$ots/err" || true
+if ! cmp -s "$ots/k.html.ots" "$ots/kept.ots"; then
+	echo "✗ ots: a proof of the same digest was replaced"
+	rm -rf "$ots"; exit 1
+fi
+if grep -q "127.0.0.1:9" "$ots/err"; then
+	echo "✗ ots: a proof of the same digest was stamped again"
+	cat "$ots/err"; rm -rf "$ots"; exit 1
+fi
+if ! grep -q "submitted to calendar.invalid on 01/01/2026" "$ots/k.html"; then
+	echo "✗ ots: the kept proof is not the one the report describes"
+	rm -rf "$ots"; exit 1
+fi
+cp "$ots/hello-world.ots" "$ots/k.html.ots"
+./bin/sablier scan "$ots/project" --out="$ots/k.html" --no-probe --quiet --sign="$ots/k.json" \
+	--anchor=http://127.0.0.1:9/again --lang=en >/dev/null 2>"$ots/err" || true
+if ! grep -q "127.0.0.1:9/again" "$ots/err" || grep -q "block 358391" "$ots/k.html"; then
+	echo "✗ ots: a proof of another digest was passed off as this report's"
+	cat "$ots/err"; rm -rf "$ots"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "ots" "keep" "same digest kept, another digest never claimed"
+
+# 11. Where an upgrade may send this machine. A pending attestation is a URL
+#     written by whoever made the file; one with a port, a path or a host
+#     outside the calendars' operators is refused before any connection.
+php -r '
+	spl_autoload_register(static function (string $c): void { $p = "src/".str_replace("\\", "/", substr($c, 8)).".php"; if (is_file($p)) { require $p; } });
+	$root = new Sablier\Ots\Node();
+	foreach (["https://alice.btc.calendar.opentimestamps.org:8443", "https://alice.btc.calendar.opentimestamps.org/x", "https://evil.example.org", "http://alice.btc.calendar.opentimestamps.org"] as $i => $uri) {
+		$branch = Sablier\Ots\Node::pending($uri);
+		$root->ops[] = ["op" => Sablier\Ots\Node::APPEND, "arg" => chr($i + 1), "node" => $branch];
+	}
+	$start = microtime(true);
+	$result = Sablier\OpenTimestamps::upgrade(new Sablier\Ots\Proof(str_repeat("\x22", 32), $root));
+	$refused = array_filter($result["errors"], static fn (array $e): bool => $e["error"] === "anchor.untrusted");
+	if (count($refused) !== 4 || microtime(true) - $start > 1.0) { fwrite(STDERR, "✗ ots: a pending URI outside the whitelist was followed\n"); exit(1); }
+	printf("  ✓ %-24s %-10s %s\n", "ots", "whitelist", "port, path, foreign host and plain http not followed");
+' || { rm -rf "$ots"; exit 1; }
 rm -rf "$ots"
 
 # --- a half not checked is not a half this machine cannot check ------------------

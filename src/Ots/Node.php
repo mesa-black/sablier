@@ -50,6 +50,18 @@ final class Node
     private const int MAX_DEPTH = 256;
     private const int MAX_HEIGHT = 4294967295;
 
+    /**
+     * How many operations and attestations a whole proof may hold.
+     *
+     * The reference has no such limit, and a review showed why one is needed
+     * here: 65,536 forks of 4 KB messages fit in under a megabyte and exhausted
+     * PHP's memory on the walk, so a file handed to `verify` could stop it with
+     * a fatal error instead of a refusal. A real proof merged from four
+     * calendars and upgraded holds a few hundred elements; 2,048 leaves ample
+     * room and caps the walk at about 8 MB of messages.
+     */
+    public const int MAX_ELEMENTS = 2048;
+
     /** What the reference allows in a pending URI: no query, no fragment, no credentials, no percent. */
     private const string URI_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._/:';
 
@@ -61,6 +73,15 @@ final class Node
 
     /** @var list<array{op:int, arg:string, node:Node}> */
     public array $ops = [];
+
+    /**
+     * The operations and attestations already here, keyed, so a duplicate is
+     * found in one lookup. Scanning the siblings instead made a node with
+     * forty thousand branches take a minute to parse.
+     *
+     * @var array<string, true>
+     */
+    private array $seen = [];
 
     public static function parse(Bytes $bytes, int $depth = 0): self
     {
@@ -94,7 +115,10 @@ final class Node
             } elseif ($kind === self::BITCOIN) {
                 self::height($payload);
             }
-            $this->attestations[] = ['tag' => $kind, 'payload' => $payload];
+            $bytes->count(self::MAX_ELEMENTS);
+            // Collapsed, as the reference's set collapses them: the same
+            // attestation twice on one message says nothing the first did not.
+            $this->addAttestation(['tag' => $kind, 'payload' => $payload]);
 
             return;
         }
@@ -107,13 +131,28 @@ final class Node
             throw new FormatError(\sprintf('unknown operation 0x%02x', $tag));
         }
 
-        foreach ($this->ops as $existing) {
-            if ($existing['op'] === $tag && $existing['arg'] === $arg) {
-                throw new FormatError(\sprintf('operation 0x%02x repeated', $tag));
-            }
+        $bytes->count(self::MAX_ELEMENTS);
+        if (isset($this->seen[self::opKey($tag, $arg)])) {
+            throw new FormatError(\sprintf('operation 0x%02x repeated', $tag));
         }
+        $this->seen[self::opKey($tag, $arg)] = true;
 
         $this->ops[] = ['op' => $tag, 'arg' => $arg, 'node' => self::parse($bytes, $depth + 1)];
+    }
+
+    /** @param array{tag:string, payload:string} $attestation */
+    private function addAttestation(array $attestation): void
+    {
+        $key = 'a:'.$attestation['tag'].$attestation['payload'];
+        if (!isset($this->seen[$key])) {
+            $this->seen[$key] = true;
+            $this->attestations[] = $attestation;
+        }
+    }
+
+    private static function opKey(int $op, string $arg): string
+    {
+        return 'o:'.$op.':'.$arg;
     }
 
     public function serialise(): string
@@ -161,17 +200,20 @@ final class Node
     public function merge(self $other): void
     {
         foreach ($other->attestations as $attestation) {
-            if (!\in_array($attestation, $this->attestations, true)) {
-                $this->attestations[] = $attestation;
-            }
+            $this->addAttestation($attestation);
+        }
+        $index = [];
+        foreach ($this->ops as $ours) {
+            $index[self::opKey($ours['op'], $ours['arg'])] = $ours['node'];
         }
         foreach ($other->ops as $theirs) {
-            foreach ($this->ops as $ours) {
-                if ($ours['op'] === $theirs['op'] && $ours['arg'] === $theirs['arg']) {
-                    $ours['node']->merge($theirs['node']);
-                    continue 2;
-                }
+            $key = self::opKey($theirs['op'], $theirs['arg']);
+            if (isset($index[$key])) {
+                $index[$key]->merge($theirs['node']);
+                continue;
             }
+            $this->seen[$key] = true;
+            $index[$key] = $theirs['node'];
             $this->ops[] = $theirs;
         }
     }
@@ -188,14 +230,25 @@ final class Node
     public function walk(?string $message): array
     {
         $found = [];
+        $this->collect($message, $found);
+
+        return $found;
+    }
+
+    /**
+     * The walk itself, appending to one list rather than copying a merged one
+     * at every level, which made a wide proof quadratic.
+     *
+     * @param list<array{message:?string, tag:string, payload:string, node:Node}> $found
+     */
+    private function collect(?string $message, array &$found): void
+    {
         foreach ($this->attestations as $attestation) {
             $found[] = ['message' => $message, 'tag' => $attestation['tag'], 'payload' => $attestation['payload'], 'node' => $this];
         }
         foreach ($this->ops as $op) {
-            $found = [...$found, ...$op['node']->walk($message === null ? null : self::apply($op['op'], $op['arg'], $message))];
+            $op['node']->collect($message === null ? null : self::apply($op['op'], $op['arg'], $message), $found);
         }
-
-        return $found;
     }
 
     /**
@@ -257,7 +310,7 @@ final class Node
     public static function pending(string $uri): self
     {
         $node = new self();
-        $node->attestations[] = ['tag' => self::PENDING, 'payload' => Bytes::varbytesOf($uri)];
+        $node->addAttestation(['tag' => self::PENDING, 'payload' => Bytes::varbytesOf($uri)]);
 
         return $node;
     }

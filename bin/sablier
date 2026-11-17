@@ -185,8 +185,18 @@ function sablier_anchor_check(string $path, Proof $proof, array $args): bool
             printf("  · %s\n", Lang::t($error['error'], $error['detail']));
         }
         if ($upgrade['changed']) {
-            file_put_contents($path, $proof->serialise());
-            printf("  %s\n", Lang::t('verify.anchor.upgraded', $path));
+            if (OpenTimestamps::save($path, $proof)) {
+                printf("  %s\n", Lang::t('verify.anchor.upgraded', $path));
+            } else {
+                // The completed proof would not read back: the file keeps the
+                // older one, and what is checked below is what is on disk.
+                printf("  ✗ %s\n", Lang::t('anchor.unsaved', $path));
+                $reloaded = OpenTimestamps::load($path);
+                if (!isset($reloaded['proof'])) {
+                    return true;
+                }
+                $proof = $reloaded['proof'];
+            }
         }
     }
 
@@ -212,6 +222,13 @@ function sablier_anchor_check(string $path, Proof $proof, array $args): bool
     }
     if ($check['anchors'] === [] && $check['pending'] !== []) {
         printf("  %s\n", Lang::t('verify.anchor.pending', implode(', ', $check['pending'])));
+    }
+    // Nothing to check and nothing to wait for: only notaries this tool does
+    // not know, or branches it cannot compute. That passed with exit 0 once,
+    // which read as "anchored" to anybody looking at the exit code alone.
+    if ($check['anchors'] === [] && $check['pending'] === []) {
+        $failed = true;
+        printf("  ✗ %s\n", Lang::t('verify.anchor.none'));
     }
     if ($check['unsupported'] > 0) {
         printf("  %s\n", Lang::t('verify.anchor.unsupported', $check['unsupported']));
@@ -1593,8 +1610,12 @@ if ($options['sign'] !== null) {
             } elseif (hash_equals($held['proof']->hex(), $digest)) {
                 $proof = $held['proof'];
                 $upgrade = OpenTimestamps::upgrade($proof, $calendars);
-                if ($upgrade['changed']) {
-                    file_put_contents($anchorPath, $proof->serialise());
+                if ($upgrade['changed'] && !OpenTimestamps::save($anchorPath, $proof)) {
+                    fwrite(\STDERR, '✗ '.Lang::t('anchor.unsaved', $anchorPath)."\n");
+                    // Back to what is on disk, which stays the evidence; and if
+                    // even that no longer reads, nothing is stamped over it.
+                    $proof = OpenTimestamps::load($anchorPath)['proof'] ?? null;
+                    $blocked = $proof === null;
                 }
             }
             // A proof of another digest belongs to findings that no longer
@@ -1820,6 +1841,8 @@ if ($anchor !== null) {
     printf("  → %s\n", match ($anchor['state']) {
         'anchored' => Lang::t('cli.anchored', $anchor['path'], $anchor['height'], OpenTimestamps::readable($anchor['time'])),
         'pending' => Lang::t('cli.anchor.pending', $anchor['path'], implode(', ', $anchor['calendars'])),
+        'invalid' => Lang::t('cli.anchor.invalid', $anchor['path'], $anchor['height']),
+        'none' => Lang::t('cli.anchor.none', $anchor['path']),
         default => Lang::t('cli.anchor.claimed', $anchor['path'], $anchor['height']),
     });
 }

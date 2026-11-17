@@ -262,6 +262,9 @@ None of them is trusted. We do not believe the explorer, we check what it gives:
 - and that target must be at or below a floor taken from real blocks of the main
   chain, one per year since 2015, the latest from 14/11/2026 — a header can
   declare a trivial target and meet it in a second, and this is what refuses it.
+  The floor is the stricter of the era of the height and the era of the time
+  the header carries, and a time its height cannot have is refused outright:
+  both are the forger's to write, so neither alone may pick the difficulty.
 
 A source that lies would therefore have to mine a block at close to the
 difficulty of its era; for every proof this tool makes, that of November 2026.

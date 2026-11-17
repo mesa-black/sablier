@@ -222,7 +222,10 @@ Aucun n'est cru. On ne croit pas l'explorateur, on vérifie ce qu'il donne :
 - et cette cible doit être inférieure ou égale à un plancher tiré de vrais blocs de
   la chaîne principale, un par an depuis 2015, le dernier du 14/11/2026 — un en-tête
   peut déclarer une cible triviale et l'atteindre en une seconde, et c'est ce qui le
-  refuse.
+  refuse. Le plancher est le plus strict de l'époque de la hauteur et de l'époque de
+  l'heure que porte l'en-tête, et une heure que sa hauteur ne permet pas est refusée
+  d'emblée : les deux sont écrites par le faussaire, aucune ne choisit seule la
+  difficulté.
 
 Une source qui mentirait devrait donc miner un bloc à une difficulté proche de celle
 de son époque ; pour toute preuve que fait cet outil, celle de novembre 2026. Ce que

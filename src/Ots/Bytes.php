@@ -25,8 +25,19 @@ final class Bytes
 
     private int $offset = 0;
 
+    /** Elements read so far, against the cap the tree sets (Node::MAX_ELEMENTS). */
+    private int $elements = 0;
+
     public function __construct(private readonly string $bytes)
     {
+    }
+
+    /** One more operation or attestation; past the cap, a refusal rather than a walk that eats the memory. */
+    public function count(int $max): void
+    {
+        if (++$this->elements > $max) {
+            throw new FormatError(\sprintf('more than %d operations and attestations', $max));
+        }
     }
 
     public function byte(): int

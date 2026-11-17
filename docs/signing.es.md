@@ -218,7 +218,9 @@ Ninguno se cree. No creemos al explorador, comprobamos lo que da:
 - y ese objetivo debe ser menor o igual que un umbral tomado de bloques reales de la
   cadena principal, uno por año desde 2015, el último del 14/11/2026 — una cabecera
   puede declarar un objetivo trivial y alcanzarlo en un segundo, y esto es lo que la
-  rechaza.
+  rechaza. El umbral es el más estricto entre la época de la altura y la época de la
+  hora que lleva la cabecera, y una hora que su altura no permite se rechaza de
+  entrada: ambas las escribe el falsificador, ninguna elige sola la dificultad.
 
 Una fuente que mintiera tendría pues que minar un bloque con una dificultad cercana a
 la de su época; para toda prueba que hace esta herramienta, la de noviembre de 2026.

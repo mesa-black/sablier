@@ -563,7 +563,7 @@ final class HtmlReporter implements ReporterInterface
             $anchor = $this->analysis->anchor;
             if ($anchor !== null) {
                 $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t(
-                    $anchor['state'] === 'pending' ? 'seal.anchor.proves.pending' : 'seal.anchor.proves',
+                    HtmlReporter::anchorMeaning($anchor['state']),
                 )).'</p>'
                     .'<p class="legend">'.htmlspecialchars(Lang::t('seal.anchor.verify')).'</p>'
                     .'<pre class="recipe">'.htmlspecialchars(Lang::t(
@@ -617,6 +617,25 @@ final class HtmlReporter implements ReporterInterface
     }
 
     /**
+     * What the anchoring establishes, said per state.
+     *
+     * Only an anchoring that checked establishes a date. The first version
+     * printed "what the anchoring establishes" under an invalid or unchecked
+     * one too, so a document whose proof did not hold still told its reader
+     * the findings existed no later than that block.
+     */
+    public static function anchorMeaning(string $state): string
+    {
+        return match ($state) {
+            'anchored' => 'seal.anchor.proves',
+            'pending' => 'seal.anchor.proves.pending',
+            'invalid' => 'seal.anchor.proves.invalid',
+            'unchecked' => 'seal.anchor.proves.unchecked',
+            default => 'seal.anchor.proves.none',
+        };
+    }
+
+    /**
      * The anchoring in one line: the block and its date, the block that could
      * not be checked, or the calendars still working on it.
      *
@@ -631,6 +650,7 @@ final class HtmlReporter implements ReporterInterface
             'anchored' => Lang::t('seal.anchor.anchored', $anchor['height'], OpenTimestamps::readable($anchor['time'])),
             'invalid' => Lang::t('seal.anchor.invalid', $anchor['height']),
             'unchecked' => Lang::t('seal.anchor.claimed', $anchor['height']),
+            'none' => Lang::t('seal.anchor.none'),
             default => Lang::t('seal.anchor.pending', implode(', ', $anchor['calendars']), $anchor['since']),
         };
     }

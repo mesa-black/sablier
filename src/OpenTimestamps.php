@@ -172,6 +172,12 @@ final class OpenTimestamps
      */
     public static function load(string $path): array
     {
+        // Measured before it is read: a file the size of a disk is refused
+        // for its size, not after it has been loaded into memory.
+        $size = filesize($path);
+        if ($size === false || $size > Proof::MAX_BYTES) {
+            return ['error' => 'anchor.unreadable', 'detail' => $path.': '.($size === false ? 'unreadable' : $size.' bytes, more than any real proof')];
+        }
         try {
             $proof = Proof::parse((string) file_get_contents($path));
             // Walked once here so a proof whose operations cannot be applied is
@@ -182,6 +188,27 @@ final class OpenTimestamps
         }
 
         return ['proof' => $proof];
+    }
+
+    /**
+     * Write a proof back, but only one that reads back.
+     *
+     * Grafting a calendar's answer can push a branch past the depth or the
+     * element cap the parser enforces; written as is, the file would refuse to
+     * load next time and the older, readable proof would be gone. So the bytes
+     * are parsed and walked first, and the file is left as it was when they do
+     * not.
+     */
+    public static function save(string $path, Proof $proof): bool
+    {
+        try {
+            $bytes = $proof->serialise();
+            Proof::parse($bytes)->attestations();
+        } catch (FormatError) {
+            return false;
+        }
+
+        return file_put_contents($path, $bytes) === \strlen($bytes);
     }
 
     /**
@@ -282,14 +309,29 @@ final class OpenTimestamps
                     $used[$index] = true;
                 }
             }
+            // A header brought by hand is still compared with the explorers
+            // when the network is allowed: the reader's copy is one more source,
+            // not a way around the others. Unreachable explorers leave it as
+            // the only source, which is what offline means anyway.
+            if ($header !== null && $network) {
+                $got = $fetched[$height] ??= BlockHeader::fetch($height);
+                if (isset($got['header'], $got['source'])) {
+                    if (!hash_equals($got['header'], $header)) {
+                        $anchors[] = ['height' => $height, 'state' => 'invalid', 'reason' => 'anchor.header.contradicted', 'detail' => $got['source'], 'time' => 0, 'source' => ''];
+                        continue;
+                    }
+                    $source .= ' + '.$got['source'];
+                }
+            }
             if ($header === null && $network) {
                 $got = $fetched[$height] ??= BlockHeader::fetch($height);
                 if (!isset($got['header'], $got['source'])) {
                     $error = $got['error'];
                     $anchors[] = [
                         'height' => $height,
-                        // Two explorers that disagree is a finding; one that
-                        // does not answer is a gap.
+                        // Two explorers that disagree at a settled height,
+                        // both with real work, is a finding; anything else
+                        // is a gap (BlockHeader::fetch says why).
                         'state' => $error === 'anchor.header.disagree' ? 'invalid' : 'unchecked',
                         'reason' => $error,
                         'detail' => $got['detail'],
@@ -342,6 +384,13 @@ final class OpenTimestamps
                     return ['state' => $state === 'valid' ? 'anchored' : $state, 'height' => $anchor['height'], 'time' => $anchor['time'], 'calendars' => $check['pending']];
                 }
             }
+        }
+
+        // Nothing a reader could ever check: only notaries this tool does not
+        // know, or branches it cannot compute. Not "pending" — there is no
+        // calendar to wait for — and not silence either.
+        if ($check['pending'] === []) {
+            return ['state' => 'none', 'height' => 0, 'time' => 0, 'calendars' => []];
         }
 
         return ['state' => 'pending', 'height' => 0, 'time' => 0, 'calendars' => $check['pending']];

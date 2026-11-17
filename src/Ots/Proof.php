@@ -32,8 +32,19 @@ final class Proof
         }
     }
 
+    /**
+     * The largest file read at all. Real proofs are a few kilobytes — the
+     * nine examples of the official client are all under 2 KB, and one merged
+     * from four calendars and upgraded stays under 10 KB. Refused before a
+     * single byte is parsed, so a hostile file costs a stat, not a walk.
+     */
+    public const int MAX_BYTES = 65536;
+
     public static function parse(string $bytes): self
     {
+        if (\strlen($bytes) > self::MAX_BYTES) {
+            throw new FormatError(\sprintf('%d bytes, more than any real proof (%d at most)', \strlen($bytes), self::MAX_BYTES));
+        }
         $reader = new Bytes($bytes);
         if ($reader->read(\strlen(self::MAGIC)) !== self::MAGIC) {
             throw new FormatError('not an OpenTimestamps proof');

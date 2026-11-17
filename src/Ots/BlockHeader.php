@@ -77,6 +77,12 @@ final class BlockHeader
      */
     private const int SLACK = 4;
 
+    /** Six confirmations: the depth past which a block is not expected to be replaced. */
+    private const int SETTLED = 6;
+
+    /** How far a header's time may sit outside the dates its height allows. */
+    private const int MARGIN = 2 * 86400;
+
     /** Two explorers run by different companies. One alone would be one point of trust. */
     public const array EXPLORERS = ['https://blockstream.info/api', 'https://mempool.space/api'];
 
@@ -94,27 +100,71 @@ final class BlockHeader
         if (!hash_equals(substr($header, 36, 32), $commitment)) {
             return ['ok' => false, 'reason' => 'anchor.header.merkle', 'time' => $time];
         }
+        $reason = self::work($header, $height);
 
+        return ['ok' => $reason === '', 'reason' => $reason, 'time' => $time];
+    }
+
+    /**
+     * Whether a header carries the work of a real block of the era it claims,
+     * whatever it commits to. Empty when it does, the reason when it does not.
+     *
+     * Two claims in a header could pick the floor, and both are the forger's
+     * to write: the height (in the attestation) and the time (in the header).
+     * The first version took the floor from the height alone, and a review
+     * showed what that buys: claim height 354816, write a 2026 time, mine at
+     * 2015 difficulty for about a hundred dollars of hash, and the report said
+     * "anchored in 2026". So the floor is the stricter of the two — the
+     * checkpoint for the height and the latest checkpoint at or before the
+     * time — and a time outside the window its height allows is refused
+     * outright. What is left is the honest limit: a proof that claims an old
+     * height *and* an old time is only as costly to forge as a block of that
+     * era, and it then claims an old date, which is what it would cost.
+     */
+    public static function work(string $header, int $height): string
+    {
+        if (\strlen($header) !== self::LENGTH) {
+            return 'anchor.header.length';
+        }
+        $time = self::uint32($header, 68);
+        $byHeight = null;
+        $byTime = null;
+        $window = [null, null];
+        foreach (self::CHECKPOINTS as $index => [$at, $floorBits, $date]) {
+            $since = (int) strtotime($date.' 00:00:00 UTC');
+            if ($height >= $at) {
+                $byHeight = self::target($floorBits, self::SLACK);
+                $next = self::CHECKPOINTS[$index + 1][2] ?? null;
+                $window = [$since, $next === null ? null : (int) strtotime($next.' 00:00:00 UTC')];
+            }
+            if ($time >= $since) {
+                $byTime = self::target($floorBits, self::SLACK);
+            }
+        }
+        if ($byHeight === null) {
+            return 'anchor.header.too_old';
+        }
+
+        // A block's time drifts from the true one by hours, never by days, and
+        // the checkpoints are dated to the day: two days of margin each side.
+        if ($time < $window[0] - self::MARGIN || ($window[1] !== null && $time > $window[1] + self::MARGIN)) {
+            return 'anchor.header.time';
+        }
+
+        // The work after the dates: a header whose time its height cannot
+        // have is refused for that, whatever it cost to mine.
         $bits = self::uint32($header, 72);
         $target = self::target($bits);
         if ($target === null || strcmp(self::hash($header), $target) > 0) {
-            return ['ok' => false, 'reason' => 'anchor.header.work', 'time' => $time];
+            return 'anchor.header.work';
         }
 
-        $floor = null;
-        foreach (self::CHECKPOINTS as [$at, $floorBits]) {
-            if ($height >= $at) {
-                $floor = self::target($floorBits, self::SLACK);
-            }
-        }
-        if ($floor === null) {
-            return ['ok' => false, 'reason' => 'anchor.header.too_old', 'time' => $time];
-        }
+        $floor = $byTime !== null && strcmp($byTime, $byHeight) < 0 ? $byTime : $byHeight;
         if (strcmp($target, $floor) > 0) {
-            return ['ok' => false, 'reason' => 'anchor.header.floor', 'time' => $time];
+            return 'anchor.header.floor';
         }
 
-        return ['ok' => true, 'reason' => '', 'time' => $time];
+        return '';
     }
 
     /**
@@ -122,9 +172,18 @@ final class BlockHeader
      *
      * A node of one's own first, when SABLIER_BITCOIN_RPC names one: it is the
      * only source that checked the whole chain itself. Otherwise both
-     * explorers, and they must agree — a disagreement is reported as such,
-     * because it means one of them is wrong about the one fact the proof rests
-     * on.
+     * explorers, and they must agree.
+     *
+     * When they do not, what the disagreement means depends on the headers.
+     * Decided on 2026-11-17, after review: near the tip, two honest explorers
+     * can briefly follow different branches — a reorganisation in progress,
+     * not a lie — and a header without the work of its era is a source that
+     * is broken or lying cheaply, which says something about that source and
+     * nothing about the proof. Both are a gap (`anchor.header.unsettled`, not
+     * checked). Only two headers that each carry real work, at a height buried
+     * under six blocks or more, are a contradiction no honest pair produces:
+     * one of them serves another chain at real cost, and the anchoring cannot
+     * be established from these sources (`anchor.header.disagree`, invalid).
      *
      * @return array{header:string, source:string}|array{error:string, detail:string}
      */
@@ -144,10 +203,28 @@ final class BlockHeader
             $answers[parse_url($explorer, \PHP_URL_HOST)] = $answer['header'];
         }
         if (\count(array_unique($answers)) !== 1) {
-            return ['error' => 'anchor.header.disagree', 'detail' => (string) $height];
+            $mined = true;
+            foreach ($answers as $header) {
+                $mined = $mined && self::work($header, $height) === '';
+            }
+            $tip = self::tip(self::EXPLORERS[0]);
+            $settled = $tip !== null && $tip - $height >= self::SETTLED;
+
+            return ['error' => $mined && $settled ? 'anchor.header.disagree' : 'anchor.header.unsettled', 'detail' => (string) $height];
         }
 
         return ['header' => (string) reset($answers), 'source' => implode(' + ', array_keys($answers))];
+    }
+
+    /** The height of the chain's tip according to one explorer, null when it does not say. */
+    private static function tip(string $base): ?int
+    {
+        $answer = Http::request('GET', $base.'/blocks/tip/height', '', ['User-Agent: sablier']);
+        if ($answer === null || $answer['status'] !== 200 || preg_match('/^\d+$/', trim($answer['body'])) !== 1) {
+            return null;
+        }
+
+        return (int) trim($answer['body']);
     }
 
     /** The hex a reader pastes, back to bytes; null when it is not a header. */

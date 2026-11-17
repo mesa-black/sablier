@@ -519,7 +519,7 @@ final class AuditReporter implements ReporterInterface
                     Lang::t('seal.anchor') => htmlspecialchars(HtmlReporter::anchorLine($anchor)),
                 ]);
                 $body .= '<p>'.htmlspecialchars(Lang::t(
-                    $anchor['state'] === 'pending' ? 'seal.anchor.proves.pending' : 'seal.anchor.proves',
+                    HtmlReporter::anchorMeaning($anchor['state']),
                 )).'</p>'
                     .'<p>'.htmlspecialchars(Lang::t('seal.anchor.verify')).' <code>'
                     .htmlspecialchars(Lang::t('seal.anchor.command', $digest, basename($anchor['path']))).'</code></p>'
