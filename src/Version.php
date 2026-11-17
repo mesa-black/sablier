@@ -21,7 +21,7 @@ namespace Sablier;
  */
 final class Version
 {
-    public const string NUMBER = '0.12.1';
+    public const string NUMBER = '0.12.2';
 
     public static function label(): string
     {

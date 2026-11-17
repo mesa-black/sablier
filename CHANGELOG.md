@@ -4,10 +4,35 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
-## Unreleased
+## v0.12.2 — 2026-11-17
 
-No change to what the tool reports. The images it asks anyone to run moved,
-and the decisions that went with them were kept or dropped by their dates.
+A maintenance release: no change to what the tool reports. The interview now
+works without a local PHP, the help lists what the tool actually accepts, and
+the images it asks anyone to run moved, the decisions that went with them kept
+or dropped by their dates.
+
+### The interview reads its answers through the container
+
+Without a local PHP, the launcher ran the tool in a container whose standard
+input was closed. Every question of `declare` read end-of-file, and the whole
+interview was recorded as skipped, in zero seconds, with exit 0 — a session
+that looked done and had asked nothing. Standard input is now always attached,
+so answers can be piped in too, and a terminal is allocated when there is one.
+
+### `make serve` without PHP on the machine
+
+`serve` was the one target that called `bin/sablier` directly, so it needed a
+local PHP where every other target borrows one. It now goes through the
+launcher, which publishes the port on the address `--host` names and stops on
+Ctrl-C. `make release` reads the version from `src/Version.php` without PHP,
+and a test checks it reads the same as PHP does.
+
+### A help that lists what the tool accepts
+
+`keygen`, `verify`, `worksheet` and `version` were missing from it, and so were
+`--pdf`, `--year`, `--sign`, `--airgap` and the options of `serve`,
+`declare`, `verify` and `keygen`; `--log` was listed under `scan`, which never
+read it. The help is now grouped by command, in all three languages.
 
 ### Trivy 0.76.2, and the PHP and PHPStan images rebuilt
 
@@ -40,7 +65,7 @@ Ubuntu arrives in a commit rather than under us.
 
 ### Documentation
 
-The pipeline example pins v0.12.1 and a named runner; the `.trivyignore.yaml`
+The pipeline example pins a release and a named runner; the `.trivyignore.yaml`
 paragraph describes how entries are renewed or removed instead of naming one
 that expired weeks ago; the 162-vulnerability figure is dated as the
 measurement it was; and the acceptance example uses a real 8-character
