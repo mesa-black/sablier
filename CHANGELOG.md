@@ -4,7 +4,7 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
-## Unreleased
+## v0.13.0 — 2026-11-17
 
 The date of a report, anchored where nobody has to be believed about it.
 
@@ -38,11 +38,36 @@ which must return the same bytes, or by hand under `--airgap`
 (`--block-header`). None of them is believed: the merkle root must be the
 commitment, the header's hash must meet the target its own `nBits` declares,
 and that target must sit under a floor taken from real blocks, the latest from
-2026-11-14 — so a source that lies would have to mine a block.
+2026-11-14 — so a source that lies would have to mine a block. The floor is the
+stricter of the claimed height's era and the header's own time's era, and a
+time the height cannot have is refused: claiming an old, cheap height for a
+recent date does not buy a cheap block.
 
 The report and the audit document print the block and its date, or the
 calendars still working on it, next to the attested dates, with the command
 that checks it and its limit: it proves when, not who.
+Each state is said as it is — anchored, pending, does not check out, not
+checked from here, nothing checkable — and only the first says a date is
+established.
+
+### Any file, and every release of this tool
+
+`sablier anchor <file>` anchors any file and writes `<file>.ots` beside it,
+the official client's name: a SBOM, a signed declaration, minutes. A proof
+already there for the same bytes is kept and completed; one for other bytes
+is never overwritten. The release job uses it on the archive it publishes and
+attaches the pending proof, so the date of a release of this tool rests on
+neither GitHub's word nor the clock of whoever cut the tag — and the tag is
+signed from this release on.
+
+### Proofs from strangers
+
+A proof is a file somebody hands you. One over 64 KiB, or with more than 2,048
+operations, is refused before it is walked, in a sentence rather than a
+crash; duplicate branches are found in one lookup, so a wide proof cannot make
+the check slow. Upgrades only follow the calendars the official client
+trusts, or one named with `--calendar-url`, and a rewritten proof is read back
+before it replaces the one on disk.
 
 ## v0.12.2 — 2026-11-17
 
