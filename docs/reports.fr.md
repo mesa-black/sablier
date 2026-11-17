@@ -209,6 +209,45 @@ ce soit. L'auditeur le signe et le défend ; Sablier produit les faits, la méth
 limites et l'arithmétique, dans une forme qui survit à une lecture faite par quelqu'un
 qui y cherche un trou.
 
+## La date du sceau, et ce qui la vérifie
+
+Un rapport signé se termine par son sceau : l'empreinte des constats, la signature
+qui la couvre, et — quand on les a demandées — deux sortes de preuves de sa date,
+imprimées l'une sous l'autre pour que le lecteur voie laquelle est laquelle.
+
+- **Les dates attestées** (`--timestamp`) : la parole signée d'une autorité RFC 3161
+  qui a vu l'empreinte à un instant. Elles se vérifient avec `openssl ts -verify`,
+  la recette imprimée à côté. Leur limite l'est aussi : le jeton est signé en RSA ou
+  ECDSA, une preuve pour les prochaines années, pas pour 2040.
+- **L'ancrage Bitcoin** (`--anchor=opentimestamps`) : l'empreinte rejointe depuis un
+  bloc Bitcoin par SHA-256 seul, dans `report.html.ots`. La ligne dit soit
+  *bloc N · date du bloc*, soit *en attente · soumis à ces calendriers à cette date,
+  complet d'ici quelques heures* — un calendrier met ses empreintes dans un bloc
+  toutes les quelques heures, et `sablier verify` complète le fichier une fois que
+  c'est fait.
+
+L'ancrage est la seule preuve de la date qui ne demande au lecteur de croire
+personne. Le rapport imprime la commande qui le vérifie sans cet outil :
+
+```bash
+ots verify -d <l'empreinte affichée dans le rapport> report.html.ots
+```
+
+Le client officiel prend l'en-tête du bloc auprès d'un nœud Bitcoin à vous.
+`sablier verify report.html.sig` le prend auprès de deux explorateurs publics qui
+doivent concorder — et ne les croit pas non plus : il vérifie que l'en-tête porte
+l'engagement de la preuve et la preuve de travail qu'exige sa propre difficulté,
+au-dessus d'un plancher tiré de vrais blocs. Sur une machine sans réseau, l'en-tête
+s'apporte à la main, `--block-header=<hex>`.
+
+Ce qu'il établit, comme le dit le rapport : les constats existaient **au plus tard**
+à ce bloc. Pas qui les a produits — c'est la signature. Et comme la preuve n'est
+faite que d'empreintes, c'est la partie du sceau qu'un ordinateur quantique affaiblit
+le moins ; que le consensus de Bitcoin lui-même survive à cette transition est hors
+de sa portée. [`signing.fr.md`](signing.fr.md) donne le détail : ce que reçoivent les
+calendriers, pourquoi il y a un défaut ici et aucun pour `--timestamp`, et le
+plancher.
+
 ## Composer le rapport en PDF
 
 `--pdf=FICHIER` écrit aussi un PDF, composé ici plutôt qu'imprimé par un navigateur

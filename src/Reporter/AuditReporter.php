@@ -509,6 +509,23 @@ final class AuditReporter implements ReporterInterface
 
             }
 
+            // The anchoring, next to the attested date it answers. Filed with
+            // the document, it is the one piece of evidence about its date that
+            // a reader years from now can check without trusting anybody who
+            // was in the room — so the command is printed, not referred to.
+            $anchor = $this->analysis->anchor;
+            if ($anchor !== null) {
+                $body .= self::definitions([
+                    Lang::t('seal.anchor') => htmlspecialchars(HtmlReporter::anchorLine($anchor)),
+                ]);
+                $body .= '<p>'.htmlspecialchars(Lang::t(
+                    HtmlReporter::anchorMeaning($anchor['state']),
+                )).'</p>'
+                    .'<p>'.htmlspecialchars(Lang::t('seal.anchor.verify')).' <code>'
+                    .htmlspecialchars(Lang::t('seal.anchor.command', $digest, basename($anchor['path']))).'</code></p>'
+                    .'<p>'.htmlspecialchars(Lang::t('seal.anchor.command.note')).'</p>';
+            }
+
             // Why the seal can precede the date at the top of the page: it is
             // kept while the findings hash to the same value, and the earliest
             // one is the only one worth having. Asked of the seal as a whole,

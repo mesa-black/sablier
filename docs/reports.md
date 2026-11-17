@@ -207,6 +207,44 @@ anywhere. The auditor signs it and defends it; Sablier produces the facts, the
 method, the limits and the arithmetic, in a shape that survives being read by
 someone looking for a hole in it.
 
+## The date on the seal, and what checks it
+
+A signed report ends with its seal: the digest of the findings, the signature
+over it, and — when they were asked for — two different kinds of evidence about
+its date, printed one under the other so a reader sees which is which.
+
+- **Attested dates** (`--timestamp`): an RFC 3161 authority's signed word that it
+  saw the digest at an instant. Checked with `openssl ts -verify`, the recipe
+  printed beside it. Its limit is printed too: the token is signed with RSA or
+  ECDSA, evidence for the next few years, not for 2040.
+- **Bitcoin anchoring** (`--anchor=opentimestamps`): the digest reached from a
+  Bitcoin block by SHA-256 alone, in `report.html.ots`. The line reads either
+  *block N · date of the block*, or *pending · submitted to these calendars on
+  this date, completes within a few hours* — a calendar puts its digests in a
+  block every few hours, and `sablier verify` completes the file once it has.
+
+The anchoring is the one piece of evidence about the date that asks the reader
+to believe nobody. The report prints the command that checks it without this
+tool:
+
+```bash
+ots verify -d <the digest printed in the report> report.html.ots
+```
+
+The official client takes the block header from a Bitcoin node of your own.
+`sablier verify report.html.sig` takes it from two public explorers that must
+agree — and does not believe them either: it checks that the header carries the
+proof's commitment and the proof of work its own difficulty demands, above a
+floor taken from real blocks. On a machine with no network the header is
+carried in by hand, `--block-header=<hex>`.
+
+What it establishes, as the report says: the findings existed **no later than**
+that block. Not who produced them — that is the signature. And since the proof
+is hashes only, it is the part of the seal a quantum computer weakens least;
+whether Bitcoin's own consensus survives that transition is outside its scope.
+[`signing.md`](signing.md) has the details: what the calendars receive, why there
+is a default here and none for `--timestamp`, and the floor.
+
 ## Typesetting the report as a PDF
 
 `--pdf=FILE` writes a PDF as well, typeset here rather than printed by a

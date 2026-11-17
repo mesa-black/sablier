@@ -205,7 +205,9 @@ return [
   bin/sablier accept <huella> --reason=…  aceptar un hallazgo, con su fecha de caducidad
   bin/sablier endorse <sablier.json>  firmar la declaración: las duraciones, por quien se compromete
   bin/sablier keygen                escribir una clave de firma (por defecto: sablier.key)
-  bin/sablier verify <archivo.sig>  verificar una firma, su fecha atestiguada y su cadena
+  bin/sablier verify <archivo.sig>  verificar una firma, su fecha atestiguada, su anclaje y su cadena
+  bin/sablier anchor <archivo.ots>  completar y verificar una prueba OpenTimestamps por sí sola
+  bin/sablier anchor <archivo>      anclar cualquier archivo en la cadena de Bitcoin: <archivo>.ots a su lado
   bin/sablier version               la versión (también --version)
   bin/sablier help                  este texto
 
@@ -225,6 +227,8 @@ return [
     --sign=CLAVE        firmar el informe con una clave de keygen, o --sign=ephemeral: una clave de un solo uso
     --timestamp=URL     hacer atestiguar la fecha de la huella por una autoridad RFC 3161 (con --sign)
                         repetible, o separada por comas: una autoridad es un único punto de confianza
+    --anchor=URL        anclar la huella en la cadena Bitcoin mediante calendarios OpenTimestamps (con --sign)
+                        --anchor=opentimestamps: los calendarios públicos; repetible, o separado por comas
     --no-probe          no sondear los hosts declarados
     --quiet             sin resumen en el terminal
 
@@ -250,10 +254,14 @@ return [
     --timestamp=ARCHIVO un token RFC 3161 (por defecto: los que están junto a la firma)
     --timestamp-ca=ARCHIVO  autoridad de certificación para verificar la cadena del token
     --previous=ARCHIVO  la firma anterior a la que esta dice suceder
+    --anchor=ARCHIVO    una prueba OpenTimestamps (por defecto: el .ots junto a la firma)
+  verify, anchor:
+    --block-header=HEX  la cabecera de 80 bytes del bloque de anclaje, para verificar sin red
+    --calendar-url=URL  un calendario donde completar la prueba, además de los públicos
 
   en todas partes:
     --lang=fr|en|es     idioma (por defecto: SABLIER_LANG, si no fr)
-    --airgap            rechazar todo lo que toca la red: probe, advisories, --timestamp (o SABLIER_AIRGAP=1)',
+    --airgap            rechazar todo lo que toca la red: probe, advisories, --timestamp, --anchor (o SABLIER_AIRGAP=1)',
     'cli.declaration' => 'declaración:',
 
     // --- comparison with a reference run ---
@@ -751,6 +759,69 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'declare.overlap' => 'El dominio «%s» cubre %s, ya tomado por «%s»: gana la primera coincidencia, así que la duración de «%s» nunca se leerá. Fusione ambos, o quite la ruta de uno de ellos.',
     'worksheet.import.unreadable' => 'Archivo de respuestas ilegible: %s',
     'worksheet.written' => 'Cuestionario escrito en %s. Ábralo en un navegador, sin conexión.',
+    // --- anclaje en la cadena Bitcoin (OpenTimestamps) ---
+    'cli.anchor_needs_sign' => '--anchor necesita --sign: la prueba ancla la huella firmada y se guarda junto a la firma.',
+    'cli.anchor_usage' => 'uso: sablier anchor <archivo.ots> [--block-header=HEX] [--calendar-url=URL], o sablier anchor <archivo> [--anchor=URL]',
+    'cli.anchored' => '%1$s — anclado en la cadena Bitcoin en el bloque %2$d, %3$s',
+    'cli.anchor.pending' => '%1$s — anclaje pendiente: enviado a %2$s, completo en unas horas (sablier verify lo termina)',
+    'cli.anchor.claimed' => '%1$s — anclaje en el bloque %2$d, no verificado desde aquí',
+    'anchor.bad_digest' => 'sin anclaje: %s no es una huella SHA-256.',
+    'anchor.bad_url' => 'sin anclaje por %s: no es la dirección http o https de un calendario.',
+    'anchor.unreachable' => 'calendario OpenTimestamps inalcanzable: %s.',
+    'anchor.refused' => 'el calendario OpenTimestamps %s rechazó la huella.',
+    'anchor.malformed' => 'respuesta ilegible de un calendario OpenTimestamps, no conservada: %s',
+    'anchor.none' => 'ningún calendario respondió: el informe está firmado, pero nada lo ancla en la cadena Bitcoin, y no se escribió ningún .ots.',
+    'anchor.unreadable' => 'prueba OpenTimestamps ilegible: %s',
+    'anchor.kept_unreadable' => '%s no se lee como una prueba OpenTimestamps: se deja tal cual, y no se ancla nada nuevo. Apártelo para anclar de nuevo.',
+    'anchor.untrusted' => 'calendario %s no contactado solo porque la prueba lo diga: nómbrelo con --calendar-url=<url> para consultarlo.',
+    'anchor.offline' => 'ninguna cabecera de bloque a mano',
+    'anchor.header.length' => 'la cabecera no mide 80 bytes',
+    'anchor.header.merkle' => 'la raíz de Merkle del bloque no es el compromiso que calcula la prueba',
+    'anchor.header.work' => 'el hash de la cabecera no alcanza el objetivo que declara su propio nBits: nadie lo minó',
+    'anchor.header.floor' => 'la cabecera declara menos trabajo que cualquier bloque real de su época',
+    'anchor.header.too_old' => 'la altura es más antigua que cualquier dificultad que esta herramienta conozca',
+    'anchor.header.disagree' => 'los dos exploradores devolvieron cabeceras distintas para el bloque %s: uno de ellos se equivoca sobre el único hecho del que depende la prueba',
+    'anchor.header.unreachable' => 'el explorador %s no dio la cabecera',
+    'anchor.header.inconsistent' => 'el explorador %s dio una cabecera que no es el bloque que nombró',
+    'anchor.header.rpc' => 'el nodo Bitcoin de SABLIER_BITCOIN_RPC (%s) no dio la cabecera',
+    'anchor.header.bad_hex' => '--block-header: %s… no es una cabecera de 80 bytes en hexadecimal.',
+    'verify.anchor.digest' => '%1$s ancla la huella %2$s',
+    'anchor.file.stamped' => '%1$s escrito: la huella %2$s enviada a %3$s. Pendiente de un bloque; `sablier anchor %1$s` la completa en unas horas.',
+    'anchor.file.kept' => '%1$s ya ancla estos bytes: se conserva, y se completa si los calendarios lo han hecho.',
+    'anchor.file.other' => '%1$s ancla otros bytes que %2$s: se deja como está. Apártelo para anclar el archivo tal como está ahora.',
+    'verify.anchor.valid' => 'anclado en la cadena Bitcoin en el bloque %1$d, %2$s — cabecera obtenida de %3$s, raíz de Merkle y prueba de trabajo verificadas aquí.',
+    'verify.anchor.invalid' => 'el anclaje Bitcoin en el bloque %1$d NO SE SOSTIENE: %2$s.',
+    'verify.anchor.unchecked' => 'anclaje Bitcoin reivindicado en el bloque %1$d, no verificado: %2$s.',
+    'verify.anchor.offline' => 'sin red, la cabecera se trae: copie los 80 bytes del bloque %1$d desde una máquina de confianza y páselos con --block-header=<hex>.',
+    'verify.anchor.pending' => 'anclaje pendiente: registrado por %s, todavía no en un bloque. Vuelva a ejecutar verify en unas horas: completa la prueba.',
+    'verify.anchor.upgraded' => '%s completado con su atestación Bitcoin, y reescrito.',
+    'verify.anchor.other_digest' => 'la prueba OpenTimestamps %s ancla otra huella: no trata de este informe.',
+    'verify.anchor.unsupported' => '%d rama(s) de la prueba pasan por Keccak-256, que esta máquina no sabe calcular: no verificadas.',
+    'verify.anchor.unused' => '%d cabecera(s) pasada(s) con --block-header no corresponden a ninguna atestación de esta prueba: o bien otro bloque, o bien una prueba de otra huella.',
+    'verify.anchor.limit' => 'lo que el anclaje no prueba: quién. Prueba que la huella existía a más tardar en ese bloque, solo con SHA-256; el consenso de la propia cadena Bitcoin queda fuera de su alcance.',
+    'seal.anchor' => 'anclaje Bitcoin',
+    'seal.anchor.anchored' => 'bloque %1$d · %2$s',
+    'seal.anchor.claimed' => 'bloque %1$d · no verificado al escribir este informe',
+    'seal.anchor.invalid' => 'bloque %1$d · NO se verifica — ejecute sablier verify',
+    'seal.anchor.pending' => 'pendiente · enviado a %1$s el %2$s, completo en unas horas',
+    'seal.anchor.proves' => 'Lo que el anclaje establece: la huella anterior existía a más tardar en ese bloque de la cadena Bitcoin, que miles de máquinas independientes conservan. No hay que creer a nadie: la prueba es una serie de operaciones SHA-256 que lleva de la huella a la raíz de Merkle del bloque, verificada sin esta herramienta y sin ningún certificado. Sus límites: prueba cuándo, no quién — eso es tarea de la firma. Frente a un ordenador cuántico, la prueba misma solo contiene hashes (SHA-256, a veces RIPEMD-160), que el algoritmo de Grover debilita sin romper: no caduca como el RSA de los tokens; que la cadena Bitcoin conserve su consenso durante esa transición queda fuera de lo que la prueba puede decir.',
+    'seal.anchor.proves.pending' => 'Lo que el anclaje establecerá: que la huella anterior existía a más tardar en un bloque de la cadena Bitcoin, sin autoridad a la que creer. Mientras la transacción de los calendarios no esté en un bloque, el archivo solo dice qué calendarios consultar; sablier verify lo completa entonces, y desde ese momento la prueba ya no los necesita.',
+    'seal.anchor.verify' => 'Se verifica sin ninguna autoridad, con la prueba depositada junto al informe:',
+    'seal.anchor.command' => 'ots verify -d %1$s %2$s',
+    'seal.anchor.command.note' => 'El cliente oficial (pip install opentimestamps-client) toma la cabecera del bloque de un nodo Bitcoin propio. sablier verify la toma de dos exploradores públicos que deben coincidir, y comprueba él mismo la prueba de trabajo de la cabecera en lugar de creerles; en una máquina sin red, la cabecera se pasa a mano con --block-header.',
+    'share.text.anchored' => 'Anclado en la cadena Bitcoin en el bloque %d (%s).',
+
+    'seal.anchor.none' => 'nada que esta herramienta pueda verificar: ni atestación Bitcoin, ni calendario que consultar',
+    'seal.anchor.proves.invalid' => 'Lo que el anclaje establece: nada. La prueba nombra un bloque que no la contiene — raíz de Merkle errónea, trabajo insuficiente, o fuentes que se contradicen — así que este documento no afirma nada sobre su fecha a partir de ella. sablier verify dice cuál.',
+    'seal.anchor.proves.unchecked' => 'La prueba reivindica un bloque, y no se pudo obtener ninguna cabecera para verificarla al escribir este informe: este documento todavía no se apoya en ella. sablier verify la verifica, con dos exploradores o con una cabecera traída a mano.',
+    'seal.anchor.proves.none' => 'La prueba no contiene ninguna atestación que esta herramienta sepa verificar — ni bloque Bitcoin, ni calendario que esperar — así que aquí no establece nada.',
+    'cli.anchor.invalid' => '%1$s — el anclaje en el bloque %2$d NO se verifica: ejecute sablier verify',
+    'cli.anchor.none' => '%1$s — ni atestación Bitcoin ni calendario que consultar: nada verificable',
+    'verify.anchor.none' => 'la prueba OpenTimestamps no contiene ninguna atestación que esta herramienta sepa verificar: ni bloque Bitcoin, ni calendario que esperar.',
+    'anchor.unsaved' => 'la prueba completada no se podría releer (demasiado profunda o grande): %s se deja tal cual.',
+    'anchor.header.time' => 'la hora de la cabecera queda fuera de las fechas que su altura permite',
+    'anchor.header.unsettled' => 'los dos exploradores devolvieron cabeceras distintas para el bloque %s, cerca de la punta de la cadena o sin trabajo real: no verificable con ellos por ahora',
+    'anchor.header.contradicted' => 'la cabecera pasada con --block-header no es aquella en la que %s coinciden',
     'airgap.refused' => 'Rechazado en modo sin red: «%s» necesita la red.',
     'airgap.instead' => 'Quite --airgap si esta máquina puede salir, o haga ese paso desde una que pueda y traiga el archivo resultante.',
     'airgap.blind.on' => 'Análisis realizado en modo sin red: no se contactó nada, ni servidores ni base de vulnerabilidades. Todo lo que sigue proviene de los archivos leídos.',

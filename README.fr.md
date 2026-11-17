@@ -56,7 +56,8 @@ chaque constat imprime sa preuve, son empreinte, et une manière préremplie de 
 contester.
 
 **Et ensuite.** Signez le rapport et faites attester sa date par quelqu'un qui
-n'est pas vous (`--sign`, `--timestamp`), classez le document d'audit
+n'est pas vous (`--sign`, `--timestamp`), ou ancrez-la dans la chaîne Bitcoin,
+où personne n'a à être cru (`--anchor=opentimestamps`), classez le document d'audit
 (`--audit`), mettez les dates de bascule dans un agenda (`--calendar`), et
 rejouez-le une fois par an — les échéances bougent, et une durée de
 confidentialité de neuf ans est conforme cette année et ne l'est plus l'an

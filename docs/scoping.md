@@ -347,7 +347,14 @@ the group comes back.
    halves the margin of the hash. Next to build (decided 2026-11-17). The open
    question is where the verifier gets the block header from: a public
    explorer (one more party to believe), the reader's own node, or a header
-   supplied by hand under `--airgap`.
+   supplied by hand under `--airgap`. **Being built** for v0.13.0
+   (`--anchor`, branch `feat/opentimestamps`), and the question answered with
+   all three, in that order of preference: a node of one's own when
+   `SABLIER_BITCOIN_RPC` names one, otherwise two explorers run by different
+   companies that must return the same header, or the header by hand under
+   `--airgap`. None of them is believed: the header's proof of work is checked
+   against its own `nBits` and against a floor taken from real blocks, so a
+   lying source would have to mine.
 3. ~~Extend the probe beyond HTTPS: SMTP, IMAP, database connections.~~ Done
    in v0.1.0 (2026-09-30), the night this list was written: STARTTLS for SMTP,
    IMAP, POP3, PostgreSQL and MySQL, implicit TLS for SMTPS and IMAPS. v0.3.0

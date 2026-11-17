@@ -147,6 +147,101 @@ années, pas pour 2040 ; conserver une date au-delà veut dire la réattester ta
 schéma tient. Un outil qui passe quarante pages à dire que les signatures périment ne
 s'accorde pas une exception pour celle dont il dépend.
 
+### Une date qu'il n'est besoin de croire de personne
+
+Un jeton répond à *quand* par la parole de quelqu'un, signée avec un schéma qui
+expire. Une preuve OpenTimestamps y répond par l'arithmétique :
+
+```bash
+sablier scan . --sign=sablier.key --anchor=opentimestamps
+```
+
+L'empreinte que les jetons attestent est ancrée dans la chaîne Bitcoin, et
+`report.html.ots` est écrit à côté de la signature : une suite d'opérations SHA-256
+qui mène de l'empreinte à la racine de Merkle d'un bloc. La vérifier, c'est
+recalculer ces empreintes et comparer le résultat à trente-deux octets d'un en-tête
+de bloc que des milliers de machines indépendantes détiennent. Ni signature, ni
+certificat, ni autorité — et le client officiel lit le fichier :
+
+```bash
+pip install opentimestamps-client
+ots verify -d <l'empreinte affichée dans le rapport> report.html.ots
+```
+
+**Ici il y a un défaut**, alors que `--timestamp` n'en a pas, et la différence en est
+la raison. Une autorité RFC 3161 *est* la preuve : la choisir, c'est choisir qui
+croire. Un calendrier OpenTimestamps ne l'est pas : il agrège des empreintes et paie
+une transaction Bitcoin, et la preuve qu'il rend se vérifie sans lui, contre la
+chaîne. Un calendrier ne peut pas rendre une date fausse — un chemin qui ne mène pas
+à un vrai bloc ne se vérifie pas — et au pire il échoue à ancrer. `opentimestamps`
+désigne donc les calendriers qu'utilise le client officiel (tenus par trois
+opérateurs différents), et des URL explicites marchent aussi, répétables ou séparées
+par des virgules :
+
+```bash
+sablier scan . --sign=sablier.key --anchor=opentimestamps,https://calendar.example.org
+```
+
+Ce que reçoit un calendrier n'est pas l'empreinte mais l'empreinte de l'empreinte
+suivie de seize octets aléatoires, comme le fait le client officiel : l'empreinte est
+imprimée dans un rapport qui peut être public, et envoyée telle quelle elle
+permettrait aux journaux d'un calendrier de relier ce rapport à l'adresse qui l'a
+soumis. L'aléa est dans la preuve.
+
+**Ce n'est pas immédiat.** Un calendrier met ses empreintes dans une transaction
+toutes les quelques heures ; tant que cette transaction n'est pas dans un bloc, la
+preuve est *en attente* et dit seulement quels calendriers interroger.
+`sablier verify` les interroge, et quand le bloc existe il complète la preuve et
+réécrit le `.ots` — la seule écriture que fait jamais cette commande, et seulement
+quand le fichier a gagné une attestation Bitcoin. Une preuve seule, sans la
+signature, se complète et se vérifie de la même façon :
+
+```bash
+sablier anchor report.html.ots
+```
+
+Les règles sont celles des jetons : refusé sous `--airgap`, bruyant sur stderr et non
+fatal quand aucun calendrier ne répond (aucun `.ots` n'est écrit, donc le rapport
+n'affirme rien), et **l'ancrage le plus ancien est conservé** : une preuve qui couvre
+déjà cette empreinte est complétée sur place, jamais remplacée par une plus récente.
+
+**D'où vient l'en-tête de bloc, et pourquoi on ne le croit pas.** Vérifier une
+attestation Bitcoin demande l'en-tête du bloc qu'elle nomme. Par ordre de préférence :
+un nœud Bitcoin Core à vous, quand `SABLIER_BITCOIN_RPC` en nomme un
+(`http://user:password@host:8332`) ; sinon deux explorateurs tenus par des
+entreprises différentes, blockstream.info et mempool.space, qui doivent rendre les
+mêmes 80 octets — un désaccord fait échouer la vérification bruyamment ; sur un site
+fermé, l'en-tête recopié à la main, `--block-header=<160 caractères hexadécimaux>`.
+
+Aucun n'est cru. On ne croit pas l'explorateur, on vérifie ce qu'il donne :
+
+- la racine de Merkle de l'en-tête doit être l'engagement que calcule la preuve ;
+- le double SHA-256 de l'en-tête doit être inférieur ou égal à la cible que déclare
+  son propre champ `nBits` — n'importe qui peut écrire un en-tête, seul le minage en
+  produit un dont l'empreinte est aussi petite ;
+- et cette cible doit être inférieure ou égale à un plancher tiré de vrais blocs de
+  la chaîne principale, un par an depuis 2015, le dernier du 14/11/2026 — un en-tête
+  peut déclarer une cible triviale et l'atteindre en une seconde, et c'est ce qui le
+  refuse. Le plancher est le plus strict de l'époque de la hauteur et de l'époque de
+  l'heure que porte l'en-tête, et une heure que sa hauteur ne permet pas est refusée
+  d'emblée : les deux sont écrites par le faussaire, aucune ne choisit seule la
+  difficulté.
+
+Une source qui mentirait devrait donc miner un bloc à une difficulté proche de celle
+de son époque ; pour toute preuve que fait cet outil, celle de novembre 2026. Ce que
+la vérification du travail n'établit pas, c'est que le bloc est dans la chaîne que
+tout le monde suit : l'accord de deux explorateurs, ou votre propre nœud, couvre
+cette moitié. Et le plancher est la difficulté d'une époque : une preuve qui
+revendique une hauteur très ancienne ne coûte à forger que ce que coûtait le minage
+d'un bloc cette année-là.
+
+**Les limites.** Elle prouve *quand* — au plus tard ce bloc — et rien sur *qui* :
+c'est le rôle de la signature. Face à un ordinateur quantique, la preuve elle-même
+n'est faite que d'empreintes (SHA-256, parfois RIPEMD-160) : l'algorithme de Grover
+divise leur marge par deux sans les casser, si bien qu'à la différence des jetons
+elle n'expire pas avec RSA. Que la chaîne Bitcoin garde son consensus à travers cette
+transition — son minage, ses signatures — est hors de ce que la preuve peut dire.
+
 ### Signer l'entrée, pas seulement la sortie
 
 Un rapport est signé, vérifié, chaîné — et les durées sur lesquelles repose

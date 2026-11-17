@@ -147,7 +147,24 @@ jobs:
           printf '\n---\n\n### The archive\n\n`%s` is attached. Check that you were handed what we published:\n\n```\nopenssl dgst -sha256 %s\n```\n\n    %s\n\nAnd rebuild it from the tag, on any machine, to need nobody'"'"'s word for it:\n\n```\ngit archive --format=tar --prefix=%s/ %s | openssl dgst -sha256\n```\n\n    %s\n\nThe second command stops at the tar on purpose. `gzip -n` strips the timestamp but does not make two deflate implementations agree, so the `.tar.gz` bytes depend on whose gzip built them; `git archive` does not.\n' \
             "$archive" "$archive" "$gz" "${archive%.tar.gz}" "$tag" "$tar" >> notes.md
 
+          # The date of the release, anchored in the Bitcoin chain by the tool
+          # this release ships. GitHub's own date is GitHub's word, and the
+          # tag's is the clock of whoever cut it; the proof says the archive
+          # existed no later than a block anybody can check. Pending when it
+          # is attached: a calendar completes it within hours, and anybody —
+          # us included — finishes it with `sablier anchor <file>.ots`. A
+          # calendar outage does not hold the release back, but it is loud.
+          files="$archive"
+          if php bin/sablier anchor "$archive"; then
+            files="$archive $archive.ots"
+            printf '\n### Its date\n\n`%s.ots` anchors the archive'"'"'s digest in the Bitcoin chain: it existed no later than the block the proof names. Pending at publication, it completes within hours:\n\n```\nsablier anchor %s.ots\n```\n\nor, without this tool, `ots upgrade` then `ots verify -f %s %s.ots`.\n' \
+              "$archive" "$archive" "$archive" "$archive" >> notes.md
+          else
+            echo "::warning::the archive could not be anchored: released without its .ots"
+          fi
+
+          # shellcheck disable=SC2086 # $files is two words on purpose
           gh release create "$tag" --verify-tag \
-            --title "$(cat title.txt)" --notes-file notes.md "$archive"
+            --title "$(cat title.txt)" --notes-file notes.md $files
           echo "  published $tag — $(cat title.txt)"
           echo "  $archive  gz $gz  tar $tar"
