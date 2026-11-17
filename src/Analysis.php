@@ -74,6 +74,13 @@ final readonly class Analysis
          * @var array<string, array{files:int, findings:int}>
          */
         public array $searched = [],
+        /**
+         * The PDF made from this report, as a link relative to the report's
+         * own directory — empty when none was written, or when it sits where a
+         * relative link from the report cannot follow it (outside the report's
+         * directory). Already URL-encoded: it goes into an href as it is.
+         */
+        public string $pdfLink = '',
     ) {
     }
 

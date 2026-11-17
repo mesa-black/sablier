@@ -131,6 +131,33 @@ function sablier_scanner(Declaration $declaration): Scanner
  * domain sent the probe there: mx01.mail.icloud.com alone would read as a host
  * somebody declared on purpose.
  */
+/**
+ * The path from a page to a file beside it or below it, as an href.
+ *
+ * Empty when the file is anywhere else: a link that climbs out of the page's
+ * directory breaks the moment the page is sent on its own, and a report that
+ * travels is the case this link is for. Directories are resolved rather than
+ * compared as text, so `./out/r.html` and `out/r.pdf` are recognised as
+ * neighbours.
+ */
+function sablier_link_below(string $page, string $file): string
+{
+    $from = realpath(dirname($page));
+    $to = realpath(dirname($file));
+    if ($from === false || $to === false) {
+        return '';
+    }
+    if ($to === $from) {
+        $relative = '';
+    } elseif (str_starts_with($to, rtrim($from, '/').'/')) {
+        $relative = substr($to, \strlen(rtrim($from, '/')) + 1).'/';
+    } else {
+        return '';
+    }
+
+    return implode('/', array_map('rawurlencode', explode('/', $relative.basename($file))));
+}
+
 function sablier_probe_heading(string $declared, string $host): string
 {
     return $declared === $host ? $host : $host.' · '.Lang::t('probe.mx.of', substr($declared, \strlen('mx://')));
@@ -334,7 +361,17 @@ function sablier_page_check(string $signaturePath, array $block, array $report, 
     // file — say which of the two signatures they are about.
     $mark = $result['valid'] ? '' : '✗ ';
     $about = str_starts_with($result['reason'], 'verify.page.') ? '' : Lang::t('verify.page.prefix', Signature::pagePath($name));
-    printf("  %s%s%s\n", $mark, $about, Lang::t($result['reason'], $name, Signature::pagePath($name)));
+    // The sizes, as figures: what was signed and what is here now. A hash
+    // tells a reader that something changed; a size lets them see it.
+    $signedSize = \is_int($block['size'] ?? null) ? $block['size'] : null;
+    $reason = $result['reason'] === 'verify.page.modified' && $signedSize === null ? 'verify.page.modified.unsized' : $result['reason'];
+    printf("  %s%s%s\n", $mark, $about, Lang::t(
+        $reason,
+        $name,
+        Signature::pagePath($name),
+        Lang::number(max(0, Signature::pageSize($page))),
+        Lang::number($signedSize ?? 0),
+    ));
     if ($result['valid'] && $signedName !== '' && $signedName !== $name) {
         printf("  %s\n", Lang::t('verify.page.renamed', $signedName, $name));
     }
@@ -1811,6 +1848,12 @@ $analysis = new Analysis(
     searched: $searched,
     reportPath: $reportPath ?? '',
     auditPath: $options['audit'] ?? '',
+    // The report links to its PDF before the PDF exists: the PDF is typeset
+    // from the report. The one thing that stops it being made is a PHP without
+    // DOM, known now, so the link is never written to a file that will not come.
+    pdfLink: $options['pdf'] !== null && $reportPath !== null && class_exists(\DOMDocument::class)
+        ? sablier_link_below($reportPath, $options['pdf'])
+        : '',
     commandLine: implode(' ', array_map(
         static function (string $argument) use ($cwd): string {
             if ($cwd !== false && str_starts_with($argument, $cwd.'/')) {

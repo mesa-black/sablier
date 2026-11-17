@@ -87,8 +87,10 @@ sablier verify audit.html.page.sig --declare=sablier.json # una página sola
 ```
 
 `verify` sobre el `.sig` de un informe comprueba el `.page.sig` que tiene al lado cuando
-existe, con las mismas claves: una página que ya no corresponde falla, con la palabra
-*modificada*; una firma de página hecha por otra clave, sobre otros hallazgos, o sin la
+existe, con las mismas claves, y da el tamaño de la página en bytes. Una página que ya
+no corresponde falla, con la palabra *modificada* y el tamaño firmado frente al actual
+(desde la 0.13.2 el tamaño va en lo firmado, `sablier-page/2`; los archivos de la
+0.13.1, `sablier-page/1`, se siguen verificando); una firma de página hecha por otra clave, sobre otros hallazgos, o sin la
 mitad post-cuántica que lleva la firma de los hallazgos, también falla. Un informe
 anterior a la 0.13.1 no la tiene, y se le dice —una nota, no un fallo—. Lo que ninguna
 firma impide: quien tiene la clave puede firmar otra página; para eso están la clave

@@ -87,8 +87,10 @@ sablier verify audit.html.page.sig --declare=sablier.json # one page on its own
 ```
 
 `verify` on a report's `.sig` checks the `.page.sig` beside it when there is
-one, against the same keys: a page that no longer matches fails, with the word
-*modified*; a page signature made by another key, about other findings, or
+one, against the same keys, and gives the page's size in bytes. A page that no
+longer matches fails, with the word *modified* and the size signed against the
+size now (since 0.13.2 the size is in the signed payload, `sablier-page/2`;
+0.13.1 files, `sablier-page/1`, still verify); a page signature made by another key, about other findings, or
 without the post-quantum half the findings signature has, fails too. A report
 from before 0.13.1 has none and is told so — a note, not a failure. What no
 signature stops: whoever holds the key can sign another page, which is what the

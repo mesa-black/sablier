@@ -32,6 +32,23 @@ final class HtmlReporter implements ReporterInterface
     /** Where a rule defect goes. The tool's own repository, not the reader's. */
     private const string ISSUES_URL = 'https://github.com/mesa-black/sablier/issues/new';
 
+    /**
+     * The anchor of the share button, the same in every language: a link
+     * quoted from the French report must still land in the English one.
+     */
+    public const string SHARE_ID = 'partager';
+
+    /** What a SHA-256 digest weighs, the only part of the findings that ever leaves. */
+    private const int DIGEST_BYTES = 32;
+
+    /**
+     * What `openssl ts -query -sha256 -cert` produces around those 32 bytes:
+     * the algorithm, a random nonce and the request for the certificate.
+     * Measured at 69 to 70 bytes (the nonce is a DER integer, so its length
+     * moves by one); the footer says "about 70" rather than a range.
+     */
+    private const int TIMESTAMP_QUERY_BYTES = 70;
+
     public function render(Analysis $analysis): string
     {
         $this->analysis = $analysis;
@@ -109,7 +126,7 @@ final class HtmlReporter implements ReporterInterface
         $subtitle = Lang::t('report.subtitle', $actionable, $declaration->expiryYear)
             .' '.Lang::t('report.deadline_checked', $checked === false ? $declaration->deadlinesCheckedOn : $checked->format('d/m/Y'))
             .($declaration->deadlinesAreStale() ? ' <strong class="stale">'.htmlspecialchars(Lang::t('report.deadline_stale', $declaration->monthsSinceCheck())).'</strong>' : '');
-        $footer = Lang::t('report.footer');
+        $footer = $this->footer(str_contains($plan, 'id="'.self::SHARE_ID.'"'));
         $filesLabel = $this->analysis->importedFrom !== ''
             ? Lang::t('report.imported_from', $this->analysis->importedFrom, $this->analysis->filesRead)
             : Lang::t('report.files_read', $this->analysis->filesRead);
@@ -151,6 +168,107 @@ final class HtmlReporter implements ReporterInterface
             <footer>$footer</footer>
             </body></html>
             HTML;
+    }
+
+    /**
+     * What this report cost in traffic, said for this report.
+     *
+     * The footer used to promise that Sablier sends nothing. It stopped being
+     * true the day the probe, the timestamps and the anchoring arrived, and a
+     * promise a reader can catch out once is a promise they stop believing
+     * everywhere. So it now lists what actually left the machine for the run
+     * that wrote it — and when nothing did, it says that, which is the strong
+     * claim, made only when it holds.
+     *
+     * "Forwarded as is" points at the two ways the report offers to forward
+     * it: the share button above, and the PDF when one was written beside it.
+     */
+    private function footer(bool $shareSection): string
+    {
+        $out = [];
+
+        // The probe: a handshake per declared host, the one a browser or an
+        // SSH client would make. Hosts, not the declaration: what was dialled.
+        $hosts = [];
+        $ssh = false;
+        foreach ($this->analysis->probes as $probe) {
+            $host = explode(' · ', $probe['target'])[0];
+            $ssh = $ssh || str_starts_with($host, 'ssh://') || preg_match('/:22$/', $host) === 1;
+            $hosts[$host] = true;
+        }
+        if ($hosts !== []) {
+            $out[] = Lang::t(
+                'report.footer.out.'.($ssh ? 'probe_ssh' : 'probe').(\count($hosts) > 1 ? '.plural' : ''),
+                self::names(array_keys($hosts)),
+            );
+        }
+
+        // The timestamps: the findings digest, inside an RFC 3161 query.
+        $authorities = [];
+        foreach ($this->analysis->timestamps as $token) {
+            $name = rtrim(trim($token['authority']), '.');
+            if ($name !== '') {
+                $authorities[$name] = true;
+            }
+        }
+        if ($this->analysis->timestamps !== []) {
+            $out[] = Lang::t(
+                \count($this->analysis->timestamps) > 1 ? 'report.footer.out.timestamp.plural' : 'report.footer.out.timestamp',
+                self::DIGEST_BYTES,
+                self::TIMESTAMP_QUERY_BYTES,
+                $authorities === [] ? '' : ' ('.self::names(array_keys($authorities)).')',
+            );
+        }
+
+        // The anchoring: a hash of the digest and a nonce to the calendars,
+        // then, once a block is claimed, its height to read the public header.
+        $anchor = $this->analysis->anchor;
+        if ($anchor !== null) {
+            $out[] = Lang::t(
+                // "That digest" only reads when the sentence before named it.
+                $this->analysis->timestamps !== [] ? 'report.footer.out.anchor' : 'report.footer.out.anchor.alone',
+                self::DIGEST_BYTES,
+                $anchor['calendars'] === [] ? '' : ' ('.self::names($anchor['calendars']).')',
+            );
+            if ($anchor['height'] > 0) {
+                $out[] = Lang::t('report.footer.out.block', Lang::number($anchor['height']));
+            }
+        }
+
+        $sent = $out === []
+            ? Lang::t('report.footer.out.none')
+            : Lang::t('report.footer.out', implode(Lang::t('report.footer.out.separator'), $out));
+
+        // Where "as is" goes. The PDF link is hidden in print: the PDF is
+        // typeset from this very page, and a printed sheet pointing at itself
+        // is noise.
+        $threema = $shareSection
+            ? '<a href="#'.self::SHARE_ID.'">'.htmlspecialchars(Lang::t('report.footer.threema')).'</a>'
+            : '';
+        $pdf = '';
+        if ($this->analysis->pdfLink !== '') {
+            $link = '<a href="'.htmlspecialchars($this->analysis->pdfLink).'">'.htmlspecialchars(Lang::t('report.footer.pdf')).'</a>';
+            $pdf = '<span class="footer-pdf">'.Lang::t($threema !== '' ? 'report.footer.or' : 'report.footer.via', $link).'</span>';
+        }
+        $via = $threema !== '' ? Lang::t('report.footer.via', $threema) : '';
+
+        return htmlspecialchars(Lang::t('report.footer').' '.$sent)
+            .' '.htmlspecialchars(Lang::t('report.footer.file')).$via.$pdf.'.';
+    }
+
+    /**
+     * A short list of names: all of them up to four, then the first three
+     * and how many more, so a footer stays a footer on a fleet of hosts.
+     *
+     * @param list<string> $names
+     */
+    private static function names(array $names): string
+    {
+        if (\count($names) > 4) {
+            return implode(', ', \array_slice($names, 0, 3)).' '.Lang::t('report.footer.more', \count($names) - 3);
+        }
+
+        return implode(', ', $names);
     }
 
     /**
@@ -242,13 +360,14 @@ final class HtmlReporter implements ReporterInterface
         $note = htmlspecialchars(Lang::t('share.note'));
         $reveal = htmlspecialchars(Lang::t('share.reveal'));
         $text = htmlspecialchars($summary);
+        $shareId = self::SHARE_ID;
 
         return <<<HTML
             <section class="plan">
               <h2>$title</h2>
               <p class="legend">$intro</p>
               <ol>$items</ol>
-              <p class="share"><a href="$href">$share</a></p>
+              <p class="share" id="$shareId"><a href="$href">$share</a></p>
               <p class="share-note">$note</p>
               <details class="share-text"><summary>$reveal</summary><pre>$text</pre></details>
             </section>
@@ -862,7 +981,7 @@ final class HtmlReporter implements ReporterInterface
             .share-text pre{white-space:pre-wrap;font-size:.8rem;background:#00000008;
                             border-radius:3px;padding:.7rem .9rem;margin:.5rem 0 0;
                             user-select:all;-webkit-user-select:all}
-            @media print{.share,.share-note,.share-text{display:none}}
+            @media print{.share,.share-note,.share-text,.footer-pdf{display:none}}
             footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.8rem}
 
             /* Print, and therefore PDF. The palette is forced back to light: a
