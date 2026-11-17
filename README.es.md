@@ -55,7 +55,8 @@ Y no tiene ninguna opinión que no le muestre: cada hallazgo imprime su prueba, 
 huella, y una forma ya rellenada de impugnarlo.
 
 **Y después.** Firme el informe y haga atestiguar su fecha por alguien que no sea
-usted (`--sign`, `--timestamp`), archive el documento de auditoría (`--audit`),
+usted (`--sign`, `--timestamp`), o ánclela en la cadena Bitcoin, donde no hay
+que creer a nadie (`--anchor=opentimestamps`), archive el documento de auditoría (`--audit`),
 ponga las fechas de cambio en un calendario (`--calendar`), y vuelva a ejecutarlo
 una vez al año: los plazos se mueven, y una vida confidencial de nueve años es
 conforme este año y ya no el siguiente.

@@ -4,6 +4,46 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+The date of a report, anchored where nobody has to be believed about it.
+
+### `--anchor`: the digest in the Bitcoin chain, through OpenTimestamps
+
+The RFC 3161 tokens answer *when* with an authority's word, signed with RSA or
+ECDSA — which this tool's own catalogue classes as quantum vulnerable.
+`--anchor=opentimestamps` (with `--sign`) sends the signed findings digest to
+the public OpenTimestamps calendars and writes `report.html.ots` beside the
+signature: a chain of SHA-256 operations from the digest to the merkle root of
+a Bitcoin block. No signature, no certificate, no authority, and the official
+client reads it: `ots verify -d <digest> report.html.ots`.
+
+The calendars are the official client's own, and having a default here, when
+`--timestamp` has none, is deliberate: an authority *is* the evidence, a
+calendar is not — the proof verifies without it, against the chain, and at
+worst a calendar fails to anchor. What it receives is a hash of the digest and
+a random nonce, never the digest itself. Explicit calendar URLs work too,
+repeatable or comma-separated. The same rules as the tokens: refused under
+`--airgap`, loud and not fatal when no calendar answers, and the oldest
+anchoring kept — a proof of the same digest is completed, never replaced.
+
+### Verified by arithmetic, wherever the header comes from
+
+A calendar takes a few hours to put its digests in a block, so a fresh proof is
+pending. `sablier verify` completes it when the block exists, rewriting the
+`.ots` only then, and checks every block it claims; `sablier anchor <file.ots>`
+does the same for a proof on its own. The block header comes from a node of
+your own (`SABLIER_BITCOIN_RPC`), or from blockstream.info and mempool.space,
+which must return the same bytes, or by hand under `--airgap`
+(`--block-header`). None of them is believed: the merkle root must be the
+commitment, the header's hash must meet the target its own `nBits` declares,
+and that target must sit under a floor taken from real blocks, the latest from
+2026-11-14 — so a source that lies would have to mine a block.
+
+The report and the audit document print the block and its date, or the
+calendars still working on it, next to the attested dates, with the command
+that checks it and its limit: it proves when, not who.
+
 ## v0.12.2 — 2026-11-17
 
 A maintenance release: no change to what the tool reports. The interview now

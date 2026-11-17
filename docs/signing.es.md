@@ -145,6 +145,95 @@ próximos años, no para 2040; conservar una fecha más allá significa volver a
 atestiguarla mientras el esquema aguante. Una herramienta que dedica cuarenta páginas a
 decir que las firmas caducan no se concede una excepción para aquella de la que depende.
 
+### Una fecha que no hace falta creer a nadie
+
+Un token responde a *cuándo* con la palabra de alguien, firmada con un esquema que
+caduca. Una prueba OpenTimestamps responde con aritmética:
+
+```bash
+sablier scan . --sign=sablier.key --anchor=opentimestamps
+```
+
+La huella que los tokens atestiguan se ancla en la cadena Bitcoin, y
+`report.html.ots` se escribe junto a la firma: una serie de operaciones SHA-256 que
+lleva de la huella a la raíz de Merkle de un bloque. Verificarla es recalcular esos
+hashes y comparar el resultado con treinta y dos bytes de una cabecera de bloque que
+miles de máquinas independientes conservan. Ni firma, ni certificado, ni autoridad —
+y el cliente oficial lee el archivo:
+
+```bash
+pip install opentimestamps-client
+ots verify -d <la huella impresa en el informe> report.html.ots
+```
+
+**Aquí hay un valor por defecto**, cuando `--timestamp` no lo tiene, y la diferencia
+es la razón. Una autoridad RFC 3161 *es* la prueba: elegirla es elegir a quién creer.
+Un calendario OpenTimestamps no lo es: agrega huellas y paga una transacción
+Bitcoin, y la prueba que devuelve se verifica sin él, contra la cadena. Un calendario
+no puede falsear una fecha — un camino que no lleva a un bloque real no se verifica —
+y en el peor caso no consigue anclar. `opentimestamps` designa pues los calendarios
+que usa el cliente oficial (mantenidos por tres operadores distintos), y también
+valen URL explícitas, repetibles o separadas por comas:
+
+```bash
+sablier scan . --sign=sablier.key --anchor=opentimestamps,https://calendar.example.org
+```
+
+Lo que recibe un calendario no es la huella sino el hash de la huella seguida de
+dieciséis bytes aleatorios, como hace el cliente oficial: la huella está impresa en un
+informe que puede ser público, y enviada tal cual permitiría a los registros de un
+calendario relacionar ese informe con la dirección que lo envió. El valor aleatorio
+está en la prueba.
+
+**No es inmediato.** Un calendario mete sus huellas en una transacción cada pocas
+horas; mientras esa transacción no esté en un bloque, la prueba está *pendiente* y
+solo dice qué calendarios consultar. `sablier verify` los consulta, y cuando el
+bloque existe completa la prueba y reescribe el `.ots` — la única escritura que hace
+ese comando, y solo cuando el archivo ganó una atestación Bitcoin. Una prueba sola,
+sin la firma, se completa y se verifica igual:
+
+```bash
+sablier anchor report.html.ots
+```
+
+Las reglas son las de los tokens: rechazado con `--airgap`, ruidoso en stderr y no
+fatal cuando ningún calendario responde (no se escribe ningún `.ots`, así que el
+informe no afirma nada), y **se conserva el anclaje más antiguo**: una prueba que ya
+cubre esta huella se completa en su sitio, nunca se sustituye por una más reciente.
+
+**De dónde sale la cabecera de bloque, y por qué no se cree.** Verificar una
+atestación Bitcoin requiere la cabecera del bloque que nombra. Por orden de
+preferencia: un nodo Bitcoin Core propio, cuando `SABLIER_BITCOIN_RPC` nombra uno
+(`http://user:password@host:8332`); si no, dos exploradores mantenidos por empresas
+distintas, blockstream.info y mempool.space, que deben devolver los mismos 80 bytes
+— un desacuerdo hace fallar la verificación ruidosamente; en un sitio cerrado, la
+cabecera copiada a mano, `--block-header=<160 caracteres hexadecimales>`.
+
+Ninguno se cree. No creemos al explorador, comprobamos lo que da:
+
+- la raíz de Merkle de la cabecera debe ser el compromiso que calcula la prueba;
+- el doble SHA-256 de la cabecera debe ser menor o igual que el objetivo que declara
+  su propio campo `nBits` — cualquiera puede escribir una cabecera, solo la minería
+  produce una cuyo hash sea tan pequeño;
+- y ese objetivo debe ser menor o igual que un umbral tomado de bloques reales de la
+  cadena principal, uno por año desde 2015, el último del 14/11/2026 — una cabecera
+  puede declarar un objetivo trivial y alcanzarlo en un segundo, y esto es lo que la
+  rechaza.
+
+Una fuente que mintiera tendría pues que minar un bloque con una dificultad cercana a
+la de su época; para toda prueba que hace esta herramienta, la de noviembre de 2026.
+Lo que la comprobación del trabajo no establece es que el bloque esté en la cadena que
+todo el mundo sigue: el acuerdo de dos exploradores, o su propio nodo, cubre esa
+mitad. Y el umbral es la dificultad de una época: una prueba que reivindica una altura
+muy antigua solo cuesta de falsificar lo que costaba minar un bloque ese año.
+
+**Los límites.** Prueba *cuándo* — a más tardar ese bloque — y nada sobre *quién*:
+eso es tarea de la firma. Frente a un ordenador cuántico, la prueba misma solo
+contiene hashes (SHA-256, a veces RIPEMD-160): el algoritmo de Grover reduce su margen
+a la mitad sin romperlos, de modo que, a diferencia de los tokens, no caduca con RSA.
+Que la cadena Bitcoin conserve su consenso durante esa transición — su minería, sus
+firmas — queda fuera de lo que la prueba puede decir.
+
 ### Firmar la entrada, no solo la salida
 
 Un informe se firma, se verifica, se encadena — y las duraciones sobre las que se

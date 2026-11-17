@@ -190,6 +190,93 @@ years, not for 2040; keeping a date past that means re-attesting it while the
 scheme still holds. A tool that spends forty pages saying signatures expire does
 not get to make an exception for the one it relies on.
 
+### A date nobody has to be believed about
+
+A token answers *when* with somebody's word, signed with a scheme that expires.
+An OpenTimestamps proof answers it with arithmetic:
+
+```bash
+sablier scan . --sign=sablier.key --anchor=opentimestamps
+```
+
+The same digest the tokens attest is anchored in the Bitcoin chain, and
+`report.html.ots` is written beside the signature: a chain of SHA-256 operations
+leading from the digest to the merkle root of a block. Checking it means
+recomputing those hashes and comparing the result with thirty-two bytes of a
+block header that thousands of independent machines hold. No signature, no
+certificate, no authority — and the official client reads the file:
+
+```bash
+pip install opentimestamps-client
+ots verify -d <the digest printed in the report> report.html.ots
+```
+
+**Here there is a default**, where `--timestamp` has none, and the difference is
+the reason. An RFC 3161 authority *is* the evidence: choosing one is choosing
+whom to believe. An OpenTimestamps calendar is not: it aggregates digests and
+pays for a Bitcoin transaction, and the proof it returns verifies without it,
+against the chain. A calendar cannot make a date wrong — a path that does not
+lead to a real block does not verify — and at worst it fails to anchor. So
+`opentimestamps` means the calendars the official client uses (run by three
+different operators), and explicit URLs work too, repeatable or comma-separated:
+
+```bash
+sablier scan . --sign=sablier.key --anchor=opentimestamps,https://calendar.example.org
+```
+
+What a calendar receives is not the digest but the hash of the digest followed
+by sixteen random bytes, as the official client does: the digest is printed in a
+report that may be public, and sent bare it would let a calendar's logs tie that
+report to the address that submitted it. The nonce is in the proof.
+
+**It is not immediate.** A calendar puts its digests in a transaction every few
+hours; until that transaction is in a block, the proof is *pending* and only
+says which calendars to ask. `sablier verify` asks them, and when the block
+exists it completes the proof and rewrites the `.ots` — the one write that
+command ever does, and only when the file gained a Bitcoin attestation. A proof
+on its own, without the signature, is completed and checked the same way:
+
+```bash
+sablier anchor report.html.ots
+```
+
+The rules are the tokens': refused under `--airgap`, loud on stderr and not
+fatal when no calendar answers (no `.ots` is written, so the report claims
+nothing), and **the oldest anchoring is kept**: a proof that already covers this
+digest is completed in place, never replaced by a newer one.
+
+**Where the block header comes from, and why it is not believed.** Checking a
+Bitcoin attestation needs the header of the block it names. In order of
+preference: a Bitcoin Core node of your own, when `SABLIER_BITCOIN_RPC` names one
+(`http://user:password@host:8332`); otherwise two explorers run by different
+companies, blockstream.info and mempool.space, which must return the same 80
+bytes — a disagreement fails the check loudly; on a closed site, the header
+copied by hand, `--block-header=<160 hex characters>`.
+
+None of them is trusted. We do not believe the explorer, we check what it gives:
+
+- the merkle root in the header must be the commitment the proof computes;
+- the header's double SHA-256 must be at or below the target its own `nBits`
+  field declares — anybody can write a header, only mining makes one whose hash
+  is that small;
+- and that target must be at or below a floor taken from real blocks of the main
+  chain, one per year since 2015, the latest from 14/11/2026 — a header can
+  declare a trivial target and meet it in a second, and this is what refuses it.
+
+A source that lies would therefore have to mine a block at close to the
+difficulty of its era; for every proof this tool makes, that of November 2026.
+What the work check does not establish is that the block is in the chain
+everybody follows: the agreement of two explorers, or your own node, covers
+that half. And the floor is an era's difficulty, so a proof claiming a very old
+height is only as costly to forge as a block of that year was to mine.
+
+**The limits.** It proves *when* — no later than that block — and nothing about
+*who*: that is the signature's job. Against a quantum computer, the proof itself
+is hashes only (SHA-256, sometimes RIPEMD-160): Grover's algorithm halves their
+margin without breaking them, so unlike the tokens it does not expire with RSA.
+Whether the Bitcoin chain keeps its consensus through that transition — its
+mining, its signatures — is outside what the proof can say.
+
 ### Signing the input, not only the output
 
 A report is signed, verified, chained — and the durations every verdict in it

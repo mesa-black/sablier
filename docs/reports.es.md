@@ -206,6 +206,43 @@ parte. El auditor lo firma y lo defiende; Sablier produce los hechos, el método
 límites y la aritmética, en una forma que sobrevive a ser leída por alguien que busca
 un agujero en ella.
 
+## La fecha del sello, y qué la verifica
+
+Un informe firmado termina con su sello: la huella de los hallazgos, la firma que la
+cubre y — cuando se pidieron — dos tipos distintos de prueba de su fecha, impresos
+uno bajo otro para que el lector vea cuál es cuál.
+
+- **Las fechas atestiguadas** (`--timestamp`): la palabra firmada de una autoridad
+  RFC 3161 que vio la huella en un instante. Se verifican con `openssl ts -verify`,
+  la receta impresa al lado. Su límite también se imprime: el token está firmado con
+  RSA o ECDSA, prueba para los próximos años, no para 2040.
+- **El anclaje Bitcoin** (`--anchor=opentimestamps`): la huella alcanzada desde un
+  bloque Bitcoin solo con SHA-256, en `report.html.ots`. La línea dice o bien
+  *bloque N · fecha del bloque*, o bien *pendiente · enviado a estos calendarios en
+  esta fecha, completo en unas horas* — un calendario mete sus huellas en un bloque
+  cada pocas horas, y `sablier verify` completa el archivo cuando ya está.
+
+El anclaje es la única prueba de la fecha que no pide al lector creer a nadie. El
+informe imprime el comando que lo verifica sin esta herramienta:
+
+```bash
+ots verify -d <la huella impresa en el informe> report.html.ots
+```
+
+El cliente oficial toma la cabecera del bloque de un nodo Bitcoin propio.
+`sablier verify report.html.sig` la toma de dos exploradores públicos que deben
+coincidir — y tampoco les cree: comprueba que la cabecera lleva el compromiso de la
+prueba y la prueba de trabajo que exige su propia dificultad, por encima de un umbral
+tomado de bloques reales. En una máquina sin red, la cabecera se trae a mano,
+`--block-header=<hex>`.
+
+Lo que establece, como dice el informe: los hallazgos existían **a más tardar** en ese
+bloque. No quién los produjo — eso es la firma. Y como la prueba solo contiene hashes,
+es la parte del sello que un ordenador cuántico debilita menos; que el propio consenso
+de Bitcoin sobreviva a esa transición queda fuera de su alcance.
+[`signing.es.md`](signing.es.md) da el detalle: qué reciben los calendarios, por qué
+aquí hay un valor por defecto y ninguno para `--timestamp`, y el umbral.
+
 ## Componer el informe en PDF
 
 `--pdf=ARCHIVO` escribe también un PDF, compuesto aquí en lugar de impreso por un

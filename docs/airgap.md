@@ -6,9 +6,9 @@ the second time by whoever did not believe the first.
 
 ## What this tool can send, in full
 
-Five places in the source can open a socket or start a container. There is no
-sixth — the list was produced by reading every call that could, not by
-remembering:
+Seven places in the source can open a socket or start a container. There is no
+eighth — the list was produced by reading every call that could, not by
+remembering, and redone when the last two were added (2026-11-17):
 
 | what | when | what leaves the machine |
 |---|---|---|
@@ -16,6 +16,8 @@ remembering:
 | SSH probe | the same, for an `ssh://` host | an SSH version exchange, no authentication attempt |
 | advisory collection | `advisories` | a container image pull, then a local filesystem scan |
 | timestamp | `scan --timestamp=<url>` | **a SHA-256 digest**, to the authority you named |
+| anchoring | `scan --anchor=…`, and `verify` or `anchor` completing a pending proof | **a SHA-256 hash of the digest and a random nonce**, to the OpenTimestamps calendars named (or the public ones); later, a request for that same hash |
+| block headers | `verify` and `anchor`, for a proof that reached a block | **a block height**, to blockstream.info and mempool.space — or to your own node, when `SABLIER_BITCOIN_RPC` names one |
 | the interview server | `serve` | binds a local port; it listens, it does not call |
 
 Nothing else. No telemetry, no update check, no error reporting, no package
@@ -26,6 +28,10 @@ The timestamp line deserves its own sentence. What is sent is the digest of the
 findings — thirty-two bytes — and never the document, the file names, or anything
 a digest could be reversed into. That is the design of RFC 3161 and the reason
 the flag exists: an authority can attest a date without being told what it dates.
+The anchoring line sends even less: not the digest but the hash of the digest and
+sixteen random bytes, so a calendar's logs cannot tie a published report to the
+address that anchored it. And a block height is public knowledge; asking for one
+says that somebody, somewhere, holds a proof anchored there.
 
 ## The switch
 
@@ -44,9 +50,12 @@ reads.
   and carry the file back.
 ```
 
-Refused under the switch: `probe`, `advisories`, `--timestamp`, and every
-container — a container is a pull. Allowed: everything that only reads the files
-in front of it, including an advisory file collected elsewhere and carried in.
+Refused under the switch: `probe`, `advisories`, `--timestamp`, `--anchor`, and
+every container — a container is a pull. Allowed: everything that only reads the
+files in front of it, including an advisory file collected elsewhere and carried
+in. `verify` and `anchor` are not refused: under the switch they skip completing
+a pending proof and fetching block headers, and check what can be checked from
+the files — see below.
 
 Check it yourself, in four lines:
 
@@ -55,12 +64,14 @@ SABLIER_AIRGAP=1 sablier probe tls://example.org          # refuses
 SABLIER_AIRGAP=1 sablier advisories .                      # refuses
 SABLIER_AIRGAP=1 sablier scan . --sign=ephemeral \
   --timestamp=http://tsa.example.org                       # refuses
+SABLIER_AIRGAP=1 sablier scan . --sign=ephemeral \
+  --anchor=opentimestamps                                  # refuses
 SABLIER_AIRGAP=1 sablier scan . --out=report.html          # works
 ```
 
-The test suite checks all four on every commit, which is how `--timestamp` was
+The test suite checks all five on every commit, which is how `--timestamp` was
 found missing from the list: it was written after the switch and nobody had
-wired it in.
+wired it in. `--anchor` was wired in the day it was written.
 
 ## What the report does when it is opened
 
@@ -109,10 +120,27 @@ carried across the room:
 sablier verify report.html.sig --fingerprint="B29F D9F9 B999 88DD 6A24 4C63 17D3 6354"
 ```
 
-An attested date is the one guarantee a closed network cannot have, and the
-report says so rather than leaving a gap for the reader to discover. If a date
-has to be opposable, the digest — and only the digest — can be carried out to a
+An attested date cannot be *obtained* on a closed network, and the report says so
+rather than leaving a gap for the reader to discover. If a date has to be
+opposable, the digest — and only the digest — can be carried out to a
 timestamping authority by hand, and the token carried back.
+
+A Bitcoin anchoring is different: it cannot be made here either, but once made it
+can be **checked** here, completely. The proof is SHA-256 operations from the
+digest to a block's merkle root, and the only outside fact it needs is that
+block's 80-byte header — public, the same for everybody, and small enough to copy
+by hand from any machine that is allowed out:
+
+```sh
+sablier verify report.html.sig --airgap --block-header=<160 hex characters>
+sablier anchor report.html.ots --airgap --block-header=<160 hex characters>
+```
+
+The header is not believed because it was carried in: its proof of work is
+checked against its own difficulty and against a floor taken from real blocks,
+so a header typed wrong, or made up, is refused. A pending proof cannot be
+completed offline — that needs the calendars — and `verify` says so rather than
+failing: completing it is one more file to carry in.
 
 ## Getting the tool in, and knowing you got the right one
 
