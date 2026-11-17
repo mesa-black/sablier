@@ -278,7 +278,7 @@ final class OpenTimestamps
             foreach ($headers as $index => $candidate) {
                 if (substr($candidate, 36, 32) === $commitment) {
                     $header = $candidate;
-                    $source = 'block-header';
+                    $source = '--block-header';
                     $used[$index] = true;
                 }
             }

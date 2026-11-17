@@ -58,6 +58,9 @@ use Sablier\Finding;
 use Sablier\Interview;
 use Sablier\Lang;
 use Sablier\MlDsa;
+use Sablier\OpenTimestamps;
+use Sablier\Ots\BlockHeader;
+use Sablier\Ots\Proof;
 use Sablier\Pdf;
 use Sablier\Probe;
 use Sablier\Worksheet;
@@ -131,6 +134,97 @@ function sablier_scanner(Declaration $declaration): Scanner
 function sablier_probe_heading(string $declared, string $host): string
 {
     return $declared === $host ? $host : $host.' · '.Lang::t('probe.mx.of', substr($declared, \strlen('mx://')));
+}
+
+/**
+ * Complete and check one OpenTimestamps proof, printing what it establishes.
+ *
+ * Shared by `verify`, which finds the proof beside a signature, and `anchor`,
+ * which is handed one: the same proof must read the same way whichever door a
+ * reader came in by.
+ *
+ * Completing comes first and needs the network, so it is skipped under
+ * --airgap rather than refused — a closed site can still check a proof that
+ * was completed elsewhere, with the block header carried in by hand. The file
+ * is rewritten only when it gained a Bitcoin attestation: `verify` is otherwise
+ * a reading command, and the one write it does is the one that turns a promise
+ * into evidence.
+ *
+ * @param list<string> $args the command's own arguments
+ *
+ * @return bool whether the proof failed
+ */
+function sablier_anchor_check(string $path, Proof $proof, array $args): bool
+{
+    $headers = [];
+    $named = [];
+    $failed = false;
+    foreach ($args as $arg) {
+        if (preg_match('/^--block-header=(.+)$/', $arg, $m) === 1) {
+            // Repeatable, or comma-separated: a proof merged from several
+            // calendars can sit in two blocks, and each needs its header.
+            foreach (explode(',', $m[1]) as $hex) {
+                $header = BlockHeader::fromHex($hex);
+                if ($header === null) {
+                    printf("  ✗ %s\n", Lang::t('anchor.header.bad_hex', substr(trim($hex), 0, 16)));
+                    $failed = true;
+                } else {
+                    $headers[] = $header;
+                }
+            }
+        } elseif (preg_match('/^--calendar-url=(.+)$/', $arg, $m) === 1) {
+            foreach (explode(',', $m[1]) as $url) {
+                $named[] = trim($url);
+            }
+        }
+    }
+
+    if (!Airgap::on()) {
+        $upgrade = OpenTimestamps::upgrade($proof, $named);
+        foreach ($upgrade['errors'] as $error) {
+            printf("  · %s\n", Lang::t($error['error'], $error['detail']));
+        }
+        if ($upgrade['changed']) {
+            file_put_contents($path, $proof->serialise());
+            printf("  %s\n", Lang::t('verify.anchor.upgraded', $path));
+        }
+    }
+
+    $check = OpenTimestamps::check($proof, $headers, !Airgap::on());
+    $valid = false;
+    foreach ($check['anchors'] as $anchor) {
+        $reason = $anchor['reason'] !== '' ? Lang::t($anchor['reason'], $anchor['detail']) : '';
+        if ($anchor['state'] === 'valid') {
+            $valid = true;
+            printf("  %s\n", Lang::t('verify.anchor.valid', $anchor['height'], OpenTimestamps::readable($anchor['time']), $anchor['source']));
+        } elseif ($anchor['state'] === 'invalid') {
+            // One anchoring that does not hold condemns the proof, as one
+            // invalid token condemns the set: it is the state that says the
+            // file claims a block it is not in.
+            $failed = true;
+            printf("  ✗ %s\n", Lang::t('verify.anchor.invalid', $anchor['height'], $reason));
+        } else {
+            printf("  %s\n", Lang::t('verify.anchor.unchecked', $anchor['height'], $reason));
+            if ($anchor['reason'] === 'anchor.offline') {
+                printf("  %s\n", Lang::t('verify.anchor.offline', $anchor['height']));
+            }
+        }
+    }
+    if ($check['anchors'] === [] && $check['pending'] !== []) {
+        printf("  %s\n", Lang::t('verify.anchor.pending', implode(', ', $check['pending'])));
+    }
+    if ($check['unsupported'] > 0) {
+        printf("  %s\n", Lang::t('verify.anchor.unsupported', $check['unsupported']));
+    }
+    if ($check['unused'] > 0) {
+        $failed = true;
+        printf("  ✗ %s\n", Lang::t('verify.anchor.unused', $check['unused']));
+    }
+    if ($valid) {
+        printf("  %s\n", Lang::t('verify.anchor.limit'));
+    }
+
+    return $failed;
 }
 
 // --- keys and verification ---------------------------------------------
@@ -376,6 +470,28 @@ if ($command === 'verify') {
         }
     }
 
+    // The anchoring, when there is a proof beside the signature. Discovered
+    // like the tokens, and bound to this signature the same way: a proof is
+    // first checked to be about this digest, before any question of blocks.
+    $anchorPath = (string) preg_replace('/\.sig$/', '', $signaturePath).'.ots';
+    foreach (\array_slice($argv, 3) as $argument) {
+        if (preg_match('/^--anchor=(.+)$/', $argument, $m) === 1) {
+            $anchorPath = $m[1];
+        }
+    }
+    if (is_file($anchorPath)) {
+        $loaded = OpenTimestamps::load($anchorPath);
+        if (isset($loaded['error'])) {
+            printf("  ✗ %s\n", Lang::t($loaded['error'], $loaded['detail']));
+            $attestedFailed = true;
+        } elseif (!hash_equals(strtolower(Value::string($block['digest'] ?? null)), $loaded['proof']->hex())) {
+            printf("  ✗ %s\n", Lang::t('verify.anchor.other_digest', $anchorPath));
+            $attestedFailed = true;
+        } else {
+            $attestedFailed = sablier_anchor_check($anchorPath, $loaded['proof'], \array_slice($argv, 3)) || $attestedFailed;
+        }
+    }
+
     // The link, when the block claims one. Given the earlier signature, it is
     // checked; given nothing, it is still printed, because a reader holding
     // one file should know another exists.
@@ -396,6 +512,26 @@ if ($command === 'verify') {
     }
 
     exit($result['valid'] && !$attestedFailed ? 0 : 1);
+}
+
+// --- an OpenTimestamps proof on its own: bin/sablier anchor <file.ots> ----
+// `verify` checks the proof it finds beside a signature. This is the same
+// check for a reader who holds only the proof — or a proof this tool did not
+// make: it names the digest the file covers, completes it when the calendars
+// have, and checks every block it claims.
+if ($command === 'anchor') {
+    $path = $argv[2] ?? '';
+    if (!is_file($path)) {
+        fwrite(\STDERR, '✗ '.Lang::t('cli.anchor_usage')."\n");
+        exit(1);
+    }
+    $loaded = OpenTimestamps::load($path);
+    if (isset($loaded['error'])) {
+        fwrite(\STDERR, '✗ '.Lang::t($loaded['error'], $loaded['detail'])."\n");
+        exit(1);
+    }
+    printf("  %s\n", Lang::t('verify.anchor.digest', $path, $loaded['proof']->hex()));
+    exit(sablier_anchor_check($path, $loaded['proof'], \array_slice($argv, 3)) ? 1 : 0);
 }
 
 // --- accept a finding: bin/sablier accept <fingerprint> -----------------
@@ -1051,21 +1187,22 @@ if (!\in_array($command, ['scan', 'judge'], true)) {
 }
 
 $target = null;
-$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'incident' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'timestamp' => [], 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
+$options = ['declare' => null, 'out' => null, 'json' => null, 'cbom' => null, 'audit' => null, 'incident' => null, 'calendar' => null, 'pdf' => null, 'year' => null, 'sign' => null, 'timestamp' => [], 'anchor' => [], 'baseline' => null, 'advisories' => null, 'quiet' => false, 'no-probe' => false, 'breached' => null];
 foreach (\array_slice($argv, 2) as $arg) {
     if ($arg === '--quiet' || $arg === '--no-probe') {
         $options[substr($arg, 2)] = true;
-    } elseif (preg_match('/^--(declare|out|json|cbom|audit|incident|calendar|pdf|year|sign|timestamp|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
+    } elseif (preg_match('/^--(declare|out|json|cbom|audit|incident|calendar|pdf|year|sign|timestamp|anchor|baseline|advisories|breached)=(.+)$/', $arg, $m) === 1) {
         // One authority is one point of trust. The flag therefore accumulates
         // instead of overwriting, and accepts a comma-separated list in one go,
         // so corroborating a date across jurisdictions costs an argument rather
         // than a second run — and a second run would be worse than nothing: it
         // would re-sign the same findings and overwrite the first token.
-        if ($m[1] === 'timestamp') {
+        // --anchor accumulates the same way, for the same reason.
+        if ($m[1] === 'timestamp' || $m[1] === 'anchor') {
             foreach (explode(',', $m[2]) as $url) {
                 $url = trim($url);
-                if ($url !== '' && !\in_array($url, $options['timestamp'], true)) {
-                    $options['timestamp'][] = $url;
+                if ($url !== '' && !\in_array($url, $options[$m[1]], true)) {
+                    $options[$m[1]][] = $url;
                 }
             }
         } else {
@@ -1233,6 +1370,10 @@ if ($advisories !== null) {
 if ($options['timestamp'] !== [] && Airgap::on()) {
     Airgap::refuse('--timestamp');
 }
+// A calendar is on the network too, and was wired in from the start this time.
+if ($options['anchor'] !== [] && Airgap::on()) {
+    Airgap::refuse('--anchor');
+}
 
 // An attestation needs something to attest and a file to sit beside, and both
 // come from signing. Refused rather than ignored: a flag that does nothing is
@@ -1241,9 +1382,14 @@ if ($options['timestamp'] !== [] && $options['sign'] === null) {
     fwrite(\STDERR, '✗ '.Lang::t('cli.timestamp_needs_sign')."\n");
     exit(1);
 }
+if ($options['anchor'] !== [] && $options['sign'] === null) {
+    fwrite(\STDERR, '✗ '.Lang::t('cli.anchor_needs_sign')."\n");
+    exit(1);
+}
 
 $signature = null;
 $timestamps = [];
+$anchor = null;
 $kept = false;
 if ($options['sign'] !== null) {
     // --sign gives the run an output path a hundred lines above, so this is
@@ -1382,6 +1528,59 @@ if ($options['sign'] !== null) {
             fwrite(\STDERR, '✗ '.Lang::t($attested['error'], $attested['detail'])."\n");
         }
     }
+
+    // The same date, anchored where nobody has to be believed about it. Same
+    // digest, same rules as the tokens above: loud but not fatal when no
+    // calendar answers, and the oldest anchoring kept — an existing proof of
+    // this digest is completed in place, never replaced by a newer one.
+    if ($options['anchor'] !== []) {
+        $anchorPath = OpenTimestamps::path($reportPath);
+        $calendars = OpenTimestamps::calendars($options['anchor']);
+        $proof = null;
+        $blocked = false;
+        if (is_file($anchorPath)) {
+            $held = OpenTimestamps::load($anchorPath);
+            if (isset($held['error'])) {
+                // Not overwritten: a file that does not read here may be a
+                // proof in a format this version does not know, and replacing
+                // it would destroy the one thing this flag exists to keep.
+                fwrite(\STDERR, '✗ '.Lang::t('anchor.kept_unreadable', $anchorPath)."\n");
+                $blocked = true;
+            } elseif (hash_equals($held['proof']->hex(), $digest)) {
+                $proof = $held['proof'];
+                $upgrade = OpenTimestamps::upgrade($proof, $calendars);
+                if ($upgrade['changed']) {
+                    file_put_contents($anchorPath, $proof->serialise());
+                }
+            }
+            // A proof of another digest belongs to findings that no longer
+            // exist, exactly like a token with another imprint: it is replaced.
+        }
+
+        if ($proof === null && !$blocked) {
+            $stamped = OpenTimestamps::stamp($digest, $calendars);
+            foreach ($stamped['errors'] as $error) {
+                fwrite(\STDERR, '✗ '.Lang::t($error['error'], $error['detail'])."\n");
+            }
+            if ($stamped['proof'] !== null) {
+                $proof = $stamped['proof'];
+                file_put_contents($anchorPath, $proof->serialise());
+            } else {
+                fwrite(\STDERR, '✗ '.Lang::t('anchor.none')."\n");
+            }
+        }
+
+        if ($proof !== null) {
+            $mtime = filemtime($anchorPath);
+            $anchor = OpenTimestamps::summary(OpenTimestamps::check($proof)) + [
+                'path' => $anchorPath,
+                // When it was handed to the calendars, for the pending line. The
+                // proof itself carries no date — that is the block's job — so
+                // the file's own is the best witness of the submission there is.
+                'since' => OpenTimestamps::readable($mtime === false ? time() : $mtime),
+            ];
+        }
+    }
 }
 
 $cwd = getcwd();
@@ -1397,6 +1596,7 @@ $analysis = new Analysis(
     projected: $currentYear !== $actualYear,
     signature: $signature,
     timestamps: $timestamps,
+    anchor: $anchor,
     importedFrom: $importedFrom,
     // Printed in the audit report: a document that cannot be reproduced is an
     // assertion, not a finding. The binary is named relative to where it was
@@ -1571,6 +1771,13 @@ if ($pdfMessage !== null) {
 }
 foreach ($timestamps as $timestamp) {
     printf("  → %s\n", Lang::t('cli.timestamped', $timestamp['path'], Timestamp::readable($timestamp['time']), $timestamp['authority']));
+}
+if ($anchor !== null) {
+    printf("  → %s\n", match ($anchor['state']) {
+        'anchored' => Lang::t('cli.anchored', $anchor['path'], $anchor['height'], OpenTimestamps::readable($anchor['time'])),
+        'pending' => Lang::t('cli.anchor.pending', $anchor['path'], implode(', ', $anchor['calendars'])),
+        default => Lang::t('cli.anchor.claimed', $anchor['path'], $anchor['height']),
+    });
 }
 if ($signature !== null) {
     printf("  → %s\n", Lang::t($kept ? 'cli.signed.kept' : 'cli.signed', $reportPath.'.sig'));

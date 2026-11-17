@@ -42,6 +42,18 @@ final readonly class Analysis
          * @var list<array{time:string, authority:string, algorithm:string, serial:string, imprint:string, path:string}>
          */
         public array $timestamps = [],
+        /**
+         * The OpenTimestamps proof beside the report, when one was asked for:
+         * anchored at a block, pending at the calendars, or claiming a block
+         * that could not be checked when the report was written.
+         *
+         * Separate from the tokens rather than one more of them: a token is an
+         * authority's word and an anchoring is arithmetic, and a reader who is
+         * deciding what to believe needs to see which is which.
+         *
+         * @var array{state:string, height:int, time:int, calendars:list<string>, path:string, since:string}|null
+         */
+        public ?array $anchor = null,
         /** The tool that produced the inventory, when it was not this one. */
         public string $importedFrom = '',
         /** The command that produced this analysis, so a third party can repeat it. */

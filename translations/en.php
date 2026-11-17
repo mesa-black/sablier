@@ -205,7 +205,8 @@ return [
   bin/sablier accept <fingerprint> --reason=…  accept a finding, with its expiry date
   bin/sablier endorse <sablier.json>  sign the declaration: the durations, by whoever commits to them
   bin/sablier keygen                write a signing key (default: sablier.key)
-  bin/sablier verify <file.sig>     check a signature, its attested date and its chain
+  bin/sablier verify <file.sig>     check a signature, its attested date, its anchoring and its chain
+  bin/sablier anchor <file.ots>     complete and check an OpenTimestamps proof on its own
   bin/sablier version               the version (also --version)
   bin/sablier help                  this text
 
@@ -225,6 +226,8 @@ return [
     --sign=KEY          sign the report with a keygen key, or --sign=ephemeral: a key used once
     --timestamp=URL     have the digest\'s date attested by an RFC 3161 authority (with --sign)
                         repeatable, or comma-separated: one authority is one point of trust
+    --anchor=URL        anchor the digest in the Bitcoin chain through OpenTimestamps calendars (with --sign)
+                        --anchor=opentimestamps: the public calendars; repeatable, or comma-separated
     --no-probe          do not probe the declared hosts
     --quiet             no terminal summary
 
@@ -250,10 +253,14 @@ return [
     --timestamp=FILE    an RFC 3161 token (default: those beside the signature)
     --timestamp-ca=FILE certificate authority to check the token\'s chain against
     --previous=FILE     the earlier signature this one claims to follow
+    --anchor=FILE       an OpenTimestamps proof (default: the .ots beside the signature)
+  verify, anchor:
+    --block-header=HEX  the 80-byte header of the anchoring block, for a check without network
+    --calendar-url=URL  a calendar to complete the proof from, besides the public ones
 
   everywhere:
     --lang=fr|en|es     language (default: SABLIER_LANG, or fr)
-    --airgap            refuse whatever reaches the network: probe, advisories, --timestamp (or SABLIER_AIRGAP=1)',
+    --airgap            refuse whatever reaches the network: probe, advisories, --timestamp, --anchor (or SABLIER_AIRGAP=1)',
     'cli.declaration' => 'declaration:',
 
     // --- comparison with a reference run ---
@@ -751,6 +758,55 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'declare.overlap' => 'The domain "%s" covers %s, already taken by "%s": the first match wins, so the lifetime of "%s" will never be read. Merge the two, or drop the path from one of them.',
     'worksheet.import.unreadable' => 'Unreadable answer file: %s',
     'worksheet.written' => 'Worksheet written to %s. Open it in a browser, offline.',
+    // --- anchoring in the Bitcoin chain (OpenTimestamps) ---
+    'cli.anchor_needs_sign' => '--anchor needs --sign: the proof anchors the signed digest and is filed beside the signature.',
+    'cli.anchor_usage' => 'usage: sablier anchor <file.ots> [--block-header=HEX] [--calendar-url=URL]',
+    'cli.anchored' => '%1$s — anchored in the Bitcoin chain at block %2$d, %3$s',
+    'cli.anchor.pending' => '%1$s — anchoring pending: submitted to %2$s, completes within a few hours (sablier verify finishes it)',
+    'cli.anchor.claimed' => '%1$s — anchoring at block %2$d, not checked from here',
+    'anchor.bad_digest' => 'no anchoring: %s is not a SHA-256 digest.',
+    'anchor.bad_url' => 'no anchoring from %s: not an http or https calendar address.',
+    'anchor.unreachable' => 'OpenTimestamps calendar unreachable: %s.',
+    'anchor.refused' => 'OpenTimestamps calendar %s refused the digest.',
+    'anchor.malformed' => 'unreadable answer from an OpenTimestamps calendar, not kept: %s',
+    'anchor.none' => 'no calendar answered: the report is signed, but nothing anchors it in the Bitcoin chain, and no .ots was written.',
+    'anchor.unreadable' => 'unreadable OpenTimestamps proof: %s',
+    'anchor.kept_unreadable' => '%s does not read as an OpenTimestamps proof: left as it is, and nothing new anchored. Move it aside to anchor again.',
+    'anchor.untrusted' => 'calendar %s not contacted on the proof\'s say-so: name it with --calendar-url=<url> to ask it.',
+    'anchor.offline' => 'no block header at hand',
+    'anchor.header.length' => 'the header is not 80 bytes long',
+    'anchor.header.merkle' => 'the block\'s merkle root is not the commitment the proof computes',
+    'anchor.header.work' => 'the header\'s hash does not meet the target its own nBits declares: nobody mined it',
+    'anchor.header.floor' => 'the header declares less work than any real block of its era',
+    'anchor.header.too_old' => 'the height is older than any difficulty this tool knows',
+    'anchor.header.disagree' => 'the two explorers returned different headers for block %s, so one of them is wrong about the one fact the proof rests on',
+    'anchor.header.unreachable' => 'explorer %s did not give the header',
+    'anchor.header.inconsistent' => 'explorer %s gave a header that is not the block it named',
+    'anchor.header.rpc' => 'the Bitcoin node in SABLIER_BITCOIN_RPC (%s) did not give the header',
+    'anchor.header.bad_hex' => '--block-header: %s… is not an 80-byte header in hex.',
+    'verify.anchor.digest' => '%1$s anchors the digest %2$s',
+    'verify.anchor.valid' => 'anchored in the Bitcoin chain at block %1$d, %2$s — header from %3$s, merkle root and proof of work checked here.',
+    'verify.anchor.invalid' => 'the Bitcoin anchoring at block %1$d does NOT hold: %2$s.',
+    'verify.anchor.unchecked' => 'Bitcoin anchoring claimed at block %1$d, not checked: %2$s.',
+    'verify.anchor.offline' => 'without network, the header is brought in: copy the 80 bytes of block %1$d from a machine you trust and pass them with --block-header=<hex>.',
+    'verify.anchor.pending' => 'anchoring pending: recorded by %s, not yet in a block. Run verify again in a few hours: it completes the proof.',
+    'verify.anchor.upgraded' => '%s completed with its Bitcoin attestation, and rewritten.',
+    'verify.anchor.other_digest' => 'the OpenTimestamps proof %s anchors another digest: it is not about this report.',
+    'verify.anchor.unsupported' => '%d branch(es) of the proof go through Keccak-256, which this machine cannot compute: not checked.',
+    'verify.anchor.unused' => '%d header(s) given with --block-header match no attestation of this proof: either another block, or a proof of another digest.',
+    'verify.anchor.limit' => 'what the anchoring does not prove: who. It proves that the digest existed no later than that block, by SHA-256 alone; the Bitcoin chain\'s own consensus is outside its scope.',
+    'seal.anchor' => 'Bitcoin anchoring',
+    'seal.anchor.anchored' => 'block %1$d · %2$s',
+    'seal.anchor.claimed' => 'block %1$d · not checked when this report was written',
+    'seal.anchor.invalid' => 'block %1$d · does NOT check out — run sablier verify',
+    'seal.anchor.pending' => 'pending · submitted to %1$s on %2$s, completes within a few hours',
+    'seal.anchor.proves' => 'What the anchoring establishes: the digest above existed no later than that block of the Bitcoin chain, which thousands of independent machines hold. Nobody has to be believed: the proof is a chain of SHA-256 operations from the digest to the block\'s merkle root, checked without this tool and without any certificate. Its limits: it proves when, not who — that is the signature\'s job. Against a quantum computer, the proof itself is hashes only (SHA-256, sometimes RIPEMD-160), which Grover\'s algorithm weakens without breaking, so it does not expire like the tokens\' RSA; whether the Bitcoin chain keeps its consensus through that transition is outside what the proof can say.',
+    'seal.anchor.proves.pending' => 'What the anchoring will establish: that the digest above existed no later than a block of the Bitcoin chain, with no authority to believe. Until the calendars\' transaction is in a block, the file only says which calendars to ask; sablier verify completes it then, and from that moment the proof needs nothing from them.',
+    'seal.anchor.verify' => 'Checked without any authority, with the proof filed beside the report:',
+    'seal.anchor.command' => 'ots verify -d %1$s %2$s',
+    'seal.anchor.command.note' => 'The official client (pip install opentimestamps-client) takes the block header from a Bitcoin node of your own. sablier verify takes it from two public explorers that must agree, and checks the header\'s proof of work itself rather than believing them; on a machine with no network, the header is passed by hand with --block-header.',
+    'share.text.anchored' => 'Anchored in the Bitcoin chain at block %d (%s).',
+
     'airgap.refused' => 'Refused in air-gapped mode: "%s" needs the network.',
     'airgap.instead' => 'Drop --airgap if this machine is allowed out, or run that step from one that is and carry the file back.',
     'airgap.blind.on' => 'Run in air-gapped mode: nothing was contacted, no server and no vulnerability database. Everything below comes from the files that were read.',
