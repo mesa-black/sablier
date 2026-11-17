@@ -338,11 +338,21 @@ the group comes back.
    and no further detector will compensate. The question would have to be asked
    differently — starting from legal retention, which people know, rather than
    from confidentiality lifetime, which they have never had to put into words.
-2. ~~Extend the probe beyond HTTPS: SMTP, IMAP, database connections.~~ Done
+2. Anchor the report's digest in a public ledger anybody can check
+   (OpenTimestamps, through Bitcoin), next to the RFC 3161 authorities and in
+   time instead of them. The tool's own verdict on those tokens is that they
+   prove nothing beyond the RSA that signs them, and a date has to be believed
+   from an authority. An OpenTimestamps proof is a chain of SHA-256 operations
+   ending in a block header: no authority to trust, no RSA, and Grover only
+   halves the margin of the hash. Next to build (decided 2026-11-17). The open
+   question is where the verifier gets the block header from: a public
+   explorer (one more party to believe), the reader's own node, or a header
+   supplied by hand under `--airgap`.
+3. ~~Extend the probe beyond HTTPS: SMTP, IMAP, database connections.~~ Done
    in v0.1.0 (2026-09-30), the night this list was written: STARTTLS for SMTP,
    IMAP, POP3, PostgreSQL and MySQL, implicit TLS for SMTPS and IMAPS. v0.3.0
    added LDAP, AMQP, Redis, MQTT, and SSH, which never becomes TLS and is read
    from the server's KEXINIT instead.
-3. A second language, once the thesis holds.
+4. A second language, once the thesis holds.
 
 Any conclusion drawn before step 1 is an opinion.
