@@ -67,7 +67,7 @@ on: [push, pull_request]
 
 jobs:
   sablier:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
 
@@ -78,7 +78,7 @@ jobs:
           coverage: none
 
       - name: Récupérer Sablier
-        run: git clone --depth 1 --branch v0.5.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
+        run: git clone --depth 1 --branch v0.12.1 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
 
       - name: Inventorier la cryptographie
         run: |
@@ -95,7 +95,9 @@ jobs:
 ```
 
 Épinglez une étiquette plutôt qu'une branche : cet outil décide si votre construction
-passe. `--no-probe` est délibéré — un exécuteur sonde vos serveurs depuis le réseau de
+passe. Épinglez l'exécuteur pour la même raison : `ubuntu-latest` est un nom qui passe à
+un nouveau système selon le calendrier de quelqu'un d'autre, c'est pourquoi ce projet
+nomme `ubuntu-26.04` et le déplace dans un commit à part. `--no-probe` est délibéré — un exécuteur sonde vos serveurs depuis le réseau de
 quelqu'un d'autre, ce qui mesure son chemin et non le vôtre ; lancez la sonde depuis une
 machine qui atteint vos propres services, sur une planification. Et téléversez le
 rapport `if: always()`, parce que l'exécution que vous voulez le plus lire est celle qui
@@ -114,7 +116,7 @@ derrière lui.
 ## Les trois conteneurs, et ce qui est affirmé à leur sujet
 
 Un outil qui lit où sont vos clés n'a pas à vous dire de lancer des images qu'il n'a pas
-regardées. Trois sont nommées dans ce dépôt — `php:8.4-cli-alpine` pour les machines
+regardées. Trois sont nommées dans ce dépôt — `php:8.5-cli-alpine` pour les machines
 sans PHP, `ghcr.io/phpstan/phpstan` pour l'analyse statique, et le scanner lui-même — et
 une commande les revérifie toutes les trois :
 
@@ -142,22 +144,27 @@ reconstruise.
 C'est le cas que la barrière doit traverser sans être désactivée, et il est arrivé le
 jour même. `.trivyignore.yaml` porte cette décision — une déclaration que quelqu'un a
 écrite et une date à laquelle elle cesse d'être vraie, exactement les deux choses que
-`sablier accept` exige de quiconque utilise cet outil. Une entrée tient aujourd'hui :
-**CVE-2026-103111**, pcre2 dans l'image PHPStan, correctif publié en amont et image pas
-encore reconstruite ; les seules expressions régulières qui atteignent ce conteneur sont
-celles de ce dépôt. Elle expire le 2026-10-22, après quoi la barrière repasse au rouge
-plutôt que de rester verte en silence — ce qui est toute la différence entre une
-décision et un fichier de suppression.
+`sablier accept` exige de quiconque utilise cet outil. Les entrées ne sont pas listées
+ici, parce qu'elles ne restent pas en place : chacune nomme un bulletin, dit pourquoi il
+n'atteint pas l'usage que ce projet fait de l'image, et expire en semaines plutôt qu'en
+mois. L'exécution planifiée du lundi repose la question, et une entrée échue fait
+repasser la barrière au rouge plutôt que de la laisser verte en silence. Chaque entrée
+est donc soit renouvelée, avec une nouvelle date et une déclaration revérifiée, soit
+retirée dès qu'une image reconstruite la rend inutile — ce qui est toute la différence
+entre une décision et un fichier de suppression. Le fichier et son historique disent ce
+qui tient aujourd'hui.
 
 L'affirmation est exactement celle-là, pas plus large : *aucune vulnérabilité haute ou
 critique connue, selon la base de Trivy au moment de l'analyse*. Rien n'est affirmé sur
 les inconnues, ni sur les constats bas et moyens, qui sont visibles dans la même sortie.
 
-L'image Alpine n'est pas un goût : à l'heure où ces lignes sont écrites, Trivy rapporte
-**162 vulnérabilités hautes ou critiques dans `php:8.4-cli`** — dont 46 avec un
-correctif disponible — et **aucune** dans `php:8.4-cli-alpine`. Les versions épinglées
-dans le `Makefile` sont celles qu'utilisent `make cve`, le lanceur et l'intégration
-continue, si bien que le chiffre ci-dessus est à une commande d'être contredit.
+L'image Alpine n'est pas un goût. Quand le choix a été fait, le 2026-10-01, Trivy
+rapportait **162 vulnérabilités hautes ou critiques dans `php:8.4-cli`** — dont 46 avec
+un correctif disponible — et **aucune** dans `php:8.4-cli-alpine`. Ce chiffre est une
+mesure passée, gardée parce qu'elle est la raison ; le lanceur est depuis passé à
+`php:8.5-cli-alpine`. Les versions épinglées dans le `Makefile` sont celles qu'utilisent
+`make cve`, le lanceur et l'intégration continue, si bien que la réponse d'aujourd'hui
+est à une commande, et la contradiction aussi.
 
 L'analyse statique tourne au **niveau max** (`make phpstan`), dans un conteneur pour la
 même raison : ce projet ne livre aucun répertoire `vendor/`, et un outil de qualité

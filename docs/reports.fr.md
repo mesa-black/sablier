@@ -73,7 +73,7 @@ versionné, ce qui veut dire que la revue se fait en revue de code, sans service
 sans base de données :
 
 ```bash
-sablier accept a3f1c2 --reason="SHA-1 imposé par la spécification TOTP" --until=2027-04-01
+sablier accept a3f1c2d4 --reason="SHA-1 imposé par la spécification TOTP" --until=2027-04-01
 ```
 
 Trois règles sont appliquées plutôt que suggérées, parce qu'un fichier de suppression
@@ -81,9 +81,9 @@ facile à écrire est la façon dont ces outils se vident d'eux-mêmes en six mo
 
 - **un constat accepté ne disparaît pas.** Il passe dans sa propre section, en
   portant le verdict qu'il aurait eu, la raison donnée et la date ;
-- **une acceptation expire.** `until` est obligatoire, et le constat revient tout
-  seul le jour où elle tombe — de la même façon que la fenêtre se referme toute
-  seule ;
+- **une acceptation expire.** Il y a toujours une échéance : `--until` la fixe, et
+  sans lui l'acceptation court six mois. Le constat revient tout seul le jour
+  où elle tombe — de la même façon que la fenêtre se referme toute seule ;
 - **la raison est obligatoire et écrite pour un humain.** C'est ce que la personne
   qui approuve le changement lit réellement.
 

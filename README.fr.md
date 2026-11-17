@@ -74,7 +74,7 @@ prétend.
 
 ```bash
 make demo                                   # projet d'essai + rapport
-sablier init /chemin/du/projet              # une déclaration à corriger, pas un formulaire à remplir
+./sablier init /chemin/du/projet            # une déclaration à corriger, pas un formulaire à remplir
 make scan DIR=/chemin/du/projet LANG=fr     # un vrai projet
 make scan DIR=/chemin/du/projet PDF=1       # …et un PDF à côté
 make scan DIR=/chemin/du/projet AUDIT=1     # …et le document d'audit
@@ -106,7 +106,7 @@ le document d'audit de la même analyse. Les deux sont régénérés à chaque v
 et chacun tient dans un seul fichier autonome — ouvrez-les depuis le disque.
 [`examples/report.pdf`](examples/report.pdf) et
 [`examples/audit.pdf`](examples/audit.pdf) sont ces deux mêmes documents tels que
-l'outil les compose, treize et vingt-six kilo-octets : c'est ce que pèse un PDF
+l'outil les compose, dix-sept et trente-trois kilo-octets : c'est ce que pèse un PDF
 qu'aucun navigateur n'a imprimé. [`examples/worksheet.html`](examples/worksheet.html)
 est l'entretien hors ligne tel qu'on le remet, [`examples/cbom.json`](examples/cbom.json)
 le même inventaire en CycloneDX, et [`examples/crossings.ics`](examples/crossings.ics)

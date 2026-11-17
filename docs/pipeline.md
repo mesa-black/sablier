@@ -65,7 +65,7 @@ on: [push, pull_request]
 
 jobs:
   sablier:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
 
@@ -76,7 +76,7 @@ jobs:
           coverage: none
 
       - name: Get Sablier
-        run: git clone --depth 1 --branch v0.5.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
+        run: git clone --depth 1 --branch v0.12.1 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
 
       - name: Inventory the cryptography
         run: |
@@ -93,6 +93,9 @@ jobs:
 ```
 
 Pin a tag rather than a branch: this tool decides whether your build passes.
+Pin the runner for the same reason: `ubuntu-latest` is a name that moves to a
+new system on somebody else's schedule, which is why this project names
+`ubuntu-26.04` and moves it in a commit of its own.
 `--no-probe` is deliberate — a runner probes your servers from somebody else's
 network, which measures their path rather than yours; run the probe from a host
 that reaches your own services, on a schedule. And upload the report `if:
@@ -111,7 +114,7 @@ every build is leaving state behind.
 
 A tool that reads where your keys are has no business telling you to run
 images it has not looked at. Three are named in this repository —
-`php:8.4-cli-alpine` for machines without PHP, `ghcr.io/phpstan/phpstan` for
+`php:8.5-cli-alpine` for machines without PHP, `ghcr.io/phpstan/phpstan` for
 the static analysis, and the scanner itself — and one command re-checks all
 three:
 
@@ -136,23 +139,28 @@ before upstream rebuilt it.
 Which is the case the gate has to survive without being switched off, and it
 arrived the same day. `.trivyignore.yaml` carries that decision — a statement
 somebody wrote and a date it stops being true, the same two things `sablier
-accept` demands of anybody using this tool. One entry stands today:
-**CVE-2026-103111**, pcre2 in the PHPStan image, fix published upstream and
-the image not rebuilt yet; the only regular expressions reaching that
-container are the ones in this repository. It expires on 2026-10-22, after
-which the gate goes red again rather than quietly staying green — which is the
-entire difference between a decision and a suppression file.
+accept` demands of anybody using this tool. The entries are not listed here,
+because they do not stay put: each one names an advisory, says why it does not
+reach the way this project uses the image, and expires within weeks rather than
+months. The scheduled Monday run asks the question again, and an entry that has
+lapsed turns the gate red again rather than quietly keeping it green. So every
+entry is either renewed, with a new date and a statement checked again, or
+removed once a rebuilt image makes it pointless — which is the entire
+difference between a decision and a suppression file. The file and its history
+say what stands today.
 
 The claim is exactly that, and no larger: *no known high or critical
 vulnerability, per Trivy's database at the time of the scan*. There is no
 claim about unknown ones, and none about the low and medium findings, which
 are visible in the same output.
 
-The Alpine image is not a taste: at the time of writing Trivy reports **162
-high or critical vulnerabilities in `php:8.4-cli`** — 46 of them with a fix
-available — and **none** in `php:8.4-cli-alpine`. The pinned versions in the
-`Makefile` are what `make cve`, the launcher and the CI all use, so the figure
-above is one command away from being contradicted.
+The Alpine image is not a taste. When the choice was made, on 2026-10-01,
+Trivy reported **162 high or critical vulnerabilities in `php:8.4-cli`** — 46
+of them with a fix available — and **none** in `php:8.4-cli-alpine`. That
+figure is a past measurement, kept because it is the reason; the launcher has
+since moved to `php:8.5-cli-alpine`. The pinned versions in the `Makefile` are
+what `make cve`, the launcher and the CI all use, so today's answer is one
+command away, and so is a contradiction.
 
 Static analysis runs at **level max** (`make phpstan`), in a container for the
 same reason: this project ships no `vendor/` directory, and a QA tool is not a

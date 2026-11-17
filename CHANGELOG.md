@@ -4,6 +4,48 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+No change to what the tool reports. The images it asks anyone to run moved,
+and the decisions that went with them were kept or dropped by their dates.
+
+### Trivy 0.76.2, and the PHP and PHPStan images rebuilt
+
+The scheduled run went red on 2026-11-09: the pinned `php:8.5-cli-alpine` had
+picked up musl and zlib advisories, and the brotli and curl entries had
+expired. The latest PHP image was clean on both architectures with no
+exception at all, and so was Trivy 0.76.2, built with a fixed go-jose: the
+go-jose decision went, as it said it would. PHPStan had not been rebuilt yet,
+so brotli and curl were renewed for one week, stated for that image alone.
+
+On 2026-11-16 a rebuilt `phpstan:2-php8.5` was clean, and brotli and curl went
+too. All three pins moved by multi-arch digest; the launcher and the default
+scanner of `sablier advisories` follow.
+
+### git in Trivy, decided until 2026-11-23
+
+The same run found three high advisories in git 2.54.0, inside the Trivy image
+itself, which no Trivy release has rebuilt yet. Trivy never runs git the way
+this project calls it: both scans give the same result with `/usr/bin/git`
+replaced by a tripwire that fails on any call, and it never fired. That is a
+decision with a statement and a one-week expiry in `.trivyignore.yaml`, not a
+silence.
+
+### Runners named, not `latest`
+
+The CI runs on `ubuntu-26.04` rather than `ubuntu-latest`. It is what
+`ubuntu-latest` already pointed to, and every job passed on it; naming it
+makes the runner a choice, like the images pinned by digest, so the next
+Ubuntu arrives in a commit rather than under us.
+
+### Documentation
+
+The pipeline example pins v0.12.1 and a named runner; the `.trivyignore.yaml`
+paragraph describes how entries are renewed or removed instead of naming one
+that expired weeks ago; the 162-vulnerability figure is dated as the
+measurement it was; and the acceptance example uses a real 8-character
+fingerprint, with the six-month default expiry stated.
+
 ## v0.12.1 — 2026-11-02
 
 A fix release: the same project now reports its findings in the same order on

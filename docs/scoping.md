@@ -338,7 +338,11 @@ the group comes back.
    and no further detector will compensate. The question would have to be asked
    differently — starting from legal retention, which people know, rather than
    from confidentiality lifetime, which they have never had to put into words.
-2. Extend the probe beyond HTTPS: SMTP, IMAP, database connections.
+2. ~~Extend the probe beyond HTTPS: SMTP, IMAP, database connections.~~ Done
+   in v0.1.0 (2026-09-30), the night this list was written: STARTTLS for SMTP,
+   IMAP, POP3, PostgreSQL and MySQL, implicit TLS for SMTPS and IMAPS. v0.3.0
+   added LDAP, AMQP, Redis, MQTT, and SSH, which never becomes TLS and is read
+   from the server's KEXINIT instead.
 3. A second language, once the thesis holds.
 
 Any conclusion drawn before step 1 is an opinion.

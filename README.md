@@ -71,7 +71,7 @@ Status: **prototype**.
 
 ```bash
 make demo                                   # fixture project + report
-sablier init /path/to/project               # a declaration to correct, not a form to fill
+./sablier init /path/to/project             # a declaration to correct, not a form to fill
 make scan DIR=/path/to/project LANG=en      # a real project
 make scan DIR=/path/to/project PDF=1        # …and a PDF alongside it
 make scan DIR=/path/to/project AUDIT=1      # …and the audit document
@@ -103,7 +103,7 @@ the technical report for the fixture project, and
 run. Both are regenerated at each release, and both are a single self-contained
 file — open them from disk. [`examples/report.pdf`](examples/report.pdf) and
 [`examples/audit.pdf`](examples/audit.pdf) are the same two documents as this
-tool typesets them, thirteen and twenty-six kilobytes, which is what a PDF
+tool typesets them, seventeen and thirty-three kilobytes, which is what a PDF
 weighs when no browser printed it. [`examples/worksheet.html`](examples/worksheet.html)
 is the offline interview as it is handed over, [`examples/cbom.json`](examples/cbom.json)
 the same inventory as CycloneDX, and [`examples/crossings.ics`](examples/crossings.ics)

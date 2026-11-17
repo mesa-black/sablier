@@ -72,7 +72,7 @@ Estado: **prototipo**.
 
 ```bash
 make demo                                   # proyecto de prueba + informe
-sablier init /ruta/del/proyecto             # una declaración que corregir, no un formulario que rellenar
+./sablier init /ruta/del/proyecto           # una declaración que corregir, no un formulario que rellenar
 make scan DIR=/ruta/del/proyecto LANG=es    # un proyecto real
 make scan DIR=/ruta/del/proyecto PDF=1      # …y un PDF al lado
 make scan DIR=/ruta/del/proyecto AUDIT=1    # …y el documento de auditoría
@@ -104,7 +104,7 @@ documento de auditoría del mismo análisis. Ambos se regeneran en cada versión
 uno cabe en un solo archivo autónomo: ábralos desde el disco.
 [`examples/report.pdf`](examples/report.pdf) y
 [`examples/audit.pdf`](examples/audit.pdf) son esos mismos dos documentos tal como
-los compone la herramienta, trece y veintiséis kilobytes: es lo que pesa un PDF que
+los compone la herramienta, diecisiete y treinta y tres kilobytes: es lo que pesa un PDF que
 ningún navegador ha impreso. [`examples/worksheet.html`](examples/worksheet.html) es la
 entrevista sin conexión tal como se entrega, [`examples/cbom.json`](examples/cbom.json)
 el mismo inventario en CycloneDX, y [`examples/crossings.ics`](examples/crossings.ics)

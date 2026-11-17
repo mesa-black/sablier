@@ -66,7 +66,7 @@ on: [push, pull_request]
 
 jobs:
   sablier:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
 
@@ -77,7 +77,7 @@ jobs:
           coverage: none
 
       - name: Obtener Sablier
-        run: git clone --depth 1 --branch v0.5.0 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
+        run: git clone --depth 1 --branch v0.12.1 https://github.com/mesa-black/sablier.git "$RUNNER_TEMP/sablier"
 
       - name: Inventariar la criptografía
         run: |
@@ -94,6 +94,9 @@ jobs:
 ```
 
 Fije una etiqueta y no una rama: esta herramienta decide si su construcción pasa.
+Fije el ejecutor por la misma razón: `ubuntu-latest` es un nombre que pasa a un sistema
+nuevo según el calendario de otro, por eso este proyecto nombra `ubuntu-26.04` y lo
+cambia en un commit propio.
 `--no-probe` es deliberado: un ejecutor sondea sus servidores desde la red de otro, lo
 que mide el camino de ese otro y no el suyo; lance la sonda desde una máquina que
 alcance sus propios servicios, de forma programada. Y suba el informe `if: always()`,
@@ -111,7 +114,7 @@ en cada construcción está dejando estado detrás.
 ## Los tres contenedores, y qué se afirma sobre ellos
 
 Una herramienta que lee dónde están sus claves no tiene por qué decirle que ejecute
-imágenes que no ha mirado. Tres se nombran en este repositorio —`php:8.4-cli-alpine`
+imágenes que no ha mirado. Tres se nombran en este repositorio —`php:8.5-cli-alpine`
 para máquinas sin PHP, `ghcr.io/phpstan/phpstan` para el análisis estático, y el propio
 escáner— y un comando las vuelve a comprobar las tres:
 
@@ -137,22 +140,26 @@ ejecuciones, horas antes de que la reconstruyeran aguas arriba.
 Que es el caso que la barrera tiene que sobrevivir sin ser desactivada, y llegó el mismo
 día. `.trivyignore.yaml` lleva esa decisión: una declaración que alguien escribió y una
 fecha en la que deja de ser cierta, exactamente las dos cosas que `sablier accept` exige
-a quien use esta herramienta. Hoy se mantiene una entrada: **CVE-2026-103111**, pcre2 en
-la imagen de PHPStan, corrección publicada aguas arriba e imagen aún sin reconstruir;
-las únicas expresiones regulares que llegan a ese contenedor son las de este
-repositorio. Caduca el 2026-10-22, tras lo cual la barrera vuelve a ponerse roja en vez
-de quedarse verde en silencio — que es toda la diferencia entre una decisión y un
-archivo de supresión.
+a quien use esta herramienta. Las entradas no se enumeran aquí, porque no se quedan
+quietas: cada una nombra un aviso, dice por qué no alcanza el uso que este proyecto hace
+de la imagen, y caduca en semanas y no en meses. La ejecución programada del lunes
+vuelve a hacer la pregunta, y una entrada vencida pone la barrera roja otra vez en vez
+de dejarla verde en silencio. Así que cada entrada se renueva, con una fecha nueva y una
+declaración comprobada de nuevo, o se retira en cuanto una imagen reconstruida la
+vuelve inútil — que es toda la diferencia entre una decisión y un archivo de supresión.
+El archivo y su historial dicen qué se mantiene hoy.
 
 La afirmación es exactamente esa, y no más amplia: *ninguna vulnerabilidad alta o crítica
 conocida, según la base de Trivy en el momento del análisis*. No se afirma nada sobre las
 desconocidas, ni sobre los hallazgos bajos y medios, visibles en la misma salida.
 
-La imagen Alpine no es un gusto: al escribir esto, Trivy reporta **162 vulnerabilidades
-altas o críticas en `php:8.4-cli`** —46 de ellas con corrección disponible— y **ninguna**
-en `php:8.4-cli-alpine`. Las versiones fijadas en el `Makefile` son las que usan
-`make cve`, el lanzador y la integración continua, de modo que la cifra de arriba está a
-un comando de ser contradicha.
+La imagen Alpine no es un gusto. Cuando se tomó la decisión, el 2026-10-01, Trivy
+reportaba **162 vulnerabilidades altas o críticas en `php:8.4-cli`** —46 de ellas con
+corrección disponible— y **ninguna** en `php:8.4-cli-alpine`. Esa cifra es una medida
+pasada, conservada porque es la razón; el lanzador ha pasado después a
+`php:8.5-cli-alpine`. Las versiones fijadas en el `Makefile` son las que usan
+`make cve`, el lanzador y la integración continua, de modo que la respuesta de hoy está
+a un comando, y la contradicción también.
 
 El análisis estático corre a **nivel máximo** (`make phpstan`), en un contenedor por la
 misma razón: este proyecto no entrega ningún directorio `vendor/`, y una herramienta de

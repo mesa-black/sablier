@@ -71,7 +71,7 @@ versioned file, which means the review happens in code review, with no service
 and no database:
 
 ```bash
-sablier accept a3f1c2 --reason="SHA-1 mandated by the TOTP specification" --until=2027-04-01
+sablier accept a3f1c2d4 --reason="SHA-1 mandated by the TOTP specification" --until=2027-04-01
 ```
 
 Three rules are enforced rather than suggested, because a suppression file that
@@ -79,8 +79,9 @@ is easy to write is how these tools empty themselves out within six months:
 
 - **an accepted finding does not disappear.** It moves to its own section,
   carrying the verdict it would have had, the stated reason and the date;
-- **an acceptance expires.** `until` is required, and the finding comes back on
-  its own the day it lapses — the same way the window closes by itself;
+- **an acceptance expires.** There is always an expiry: `--until` sets it, and
+  without it the acceptance runs six months. The finding comes back on its own
+  the day it lapses — the same way the window closes by itself;
 - **the reason is required and written for a human.** It is what the person
   approving the change actually reads.
 

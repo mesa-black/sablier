@@ -72,7 +72,7 @@ archivo versionado, lo que significa que la revisión ocurre en la revisión de 
 sin servicio y sin base de datos:
 
 ```bash
-sablier accept a3f1c2 --reason="SHA-1 impuesto por la especificación TOTP" --until=2027-04-01
+sablier accept a3f1c2d4 --reason="SHA-1 impuesto por la especificación TOTP" --until=2027-04-01
 ```
 
 Tres reglas se aplican en lugar de sugerirse, porque un archivo de supresión fácil de
@@ -80,8 +80,9 @@ escribir es la manera en que estas herramientas se vacían solas en seis meses:
 
 - **un hallazgo aceptado no desaparece.** Pasa a su propia sección, con el veredicto
   que habría tenido, la razón dada y la fecha;
-- **una aceptación caduca.** `until` es obligatorio, y el hallazgo vuelve solo el día
-  en que vence, igual que la ventana se cierra sola;
+- **una aceptación caduca.** Siempre hay un vencimiento: `--until` lo fija, y sin
+  él la aceptación dura seis meses. El hallazgo vuelve solo el día en que vence,
+  igual que la ventana se cierra sola;
 - **la razón es obligatoria y está escrita para un humano.** Es lo que lee de verdad
   la persona que aprueba el cambio.
 

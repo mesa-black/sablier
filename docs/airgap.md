@@ -118,12 +118,14 @@ timestamping authority by hand, and the token carried back.
 
 A closed site does not `git clone`. Every release carries an archive built from
 its tag, and **two** digests in the notes, because they answer two different
-questions:
+questions. Here they are for v0.12.1, the release current when this page was
+last revised; the version is an example, and the commands are the same for any
+tag:
 
 ```
-sablier-0.9.0.tar.gz
-    sha256  ecafa3e6…  (the file we published)
-    sha256  3b733323…  (the tar, which reproduces anywhere)
+sablier-0.12.1.tar.gz
+    sha256  2ea31360…  (the file we published)
+    sha256  b42331c4…  (the tar, which reproduces anywhere)
 ```
 
 The first checks that the file you were handed is the file we published. Run it
@@ -131,7 +133,7 @@ on the machine that will run the tool, with nothing but the digest you were give
 through whatever channel you already trust:
 
 ```sh
-openssl dgst -sha256 sablier-0.9.0.tar.gz
+openssl dgst -sha256 sablier-0.12.1.tar.gz
 ```
 
 The second is the one that does not require trusting whoever handed the file
@@ -139,13 +141,14 @@ over, because anybody can rebuild it from the tag:
 
 ```sh
 git clone https://github.com/mesa-black/sablier && cd sablier
-git archive --format=tar --prefix=sablier-0.9.0/ v0.9.0 | openssl dgst -sha256
+git archive --format=tar --prefix=sablier-0.12.1/ v0.12.1 | openssl dgst -sha256
 ```
 
 **Why the digest that reproduces is the tar's and not the archive's.** We had
 claimed `gzip -n -9` was enough and published one digest. It is not, and the
 claim was wrong: `-n` stops gzip writing the current time into the header, but it
-does not make two deflate implementations agree. Measured on this very tag —
+does not make two deflate implementations agree. Measured on v0.9.0, the tag
+where it was found —
 Apple gzip 479 and GNU gzip 1.13 compress the identical tar to different bytes,
 while `git archive` gave the same `3b733323…` under git 2.50.1 and git 2.47.3
 alike. So `git archive` is the reproducible part and `gzip` is not, and the
