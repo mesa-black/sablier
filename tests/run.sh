@@ -1830,6 +1830,19 @@ else
 	printf '  ✓ %-24s %-10s %s\n' "version" "untagged" "nothing to compare, checked at the tag"
 fi
 
+# `make release` names the archive from the same constant, read with sed so that
+# a machine without PHP can rebuild a release. Two readers of one line can drift
+# apart the day the line is written differently, so the Makefile's own command is
+# run here and compared with what PHP reads.
+version_read=$(sed -n 's/^VERSION := $(shell \(.*\))$/\1/p' Makefile)
+from_make=$(eval "$version_read")
+from_php=$(php -r 'require "src/Version.php"; echo Sablier\Version::NUMBER;')
+if [ -z "$from_make" ] || [ "$from_make" != "$from_php" ]; then
+	echo "✗ version: the Makefile reads '$from_make' and PHP reads '$from_php'"
+	exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "version" "makefile" "make release reads $from_php without PHP"
+
 # And both documents name it, not just the audit one: the technical report is the
 # one that gets published, and it carried a digest, a command to repeat the run
 # and no version at all.

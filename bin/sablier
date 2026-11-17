@@ -572,6 +572,14 @@ if ($command === 'serve') {
         }
     }
 
+    // Where php -S binds, which is --host except in a container. Run through
+    // the launcher without a local PHP, the server must listen on every
+    // interface of the container for the published port to reach it, while
+    // --host keeps meaning what it means to the person: the address on their
+    // machine, which the launcher publishes on and which decides the token.
+    $listen = getenv('SABLIER_LISTEN');
+    $listen = \is_string($listen) && preg_match('/^[\d.:a-fA-F]+$/', $listen) === 1 ? $listen : $host;
+
     // exec, so the server replaces the shell instead of hiding behind it: a
     // stray php -S holding the port after its parent was killed is a bad way
     // to learn that the command leaked a process.
@@ -583,7 +591,7 @@ if ($command === 'serve') {
         // Safe today because --host= only accepts an address-shaped string, two
         // hundred lines above. Escaped anyway: a shell command whose safety
         // rests on a regex somewhere else is one edit away from not being safe.
-        escapeshellarg($host),
+        escapeshellarg($listen),
         $port,
         escapeshellarg(__DIR__.'/../src/Web/router.php'),
     );

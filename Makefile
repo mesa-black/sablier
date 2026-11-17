@@ -25,7 +25,7 @@ TRIVY_IMAGE ?= aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a
 .PHONY: help test scan judge demo probe phpstan cve advisories declare serve worksheet import examples release images
 
 help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-8s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
 test: ## Check that the risk model still discriminates
 	@./tests/run.sh
@@ -113,7 +113,7 @@ import: ## Take back the answers filled in that file: make import DIR=/path ANSW
 
 serve: ## The same interview in a browser, for a session with somebody: make serve DIR=/path [LANG=en]
 	@test -n "$(DIR)" || { echo "make serve DIR=/path"; exit 1; }
-	@./bin/sablier serve "$(DIR)" $(if $(LANG),--lang=$(LANG),) $(if $(PORT),--port=$(PORT),)
+	@./sablier serve "$(DIR)" $(if $(LANG),--lang=$(LANG),) $(if $(PORT),--port=$(PORT),)
 
 advisories: ## Collect published vulnerabilities: make advisories DIR=/path [OUT=file.json]
 	@test -n "$(DIR)" || { echo "make advisories DIR=/path"; exit 1; }
@@ -150,7 +150,11 @@ judge: ## Judge another tool's CBOM: make judge CBOM=cbom.json [DECLARE=file.jso
 # GitHub's own "Source code (tar.gz)" is not this file. Its bytes have changed
 # before, under everybody, when their compression changed; ours is attached to
 # the release and both digests are in the notes.
-VERSION := $(shell php -r 'require "src/Version.php"; echo Sablier\Version::NUMBER;')
+# Read from the source with sed rather than with PHP: the archive is the one
+# thing somebody without PHP should be able to rebuild. The test suite runs this
+# same command and compares it with what PHP reads, and a version this misreads
+# has no tag, which stops the target before it builds anything.
+VERSION := $(shell sed -n "s/^ *public const \(string \)\{0,1\}NUMBER = '\([^']*\)';.*/\2/p" src/Version.php)
 ARCHIVE := sablier-$(VERSION).tar.gz
 
 release: ## Build the release archive for the current version, reproducibly

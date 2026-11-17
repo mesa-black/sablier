@@ -61,9 +61,37 @@ for argument in "$@"; do
     esac
 done
 
+# `serve` is a web server, and a container's loopback is not this machine's. Its
+# port is published on the address --host names here (the loopback unless told
+# otherwise), and the server inside listens on every interface of the container
+# so the published port reaches it: --host keeps its meaning, and the token with
+# it. --init, because Ctrl-C has to stop it: PID 1 ignores a signal it set no
+# handler for, so without an init in front the server would outlive the keypress.
+publish=
+if [ "${1:-}" = serve ]; then
+    port=8765
+    host=127.0.0.1
+    # The same shapes bin/sablier accepts, and the same fallback when a value
+    # does not have one: it ignores the flag, so the default stands here too.
+    for argument in "$@"; do
+        case "$argument" in
+            --port= | --port=? | --port=??????* | --port=*[!0-9]*) ;;
+            --port=*) port=${argument#--port=} ;;
+            --host=*[!0-9a-fA-F.:]* | --host=) ;;
+            --host=*) host=${argument#--host=} ;;
+        esac
+    done
+    case "$host" in
+        *:*) host="[$host]" ;;
+    esac
+    publish="--init --env SABLIER_LISTEN=0.0.0.0 --publish $host:$port:$port"
+fi
+
 # --user keeps the report owned by whoever ran the command rather than by root;
 # the repository is mounted read-only because the tool never writes into itself.
-exec docker run --rm \
+# $publish is unquoted on purpose: empty, it has to vanish rather than pass "".
+# shellcheck disable=SC2086
+exec docker run --rm $publish \
     --user "$(id -u):$(id -g)" \
     --volume "$root":/sablier:ro \
     --volume "$PWD":/work \
