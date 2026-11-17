@@ -4,7 +4,7 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
-## Unreleased
+## v0.13.1 — 2026-11-17
 
 The page itself, signed.
 
