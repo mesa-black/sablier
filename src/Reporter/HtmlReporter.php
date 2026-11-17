@@ -454,7 +454,11 @@ final class HtmlReporter implements ReporterInterface
             $rows .= '<div><dt>'.htmlspecialchars(Lang::t('seal.signed')).'</dt><dd>'
                 .htmlspecialchars($algorithms.' · '.($signedAt === false ? $block['signed_at'] : $signedAt->format('d/m/Y H:i'))).'</dd></div>'
                 .'<div><dt>'.htmlspecialchars(Lang::t('seal.key')).'</dt><dd><code>'
-                .htmlspecialchars(substr($block['public_key'], 0, 16).'…').'</code></dd></div>';
+                .htmlspecialchars(substr($block['public_key'], 0, 16).'…').'</code></dd></div>'
+                // The page's own signature, named as the file it is, beside the
+                // other evidence a reader is handed with this page.
+                .'<div><dt>'.htmlspecialchars(Lang::t('seal.page')).'</dt><dd><code>'
+                .htmlspecialchars(Signature::pagePath($this->pageName())).'</code></dd></div>';
 
             // A key that signed once and was destroyed ties the document to
             // nobody on its own: the fingerprint is what the reader was given
@@ -491,24 +495,6 @@ final class HtmlReporter implements ReporterInterface
                 ? Lang::t('seal.hybrid', $hybrid['algorithm'])
                 : Lang::t('seal.caveat', $this->analysis->declaration->expiryYear)).'</p>';
 
-            // How to check it, and what checking it establishes. The audit
-            // document carried both and this one carried neither, which was
-            // tolerable while reports travelled by hand and stopped being so
-            // the first time one was published on a website: a reader who
-            // arrives at a signed page with no command and no claim has a seal
-            // they can admire and cannot use.
-            // The real file names, not angle brackets. This document knows what
-            // it was called and which declaration it read; asking the reader to
-            // substitute three placeholders is asking them not to check.
-            $report = basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html');
-            $declared = $this->analysis->declaration->path !== ''
-                ? basename($this->analysis->declaration->path)
-                : '';
-            $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.verify')).' <code>'
-                .htmlspecialchars($declared !== ''
-                    ? Lang::t('seal.verify.command', $report.'.sig', $declared)
-                    : Lang::t('seal.verify.command.alone', $report.'.sig')).'</code></p>';
-
             // What the attested date establishes, and where it stops — next to
             // the command that checks it without this tool, because a date
             // nobody can check is a decoration.
@@ -533,7 +519,7 @@ final class HtmlReporter implements ReporterInterface
                     .'<pre class="recipe">'.htmlspecialchars(Lang::t(
                         'seal.timestamp.command',
                         Signature::digest($this->analysis),
-                        basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html').'.tsr',
+                        $this->pageName().'.tsr',
                     )).'</pre>'
                     .'<p class="legend">'.htmlspecialchars(Lang::t('seal.timestamp.command.note')).'</p>';
 
@@ -588,14 +574,26 @@ final class HtmlReporter implements ReporterInterface
                     .htmlspecialchars(Lang::t('seal.earlier', Rendered::at())).'</p>';
             }
 
-            // What it does not cover, first, because the earlier version of this
-            // paragraph said "the report has not changed since it was signed"
-            // and that is false: a report displays its own signature, so it
-            // cannot contain it, and the signature covers the findings instead
-            // of these bytes. Published on a website and altered by hand, the
-            // page still verified — which is the exact kind of false assurance
-            // this document spends its other sections refusing.
-            $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.proves.bytes')).'</p>';
+            // What the signatures cover, in words a reader without a
+            // cryptography course can follow, and then the one command that
+            // checks both. The first version of this paragraph said "the report
+            // has not changed since it was signed", which was false: a report
+            // displays its own signature, so it cannot contain it. The second
+            // said so honestly, in terms of bytes and digests, and left the
+            // page uncovered. The page now has a signature of its own, filed
+            // beside it, so a single character changed in it fails the check.
+            //
+            // The real file names, not angle brackets: this document knows what
+            // it was called and which declaration it read, and asking the reader
+            // to substitute placeholders is asking them not to check.
+            $report = $this->pageName();
+            $declared = $this->analysis->declaration->path !== ''
+                ? basename($this->analysis->declaration->path)
+                : '';
+            $caveat .= '<p class="legend">'.htmlspecialchars(Lang::t('seal.proves.page', Signature::pagePath($report))).' <code>'
+                .htmlspecialchars($declared !== ''
+                    ? Lang::t('seal.verify.command', $report.'.sig', $declared)
+                    : Lang::t('seal.verify.command.alone', $report.'.sig')).'</code></p>';
 
             // Then what the key establishes, which depends on where the expected
             // one lives. A key named in a versioned declaration is checkable by
@@ -614,6 +612,12 @@ final class HtmlReporter implements ReporterInterface
             .'<dl class="probe-facts">'.$rows.'</dl>'
             .'<p class="legend">'.htmlspecialchars(Lang::t('seal.legend')).'</p>'
             .$caveat.'</section>';
+    }
+
+    /** The name this report was written under, which every evidence file beside it starts with. */
+    private function pageName(): string
+    {
+        return basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html');
     }
 
     /**

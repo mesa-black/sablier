@@ -768,15 +768,15 @@ fi
 mv "$keydir/r.html.page.sig.kept" "$keydir/r.html.page.sig"
 printf '  ✓ %-24s %-10s %s\n' "page" "older" "no page signature: said, not failed"
 
-# The audit document is signed too.
+# The audit document is signed too, and prints the command that checks it.
 ./bin/sablier scan tests/fixtures/sample --declare="$keydir/right.json" --sign="$keydir/a.key" \
 	--out="$keydir/p.html" --audit="$keydir/p-audit.html" --quiet >/dev/null || true
-if [ ! -s "$keydir/p-audit.html.page.sig" ] \
+if [ ! -s "$keydir/p-audit.html.page.sig" ] || ! grep -q "sablier verify p-audit.html.page.sig" "$keydir/p-audit.html" \
 	|| ! ./bin/sablier verify "$keydir/p-audit.html.page.sig" --declare="$keydir/right.json" >/dev/null 2>&1; then
-	echo "✗ page: the audit document is not signed"
+	echo "✗ page: the audit document is not signed, or does not say how to check it"
 	rm -rf "$keydir"; exit 1
 fi
-printf '  ✓ %-24s %-10s %s\n' "page" "audit" "signed and checked"
+printf '  ✓ %-24s %-10s %s\n' "page" "audit" "signed, named, checked"
 
 # --- one report succeeding another -------------------------------------------
 # A chain nobody has to ask for: a second run over the same output path names
@@ -1705,8 +1705,15 @@ for pair in "declared:historique du fichier qui la déclare" "eph:canal qui a po
 		echo "✗ seal: $file.html carries no command to check it"
 		rm -rf "$prv"; exit 1
 	fi
-	if ! grep -q "ne couvre pas : les octets" "$prv/$file.html"; then
-		echo "✗ seal: $file.html does not say the signature misses the bytes of the page"
+	# The page now has a signature of its own, and the paragraph says so in
+	# words a reader without a cryptography course follows: no "octets", and
+	# the file named, beside the command that checks both.
+	if ! grep -q "sa propre signature, dans le fichier $file.html.page.sig" "$prv/$file.html"; then
+		echo "✗ seal: $file.html does not name its page signature"
+		rm -rf "$prv"; exit 1
+	fi
+	if grep -q "octets de cette page" "$prv/$file.html"; then
+		echo "✗ seal: $file.html still explains itself in bytes"
 		rm -rf "$prv"; exit 1
 	fi
 	if grep -q "n.a pas changé depuis sa signature" "$prv/$file.html"; then

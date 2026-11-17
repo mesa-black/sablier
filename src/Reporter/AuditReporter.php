@@ -562,6 +562,17 @@ final class AuditReporter implements ReporterInterface
                 .htmlspecialchars($declared !== ''
                     ? Lang::t('seal.verify.command', $report.'.sig', $declared)
                     : Lang::t('seal.verify.command.alone', $report.'.sig')).'</code></p>';
+
+            // This document's own signature, filed beside it. The findings
+            // signature above says what was found; this one says the document
+            // in hand is the one that was written, to the character. Its name
+            // is the audit file's, which this document only knows when it was
+            // given one — the default is the name the command line uses.
+            $page = basename($this->analysis->auditPath !== '' ? $this->analysis->auditPath : 'audit.html');
+            $body .= '<p>'.htmlspecialchars(Lang::t('audit.s10.page', Signature::pagePath($page))).' <code>'
+                .htmlspecialchars($declared !== ''
+                    ? Lang::t('seal.verify.command', Signature::pagePath($page), $declared)
+                    : Lang::t('seal.verify.command.alone', Signature::pagePath($page))).'</code></p>';
             if (!\is_array($hybrid)) {
                 $body .= '<p class="flag">'.htmlspecialchars(Lang::t('seal.caveat', $declaration->expiryYear)).'</p>';
             }
