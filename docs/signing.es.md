@@ -293,3 +293,47 @@ La clave es efímera por omisión, como la de los informes. Una declaración
 respaldada al final de una entrevista, ante la persona que la declaró, es
 exactamente el caso para el que se inventó esa clave: nada que almacenar, nada que
 rotar, y la huella viaja por el canal que ya prueba quién es.
+
+### Sellar datos, no solo un informe
+
+Un informe habla de un proyecto. Lo que un proyecto *publica* — un mes de
+mediciones, una carpeta de pruebas, los archivos detrás de un gráfico — es aquello
+cuya fecha pregunta un lector, y ninguna de las firmas anteriores lo cubría.
+
+```bash
+sablier seal releves/4 --sign=sablier.key \
+  --timestamp=http://timestamp.digicert.com --anchor=opentimestamps
+sablier verify releves/4/seal.sig --declare=sablier.json --json=resultado.json
+```
+
+`seal.sig` lista cada archivo del directorio, recursivamente, con su tamaño y su
+SHA-256, y firma una huella de esa lista con la misma clave y los mismos dos
+esquemas que un informe. Los tokens y la prueba van al lado, con los nombres de
+los de un informe: `seal.tsr`, `seal.2.tsr`, `seal.ots`.
+
+- **La lista es para el lector, no una fuente de confianza.** Se recalcula en la
+  huella que cubre la firma: una lista retocada a mano falla como tal, antes de
+  comparar ningún archivo. La huella empieza por su propia etiqueta,
+  `sablier-files/1`, así que un sello no puede hacerse pasar por una firma de
+  hallazgos.
+- **Cada diferencia se nombra según su tipo**: un archivo modificado (con el
+  tamaño sellado y el actual), un archivo desaparecido, un archivo añadido. La
+  firma se juzga aparte, así que «el sello es auténtico y un archivo cambió
+  desde entonces» es una frase que `verify` sabe decir.
+- **La primera fecha se queda.** Volver a sellar un directorio sin cambios con la
+  misma clave conserva el sello, sus tokens y su prueba. Un directorio modificado
+  se sella de nuevo; el nuevo sello nombra la huella del anterior, y los tokens y
+  la prueba de los archivos antiguos se eliminan, porque junto al nuevo sello se
+  leerían como una falsificación. El historial de lo que versiona el directorio
+  los conserva.
+- **Un enlace simbólico se rechaza**: aquello a lo que apunta no está en el
+  directorio, y puede cambiar sin que cambie un byte del directorio.
+
+`--json=ARCHIVO` escribe lo que necesita un programa, sea cual sea el resultado:
+cuándo se verificó, la firma y sus dos mitades, la fecha y la autoridad de cada
+token, cada bloque, y los archivos que difieren. Es lo que permite a un panel
+mostrar *sellado el* y *verificado el* sin analizar frases que cambian con el
+idioma — y vale también para una firma de hallazgos.
+
+Verificar solo requiere las claves públicas. La máquina que sella guarda las
+privadas; la que muestra el resultado nunca las necesita.

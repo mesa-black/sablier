@@ -234,6 +234,7 @@ return [
   bin/sablier endorse <sablier.json>  signer la déclaration : les durées, par qui s\'y engage
   bin/sablier keygen                écrire une clé de signature (défaut : sablier.key)
   bin/sablier verify <fichier.sig>  vérifier une signature, sa date attestée, son ancrage et sa chaîne
+  bin/sablier seal <dossier>        sceller chaque fichier d\'un dossier : une liste signée, sa date attestée, son ancrage
   bin/sablier anchor <fichier.ots>  compléter et vérifier une preuve OpenTimestamps seule
   bin/sablier anchor <fichier>      ancrer n\'importe quel fichier dans la chaîne Bitcoin : <fichier>.ots à côté
   bin/sablier version               la version (aussi --version)
@@ -276,6 +277,10 @@ return [
     --declare=FICHIER   la déclaration où écrire (défaut : sablier.json)
   endorse :
     --sign=CLÉ          une clé keygen (défaut : une clé à usage unique, son empreinte affichée)
+  seal :
+    --sign=CLÉ          une clé keygen (défaut : une clé à usage unique, son empreinte affichée)
+    --timestamp=URL     faire attester la date par une autorité RFC 3161 ; répétable, ou séparé par des virgules
+    --anchor=URL        l\'ancrer dans la chaîne Bitcoin (--anchor=opentimestamps : les calendriers publics)
   verify :
     --declare=FICHIER   la déclaration qui porte les clés attendues (obligatoire pour une déclaration signée)
     --fingerprint=HEX   comparer les clés à une empreinte reçue par un autre canal
@@ -283,6 +288,7 @@ return [
     --timestamp-ca=FICHIER  autorité de certification pour vérifier la chaîne du jeton
     --previous=FICHIER  la signature précédente que celle-ci dit suivre
     --anchor=FICHIER    une preuve OpenTimestamps (défaut : le .ots posé à côté de la signature)
+    --json=FICHIER      le résultat pour un programme : signature, dates, blocs, fichiers, en JSON
   verify, anchor :
     --block-header=HEX  l\'en-tête de 80 octets du bloc d\'ancrage, pour vérifier sans réseau
     --calendar-url=URL  un calendrier où compléter la preuve, en plus des calendriers publics
@@ -973,4 +979,26 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'breach.held' => "%s — protégé par un algorithme qui tient jusqu'en %d au moins : ce qui a été volé reste illisible tant que la clé n'a pas fuité avec.",
     'breach.sound' => "%s — protégé par de la cryptographie que le quantique n'atteint pas. Rien ne devient lisible de ce côté.",
     'breach.limit' => "Cet outil ne sait pas ce qui est réellement sorti, ni si c'est sorti chiffré, ni si les clés sont parties avec. Il calcule sur les domaines que vous avez déclarés touchés et sur les durées que vous avez déclarées. Le compte des enregistrements appartient à l'équipe incident ; le compte des années est ici.",
+
+    // --- a directory, sealed as its files ---
+    'cli.seal_usage' => 'usage : sablier seal <dossier> [--sign=clef.key] [--timestamp=URL] [--anchor=opentimestamps]',
+    'files.refused' => 'rien de scellé : %s est un lien symbolique ou ne se lit pas. Un sceau couvre les fichiers du dossier, pas ce vers quoi pointe un lien.',
+    'files.empty' => '%s ne contient aucun fichier : il n\'y a rien à sceller.',
+    'files.kept' => '%1$s conservé : %2$s fichiers, %3$s octets, inchangés depuis leur scellé du %4$s. Le premier sceau est celui qui compte.',
+    'files.stale' => '%s supprimé : il datait les fichiers tels qu\'ils étaient, pas tels qu\'ils sont. Il reste dans votre historique.',
+    'files.written' => '%1$s écrit : %2$s fichiers, %3$s octets.',
+    'files.signed.hybrid' => 'empreinte %s, signée en Ed25519 et ML-DSA-65.',
+    'files.signed.single' => 'empreinte %s, signée en Ed25519 seul : cette machine ne sait pas faire la signature post-quantique (il faut OpenSSL 3.5 ou plus récent).',
+    'files.attested' => 'date attestée le %1$s par %2$s.',
+    'files.anchored' => 'ancré dans la chaîne Bitcoin au bloc %1$d, %2$s.',
+    'files.pending' => 'ancrage soumis, en attente : un calendrier le complète en quelques heures, puis sablier anchor %s',
+    'files.ephemeral.done' => 'Clé créée pour ce sceau, utilisée une fois, détruite. Empreinte des deux clés publiques :',
+    'files.verify_hint' => 'Vérifier avec : sablier verify %s --declare=sablier.json',
+    'files.verify.unreadable' => '%s : la liste des fichiers scellés n\'est pas lisible par cet outil.',
+    'files.verify.list_altered' => 'la liste des fichiers du sceau ne correspond plus à ce qui a été signé : le sceau a été modifié',
+    'files.verify.modified' => '%1$s : modifié depuis le scellé (%2$s octets scellés, %3$s octets maintenant)',
+    'files.verify.missing' => '%s : scellé, et absent',
+    'files.verify.added' => '%s : présent, et absent du sceau',
+    'files.verify.link' => '%s : un lien symbolique, qu\'un sceau ne peut pas couvrir',
+    'files.verify.match' => 'les %1$s fichiers (%2$s octets) correspondent au sceau, octet pour octet.',
 ];

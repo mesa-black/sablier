@@ -225,6 +225,7 @@ return [
   bin/sablier endorse <sablier.json>  sign the declaration: the durations, by whoever commits to them
   bin/sablier keygen                write a signing key (default: sablier.key)
   bin/sablier verify <file.sig>     check a signature, its attested date, its anchoring and its chain
+  bin/sablier seal <directory>      seal every file of a directory: a signed list, its attested date, its anchoring
   bin/sablier anchor <file.ots>     complete and check an OpenTimestamps proof on its own
   bin/sablier anchor <file>         anchor any file in the Bitcoin chain: <file>.ots beside it
   bin/sablier version               the version (also --version)
@@ -267,6 +268,10 @@ return [
     --declare=FILE      the declaration written to (default: sablier.json)
   endorse:
     --sign=KEY          a keygen key (default: a key used once, its fingerprint printed)
+  seal:
+    --sign=KEY          a keygen key (default: a key used once, its fingerprint printed)
+    --timestamp=URL     have the date attested by an RFC 3161 authority; repeatable, or comma-separated
+    --anchor=URL        anchor it in the Bitcoin chain (--anchor=opentimestamps: the public calendars)
   verify:
     --declare=FILE      the declaration holding the expected keys (required for an endorsement)
     --fingerprint=HEX   compare the keys with a fingerprint received through another channel
@@ -274,6 +279,7 @@ return [
     --timestamp-ca=FILE certificate authority to check the token\'s chain against
     --previous=FILE     the earlier signature this one claims to follow
     --anchor=FILE       an OpenTimestamps proof (default: the .ots beside the signature)
+    --json=FILE         the result for a program: signature, dates, blocks, files, as JSON
   verify, anchor:
     --block-header=HEX  the 80-byte header of the anchoring block, for a check without network
     --calendar-url=URL  a calendar to complete the proof from, besides the public ones
@@ -964,4 +970,26 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'breach.held' => '%s — protected by an algorithm that holds at least until %d: what was taken stays unreadable unless the key left with it.',
     'breach.sound' => '%s — protected by cryptography a quantum computer does not reach. Nothing becomes readable on that side.',
     'breach.limit' => 'This tool does not know what actually left, whether it left encrypted, or whether the keys left with it. It reasons on the domains you declared breached and the lifetimes you declared. Counting records belongs to the incident team; counting years is here.',
+
+    // --- a directory, sealed as its files ---
+    'cli.seal_usage' => 'usage: sablier seal <directory> [--sign=key.key] [--timestamp=URL] [--anchor=opentimestamps]',
+    'files.refused' => 'not sealed: %s is a symbolic link or cannot be read. A seal covers the files in the directory, not what a link points at.',
+    'files.empty' => '%s holds no file: there is nothing to seal.',
+    'files.kept' => '%1$s kept: %2$s files, %3$s bytes, unchanged since they were sealed on %4$s. The earliest seal is the one worth having.',
+    'files.stale' => '%s removed: it dated the files as they were, not as they are now. It remains in your history.',
+    'files.written' => '%1$s written: %2$s files, %3$s bytes.',
+    'files.signed.hybrid' => 'digest %s, signed with Ed25519 and ML-DSA-65.',
+    'files.signed.single' => 'digest %s, signed with Ed25519 alone: this machine cannot make the post-quantum signature (OpenSSL 3.5 or later is needed).',
+    'files.attested' => 'date attested on %1$s by %2$s.',
+    'files.anchored' => 'anchored in the Bitcoin chain at block %1$d, %2$s.',
+    'files.pending' => 'anchoring submitted, pending: a calendar completes it within hours, then sablier anchor %s',
+    'files.ephemeral.done' => 'Key made for this seal, used once, destroyed. Fingerprint of both public keys:',
+    'files.verify_hint' => 'Verify with: sablier verify %s --declare=sablier.json',
+    'files.verify.unreadable' => '%s: the list of sealed files is not one this tool can read.',
+    'files.verify.list_altered' => 'the list of files in the seal no longer matches what was signed: the seal was edited',
+    'files.verify.modified' => '%1$s: changed since the seal (%2$s bytes sealed, %3$s bytes now)',
+    'files.verify.missing' => '%s: sealed, and no longer here',
+    'files.verify.added' => '%s: here, and not in the seal',
+    'files.verify.link' => '%s: a symbolic link, which a seal cannot cover',
+    'files.verify.match' => 'the %1$s files (%2$s bytes) match the seal, byte for byte.',
 ];

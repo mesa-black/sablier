@@ -300,3 +300,47 @@ La clé est éphémère par défaut, comme celle des rapports. Une déclaration 
 à la fin d'un entretien, devant la personne qui l'a déclarée, est exactement le
 cas pour lequel cette clé a été inventée : rien à stocker, rien à renouveler, et
 l'empreinte voyage par le canal qui prouve déjà qui elle est.
+
+### Sceller des données, pas seulement un rapport
+
+Un rapport parle d'un projet. Ce qu'un projet *publie* — un mois de mesures, un
+dossier de pièces, les fichiers derrière un graphique — est ce dont un lecteur
+demande la date, et aucune des signatures ci-dessus ne le couvrait.
+
+```bash
+sablier seal releves/4 --sign=sablier.key \
+  --timestamp=http://timestamp.digicert.com --anchor=opentimestamps
+sablier verify releves/4/seal.sig --declare=sablier.json --json=resultat.json
+```
+
+`seal.sig` liste chaque fichier du dossier, récursivement, avec sa taille et son
+SHA-256, et signe une empreinte de cette liste avec la même clé et les deux mêmes
+schémas qu'un rapport. Les jetons et la preuve se posent à côté, sous les noms de
+ceux d'un rapport : `seal.tsr`, `seal.2.tsr`, `seal.ots`.
+
+- **La liste est pour le lecteur, pas une source de confiance.** Elle est
+  recalculée dans l'empreinte que couvre la signature : une liste retouchée à la
+  main échoue comme telle, avant qu'aucun fichier ne soit comparé. L'empreinte
+  commence par son propre libellé, `sablier-files/1`, si bien qu'un sceau ne peut
+  pas passer pour une signature de constats.
+- **Chaque différence est nommée selon sa nature** : un fichier modifié (avec la
+  taille scellée et la taille actuelle), un fichier disparu, un fichier ajouté.
+  La signature est jugée à part, si bien que « le sceau est authentique et un
+  fichier a changé depuis » est une phrase que `verify` sait dire.
+- **La première date reste.** Resceller un dossier inchangé avec la même clé
+  garde le sceau, ses jetons et sa preuve. Un dossier modifié est scellé à
+  nouveau ; le nouveau sceau nomme l'empreinte de l'ancien, et les jetons et la
+  preuve des anciens fichiers sont supprimés, car à côté du nouveau sceau ils se
+  liraient comme un faux. L'historique de ce qui versionne le dossier les garde.
+- **Un lien symbolique est refusé** : ce vers quoi il pointe n'est pas dans le
+  dossier, et peut changer sans qu'un octet du dossier change.
+
+`--json=FICHIER` écrit ce dont un programme a besoin, quel que soit le résultat :
+quand la vérification a eu lieu, la signature et ses deux moitiés, la date et
+l'autorité de chaque jeton, chaque bloc, et les fichiers qui diffèrent. C'est ce
+qui permet à un tableau de bord d'afficher *scellé le* et *vérifié le* sans
+analyser des phrases qui changent avec la langue — et cela vaut aussi pour une
+signature de constats.
+
+Vérifier ne demande que les clés publiques. La machine qui scelle détient les
+clés privées ; celle qui affiche le résultat n'en a jamais besoin.
