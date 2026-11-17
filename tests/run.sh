@@ -685,6 +685,99 @@ php -r '
 ' "$keydir/r.html.sig" "$keydir/tampered.sig"
 signcheck "$keydir/tampered.sig" "" rejected "tampered digest"
 
+# --- the page itself, signed beside it ---------------------------------------
+# The findings signature cannot cover a page that displays it, so a page edited
+# by hand used to verify. Each page is now signed as the file it is, in
+# <page>.page.sig, and one changed character fails the check.
+if [ ! -s "$keydir/r.html.page.sig" ]; then
+	echo "✗ page: a signed scan wrote no page signature"
+	rm -rf "$keydir"; exit 1
+fi
+covers=$(php -r '
+	$b = json_decode(file_get_contents($argv[1]), true);
+	echo $b["covers"] ?? "?", "/", $b["file"] ?? "?", "/", $b["sha256"] === hash_file("sha256", $argv[2]) ? "same" : "other";
+' "$keydir/r.html.page.sig" "$keydir/r.html")
+if [ "$covers" != "page/r.html/same" ]; then
+	echo "✗ page: the page signature describes [$covers]"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "page" "sign" "r.html.page.sig, the hash of the file"
+
+if ! ./bin/sablier verify "$keydir/r.html.sig" --declare="$keydir/right.json" >"$keydir/v.out" 2>&1 \
+	|| ! grep -q "conforme à sa signature" "$keydir/v.out"; then
+	echo "✗ page: an untouched page does not verify"
+	cat "$keydir/v.out"; rm -rf "$keydir"; exit 1
+fi
+if ! ./bin/sablier verify "$keydir/r.html.page.sig" --declare="$keydir/right.json" >/dev/null 2>&1; then
+	echo "✗ page: the page signature does not verify on its own"
+	rm -rf "$keydir"; exit 1
+fi
+if ./bin/sablier verify "$keydir/r.html.page.sig" --declare="$keydir/wrong.json" >/dev/null 2>&1; then
+	echo "✗ page: a page signed by a key the declaration does not name passed"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "page" "verify" "beside the report, on its own, and the key checked"
+
+# One character. Not a finding, not a verdict — a full stop.
+cp "$keydir/r.html" "$keydir/r.html.orig"
+php -r '
+	$p = file_get_contents($argv[1]);
+	$i = strpos($p, "</body>");
+	file_put_contents($argv[1], substr_replace($p, ".", $i, 0));
+' "$keydir/r.html"
+if ./bin/sablier verify "$keydir/r.html.sig" >"$keydir/v.out" 2>&1; then
+	echo "✗ page: a page changed by one character still verifies"
+	rm -rf "$keydir"; exit 1
+fi
+if ! grep -q "MODIFIÉE après sa signature" "$keydir/v.out"; then
+	echo "✗ page: the failure does not say the page was modified"
+	cat "$keydir/v.out"; rm -rf "$keydir"; exit 1
+fi
+if ./bin/sablier verify "$keydir/r.html.page.sig" >/dev/null 2>&1; then
+	echo "✗ page: the page signature on its own accepts a changed page"
+	rm -rf "$keydir"; exit 1
+fi
+mv "$keydir/r.html.orig" "$keydir/r.html"
+printf '  ✓ %-24s %-10s %s\n' "page" "tamper" "one character changed, verification fails"
+
+# The signature file edited to match the edited page: the hash moves, the
+# signature over it does not, and that is a different failure.
+php -r '
+	$b = json_decode(file_get_contents($argv[1]), true);
+	$b["sha256"] = str_repeat("0", 64);
+	file_put_contents($argv[2], json_encode($b));
+' "$keydir/r.html.page.sig" "$keydir/forged.page.sig"
+cp "$keydir/r.html" "$keydir/forged"
+if ./bin/sablier verify "$keydir/forged.page.sig" >/dev/null 2>&1; then
+	echo "✗ page: a page signature with an edited hash passed"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "page" "forged" "an edited hash breaks the signature"
+
+# A report from before page signatures: the findings still verify, and the
+# reader is told the page itself was not checked — a note, not a failure.
+mv "$keydir/r.html.page.sig" "$keydir/r.html.page.sig.kept"
+if ! ./bin/sablier verify "$keydir/r.html.sig" --declare="$keydir/right.json" >"$keydir/v.out" 2>&1; then
+	echo "✗ page: an older report without a page signature now fails"
+	cat "$keydir/v.out"; rm -rf "$keydir"; exit 1
+fi
+if ! grep -q "pas de signature de la page" "$keydir/v.out"; then
+	echo "✗ page: an older report is not told its page went unchecked"
+	rm -rf "$keydir"; exit 1
+fi
+mv "$keydir/r.html.page.sig.kept" "$keydir/r.html.page.sig"
+printf '  ✓ %-24s %-10s %s\n' "page" "older" "no page signature: said, not failed"
+
+# The audit document is signed too.
+./bin/sablier scan tests/fixtures/sample --declare="$keydir/right.json" --sign="$keydir/a.key" \
+	--out="$keydir/p.html" --audit="$keydir/p-audit.html" --quiet >/dev/null || true
+if [ ! -s "$keydir/p-audit.html.page.sig" ] \
+	|| ! ./bin/sablier verify "$keydir/p-audit.html.page.sig" --declare="$keydir/right.json" >/dev/null 2>&1; then
+	echo "✗ page: the audit document is not signed"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "page" "audit" "signed and checked"
+
 # --- one report succeeding another -------------------------------------------
 # A chain nobody has to ask for: a second run over the same output path names
 # the digest it replaces, inside what is signed. A pile of reports becomes an
@@ -1121,6 +1214,29 @@ if openssl list -signature-algorithms 2>/dev/null | grep -qi "ML-DSA-65"; then
 	fi
 	printf '  ✓ %-24s %-10s %s\n' "hybrid" "sign" "both signatures on one report"
 
+	# The page is signed by the same two schemes. A page held by Ed25519 alone
+	# beside a hybrid findings signature would be the weak half of the seal.
+	both=$(php -r '
+		$b = json_decode(file_get_contents($argv[1]), true);
+		echo ($b["algorithm"] ?? "?"), "+", ($b["hybrid"]["algorithm"] ?? "none");
+	' "$pq/r.html.page.sig")
+	if [ "$both" != "Ed25519+ML-DSA-65" ]; then
+		echo "✗ hybrid: the page signature carries [$both]"
+		rm -rf "$pq"; exit 1
+	fi
+	php -r '
+		$b = json_decode(file_get_contents($argv[1]), true);
+		unset($b["hybrid"]);
+		file_put_contents($argv[2], json_encode($b));
+	' "$pq/r.html.page.sig" "$pq/r.html.page.sig.full"
+	mv "$pq/r.html.page.sig" "$pq/keep"; mv "$pq/r.html.page.sig.full" "$pq/r.html.page.sig"
+	if ./bin/sablier verify "$pq/r.html.sig" >/dev/null 2>&1; then
+		echo "✗ hybrid: a page signature stripped of its post-quantum half passed"
+		rm -rf "$pq"; exit 1
+	fi
+	mv "$pq/keep" "$pq/r.html.page.sig"
+	printf '  ✓ %-24s %-10s %s\n' "hybrid" "page" "the page signed twice too, and a stripped half fails"
+
 	if ! ./bin/sablier verify "$pq/r.html.sig" 2>&1 | grep -q "ML-DSA-65"; then
 		echo "✗ hybrid: verify says nothing about the second signature"
 		rm -rf "$pq"; exit 1
@@ -1172,6 +1288,19 @@ if openssl list -signature-algorithms 2>/dev/null | grep -qi "ML-DSA-65"; then
 		rm -rf "$pq"; exit 1
 	fi
 	printf '  ✓ %-24s %-10s %s\n' "ephemeral" "sign" "one key, one report, one fingerprint"
+
+	# The key is destroyed after the pages are signed, not before: the page
+	# signature carries the same pair as the findings one, both halves.
+	same=$(php -r '
+		$a = json_decode(file_get_contents($argv[1]), true);
+		$b = json_decode(file_get_contents($argv[2]), true);
+		echo $a["public_key"] === $b["public_key"] && ($a["hybrid"]["public_key"] ?? 1) === ($b["hybrid"]["public_key"] ?? 2) ? "same" : "other";
+	' "$pq/e.html.sig" "$pq/e.html.page.sig")
+	if [ "$same" != "same" ] || ! ./bin/sablier verify "$pq/e.html.page.sig" --fingerprint="$eph" >/dev/null 2>&1; then
+		echo "✗ ephemeral: the page is not signed by the key made for this report"
+		rm -rf "$pq"; exit 1
+	fi
+	printf '  ✓ %-24s %-10s %s\n' "ephemeral" "page" "the page signed by the same one-off key"
 
 	if ! ./bin/sablier verify "$pq/e.html.sig" --fingerprint="$eph" >/dev/null 2>&1; then
 		echo "✗ ephemeral: the printed fingerprint does not check out"
