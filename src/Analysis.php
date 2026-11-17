@@ -65,6 +65,8 @@ final readonly class Analysis
          * and the path it had on the machine that made it is nobody's business.
          */
         public string $reportPath = '',
+        /** Where the audit document was written, when one was asked for, for the same reason. */
+        public string $auditPath = '',
         /**
          * What each detector opened and what it produced, so the report can say
          * what it looked for and did not find rather than only what it skipped.

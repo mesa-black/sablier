@@ -70,6 +70,33 @@ one who can already forge the Ed25519 half.
 differ byte for byte — a rendering date, a duration — while saying exactly the
 same thing; two renderings in two languages give the same digest.
 
+**And the page, beside it.** That digest cannot cover the page that displays
+it — a file that prints its own signature would have to contain it before it
+was computed — so until 0.13.1 a published report edited by hand still
+verified. Each page is now also signed as the file it is, once it is written:
+`report.html.page.sig` beside `report.html`, and the same for the audit
+document, the post-breach document and the PDFs when they are asked for. It
+signs the SHA-256 of the exact file — a fingerprint that changes completely
+when one character changes — with the same key and the same two schemes, and
+names the findings digest the page displays. Being a separate file, it has no
+reason to sit inside the page, and the self-reference problem is gone.
+
+```bash
+sablier verify report.html.sig --declare=sablier.json    # the findings, then the page
+sablier verify audit.html.page.sig --declare=sablier.json # one page on its own
+```
+
+`verify` on a report's `.sig` checks the `.page.sig` beside it when there is
+one, against the same keys: a page that no longer matches fails, with the word
+*modified*; a page signature made by another key, about other findings, or
+without the post-quantum half the findings signature has, fails too. A report
+from before 0.13.1 has none and is told so — a note, not a failure. What no
+signature stops: whoever holds the key can sign another page, which is what the
+declared key and the attested dates below are for. Unlike the findings
+signature, a page signature is not kept from one run to the next: a page
+carries the date it was rendered, so a new page gets a new signature (it is
+kept only when the bytes are identical).
+
 **Each report names the one before it.** A second run over the same output path
 reads the signature it is about to replace and records that digest inside what
 it signs, with no flag to remember — so a folder of reports is an audit trail

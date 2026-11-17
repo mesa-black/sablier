@@ -4,6 +4,46 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.13.1 — 2026-11-17
+
+The page itself, signed.
+
+### `report.html.page.sig`: a signature for the page, beside it
+
+The signature of a report covers its findings, not the page: a page that
+displays its own signature cannot contain it. So a report published on a
+website and edited by hand still verified, unless the reader re-ran the
+analysis — and the report said so, in terms of bytes and digests that most
+readers do not use.
+
+Every page a signed scan writes is now also signed as the file it is, once it
+is on disk: `report.html.page.sig`, and the same for `--audit`, `--incident`
+and the PDFs from `--pdf`. A detached JSON file (`"covers": "page"`, the file
+name, its SHA-256, the findings digest it displays, `signed_at`), signed with
+the same key and the same scheme — Ed25519, plus ML-DSA-65 when the key has its
+post-quantum half, ephemeral keys included. Its payload carries its own label,
+so a page signature cannot pass for a findings signature. It is not kept from
+run to run like the findings signature, since a page carries its rendering
+date; it is kept only when the bytes are identical.
+
+`sablier verify report.html.sig` now checks the page signature beside it,
+against the same keys (and the `--declare` ones): *matches its signature*, or
+*modified after it was signed* (exit 1). A page signature by another key, about
+other findings, or without the post-quantum half the findings signature has,
+also fails. A report from before this version has none and is told so — a
+note, not a failure. `sablier verify audit.html.page.sig` checks one page on
+its own.
+
+### The seal, in plain words
+
+The paragraph under the seal is rewritten in French, English and Spanish for a
+reader who does not know what bytes or a digest are: what the signature
+guarantees (the list of what was found), that the page has its own signature in
+the file beside it so that changing one character fails the check, the one
+command that checks both, and the limit that remains — whoever holds the key
+can sign another page. The report names `report.html.page.sig` in its seal, and
+the audit document names its own with the command that checks it.
+
 ## v0.13.0 — 2026-11-17
 
 The date of a report, anchored where nobody has to be believed about it.

@@ -244,6 +244,114 @@ function sablier_anchor_check(string $path, Proof $proof, array $args): bool
     return $failed;
 }
 
+/**
+ * Sign one page as the file it is, beside it, as `<page>.page.sig`.
+ *
+ * Kept, not re-signed, when the existing signature already covers these exact
+ * bytes with this key: the same page signed twice says nothing new. That is
+ * rare — a page carries the date it was rendered — and it is not the
+ * keep-the-oldest rule of the findings signature, which protects a date: here
+ * the page is what is signed, and a new page gets a new signature.
+ *
+ * @return string the path of the signature file
+ */
+function sablier_sign_page(string $page, string $digest, string $secret, string $pqSecret, bool $ephemeral): string
+{
+    $path = Signature::pagePath($page);
+    $existing = is_file($path) ? Value::map(json_decode((string) file_get_contents($path), true)) : [];
+    $raw = base64_decode($secret, true);
+    $publicKey = \is_string($raw) && \strlen($raw) === \SODIUM_CRYPTO_SIGN_SECRETKEYBYTES
+        ? base64_encode(sodium_crypto_sign_publickey_from_secretkey($raw))
+        : '';
+    if (!$ephemeral && $publicKey !== ''
+        && Value::string($existing['public_key'] ?? null) === $publicKey
+        && Value::string($existing['sha256'] ?? null) === Signature::pageHash($page)
+        && Value::string($existing['digest'] ?? null) === $digest) {
+        return $path;
+    }
+
+    $block = Signature::signPage($page, $digest, $secret, $pqSecret);
+    if ($ephemeral) {
+        $block['ephemeral'] = true;
+    }
+    file_put_contents($path, json_encode($block, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
+
+    return $path;
+}
+
+/**
+ * Check a page against the signature filed beside it, and say so.
+ *
+ * @param array<mixed> $block the page signature
+ * @param array<mixed> $report the findings signature it sits beside, when there is one
+ * @param bool $asked whether the page signature was named on the command line: a page that is
+ *                    not there then fails, where beside a findings signature it is only noted
+ *
+ * @return bool whether the page holds
+ */
+function sablier_page_check(string $signaturePath, array $block, array $report, ?string $expectedKey, ?string $expectedPqKey, bool $asked = false): bool
+{
+    // The page is the file the signature is named after, beside it. The name
+    // inside is signed, so a page renamed afterwards is reported as such rather
+    // than as an alteration.
+    $page = (string) preg_replace('/\.page\.sig$/', '', $signaturePath);
+    $signedName = Value::string($block['file'] ?? null);
+    if (!is_file($page) && $signedName !== '') {
+        $page = dirname($signaturePath).'/'.$signedName;
+    }
+
+    // Beside a findings signature, the page is checked against the same keys
+    // and the same analysis — a page signed by somebody else, or about other
+    // findings, does not belong with this report however valid it is alone.
+    $reportHybrid = Value::map($report['hybrid'] ?? null);
+    if ($report !== []) {
+        $expectedKey = ($expectedKey ?? '') !== '' ? $expectedKey : Value::string($report['public_key'] ?? null);
+        $expectedPqKey = ($expectedPqKey ?? '') !== '' ? $expectedPqKey : Value::string($reportHybrid['public_key'] ?? null);
+    }
+
+    $result = Signature::verifyPage($block, $page, $expectedKey, $expectedPqKey);
+    $name = basename($page);
+
+    if ($result['valid'] && $report !== [] && Value::string($report['digest'] ?? null) !== Value::string($block['digest'] ?? null)) {
+        $result = ['valid' => false, 'reason' => 'verify.page.other_findings', 'hybrid' => $result['hybrid']];
+    }
+    // A findings signature that carries a post-quantum half, beside a page
+    // signature that does not: the page is then held by the one curve the
+    // second half exists to outlive, and that is not the same guarantee.
+    if ($result['valid'] && $reportHybrid !== [] && Value::map($block['hybrid'] ?? null) === []) {
+        $result = ['valid' => false, 'reason' => 'verify.page.no_hybrid', 'hybrid' => 'absent'];
+    }
+
+    // Somebody holding the signatures without the page has nothing to compare,
+    // and that is not an alteration — unless the page is what they asked about.
+    if ($result['reason'] === 'verify.page.missing' && !$asked) {
+        printf("  %s\n", Lang::t('verify.page.absent', $name));
+
+        return true;
+    }
+
+    // The reasons shared with the findings signature — wrong key, altered
+    // file — say which of the two signatures they are about.
+    $mark = $result['valid'] ? '' : '✗ ';
+    $about = str_starts_with($result['reason'], 'verify.page.') ? '' : Lang::t('verify.page.prefix', Signature::pagePath($name));
+    printf("  %s%s%s\n", $mark, $about, Lang::t($result['reason'], $name, Signature::pagePath($name)));
+    if ($result['valid'] && $signedName !== '' && $signedName !== $name) {
+        printf("  %s\n", Lang::t('verify.page.renamed', $signedName, $name));
+    }
+    if ($result['valid']) {
+        $hybrid = Value::map($block['hybrid'] ?? null);
+        printf("  %s\n", $hybrid !== []
+            ? Lang::t(match ($result['hybrid']) {
+                'valid' => 'verify.hybrid.valid',
+                'invalid' => 'verify.hybrid.invalid',
+                default => 'verify.hybrid.unavailable',
+            }, Value::string($hybrid['algorithm'] ?? null))
+            : Lang::t('verify.hybrid.none'));
+    }
+
+    return $result['valid'];
+}
+
 // --- keys and verification ---------------------------------------------
 if ($command === 'keygen') {
     $out = 'sablier.key';
@@ -370,6 +478,26 @@ if ($command === 'verify') {
 
     $block = Value::map(json_decode((string) file_get_contents($signaturePath), true));
     $declaration = $declarePath !== null ? Declaration::load($declarePath) : null;
+
+    // A page signature on its own: the page against the file beside it, with
+    // the keys the declaration names — or, failing that, the keys of the
+    // findings signature filed beside the same page, when there is one.
+    if (Value::string($block['covers'] ?? null) === 'page') {
+        $beside = (string) preg_replace('/\.page\.sig$/', '', $signaturePath).'.sig';
+        $report = is_file($beside) ? Value::map(json_decode((string) file_get_contents($beside), true)) : [];
+        $held = sablier_page_check($signaturePath, $block, $report, $declaration?->signingPublicKey, $declaration?->signingPublicKeyPq, true);
+        if ($claimed !== '') {
+            $actual = Signature::fingerprint(
+                Value::string($block['public_key'] ?? null),
+                Value::string(Value::map($block['hybrid'] ?? null)['public_key'] ?? null),
+            );
+            $normalise = static fn (string $v): string => strtoupper((string) preg_replace('/[^0-9A-Fa-f]/', '', $v));
+            $same = hash_equals($normalise($actual), $normalise($claimed));
+            printf("  %s\n", Lang::t($same ? 'seal.fingerprint.match' : 'seal.fingerprint.differs', $actual));
+            $held = $held && $same;
+        }
+        exit($held ? 0 : 1);
+    }
 
     // An endorsement covers the declaration it sits beside, so the digest can
     // be recomputed here rather than taken on trust from the file that claims
@@ -528,7 +656,25 @@ if ($command === 'verify') {
         }
     }
 
-    exit($result['valid'] && !$attestedFailed ? 0 : 1);
+    // The page, when its own signature is filed beside it. The findings
+    // signature cannot cover the page that displays it; this one does, so a
+    // single character changed in the page fails here. A report made before
+    // page signatures existed has none, and is told so rather than failed.
+    $pageSignature = Signature::pagePath((string) preg_replace('/\.sig$/', '', $signaturePath));
+    $pageHeld = true;
+    if (is_file($pageSignature)) {
+        $pageHeld = sablier_page_check(
+            $pageSignature,
+            Value::map(json_decode((string) file_get_contents($pageSignature), true)),
+            $block,
+            $expectedKey,
+            $expectedPqKey,
+        );
+    } else {
+        printf("  %s\n", Lang::t('verify.page.none', basename($pageSignature)));
+    }
+
+    exit($result['valid'] && !$attestedFailed && $pageHeld ? 0 : 1);
 }
 
 // --- an OpenTimestamps proof on its own: bin/sablier anchor <file.ots> ----
@@ -1531,15 +1677,10 @@ if ($options['sign'] !== null) {
         $kept = false;
     }
 
-    // The private halves leave with the command that made them.
+    // The private halves leave with the command that made them — once the
+    // pages are written and signed too, at the end of the run.
     if ($ephemeral) {
         $signature['ephemeral'] = true;
-    }
-    if (!$unchanged) {
-        sodium_memzero($secret);
-        if ($pqSecret !== '') {
-            sodium_memzero($pqSecret);
-        }
     }
     if (!$kept) {
         file_put_contents($reportPath.'.sig', json_encode($signature, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n");
@@ -1669,6 +1810,7 @@ $analysis = new Analysis(
     // document than about the command a reader is meant to repeat.
     searched: $searched,
     reportPath: $reportPath ?? '',
+    auditPath: $options['audit'] ?? '',
     commandLine: implode(' ', array_map(
         static function (string $argument) use ($cwd): string {
             if ($cwd !== false && str_starts_with($argument, $cwd.'/')) {
@@ -1735,6 +1877,34 @@ if ($options['pdf'] !== null && $reportPath !== null) {
     // most likely to be printed and carried into a meeting.
     if ($options['incident'] !== null) {
         Pdf::render($options['incident'], preg_replace('/\.html?$/i', '', $options['incident']).'.pdf');
+    }
+}
+
+// Every page, signed as the file it is, once it is on disk in its final form.
+// The findings signature above cannot cover a page that displays it; a
+// signature filed beside the page can, so a single character changed in a
+// published report no longer verifies.
+$pageSignatures = [];
+if ($signature !== null) {
+    $pages = [$reportPath, $options['audit'], $options['incident']];
+    if ($options['pdf'] !== null) {
+        $pages[] = $options['pdf'];
+        if ($options['audit'] !== null) {
+            $pages[] = preg_replace('/\.html?$/i', '', $options['audit']).'.pdf';
+        }
+        if ($options['incident'] !== null) {
+            $pages[] = preg_replace('/\.html?$/i', '', $options['incident']).'.pdf';
+        }
+    }
+    foreach ($pages as $page) {
+        if (\is_string($page) && is_file($page)) {
+            $pageSignatures[] = sablier_sign_page($page, $digest, $secret, $pqSecret, $ephemeral);
+        }
+    }
+
+    sodium_memzero($secret);
+    if ($pqSecret !== '') {
+        sodium_memzero($pqSecret);
     }
 }
 
@@ -1848,6 +2018,9 @@ if ($anchor !== null) {
 }
 if ($signature !== null) {
     printf("  → %s\n", Lang::t($kept ? 'cli.signed.kept' : 'cli.signed', $reportPath.'.sig'));
+    foreach ($pageSignatures as $pageSignature) {
+        printf("  → %s\n", $pageSignature);
+    }
     if ($fingerprint !== '') {
         printf("\n  %s\n\n    %s\n\n  %s\n", Lang::t('seal.ephemeral.done'), $fingerprint, Lang::t('seal.ephemeral.send'));
     }

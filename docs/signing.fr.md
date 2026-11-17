@@ -70,6 +70,33 @@ lecteur pour qui cette signature existe : celui qui sait déjà forger l'autre m
 diffèrent octet par octet — une date de rendu, une durée — tout en disant exactement la
 même chose ; deux rendus dans deux langues donnent la même empreinte.
 
+**Et la page, à côté.** Cette empreinte ne peut pas couvrir la page qui l'affiche —
+un fichier qui imprime sa propre signature devrait la contenir avant qu'elle soit
+calculée —, si bien que jusqu'à la 0.13.1 un rapport publié et modifié à la main se
+vérifiait encore. Chaque page est désormais aussi signée telle qu'elle est, une fois
+écrite : `report.html.page.sig` à côté de `report.html`, et de même pour le document
+d'audit, le document post-compromission et les PDF quand ils sont demandés. Ce qui est
+signé est le SHA-256 du fichier exact — une empreinte qui change complètement dès qu'un
+seul caractère change —, avec la même clé et les deux mêmes schémas, et la signature
+nomme l'empreinte des constats que la page affiche. Comme c'est un fichier à part, elle
+n'a pas à se trouver dans la page, et le problème de l'autoréférence disparaît.
+
+```bash
+sablier verify report.html.sig --declare=sablier.json    # les constats, puis la page
+sablier verify audit.html.page.sig --declare=sablier.json # une page seule
+```
+
+`verify` sur le `.sig` d'un rapport vérifie le `.page.sig` posé à côté quand il existe,
+avec les mêmes clés : une page qui ne correspond plus échoue, avec le mot *modifiée* ;
+une signature de page faite par une autre clé, sur d'autres constats, ou sans la moitié
+post-quantique que porte la signature des constats, échoue aussi. Un rapport antérieur à
+la 0.13.1 n'en a pas, et on le lui dit — une remarque, pas un échec. Ce qu'aucune
+signature n'empêche : qui détient la clé peut signer une autre page ; c'est à cela que
+servent la clé déclarée et les dates attestées ci-dessous. Contrairement à la signature
+des constats, une signature de page n'est pas conservée d'une exécution à l'autre : une
+page porte la date de son rendu, donc une nouvelle page reçoit une nouvelle signature
+(elle n'est gardée que si le fichier est identique).
+
 **Chaque rapport nomme celui qui le précède.** Une seconde exécution vers le même chemin
 de sortie lit la signature qu'elle s'apprête à remplacer et enregistre cette empreinte à
 l'intérieur de ce qu'elle signe, sans drapeau à retenir — un dossier de rapports est

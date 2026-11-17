@@ -122,14 +122,14 @@ final class Signature
         }
 
         $signedAt = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
-        $payload = self::payload($digest, $signedAt, $previous);
+        $sealed = self::seal(self::payload($digest, $signedAt, $previous), $secret, $hybridSecretPem);
 
         $block = [
             'algorithm' => self::ALGORITHM,
             'digest' => $digest,
             'signed_at' => $signedAt,
-            'public_key' => base64_encode(sodium_crypto_sign_publickey_from_secretkey($secret)),
-            'signature' => base64_encode(sodium_crypto_sign_detached($payload, $secret)),
+            'public_key' => $sealed['public_key'],
+            'signature' => $sealed['signature'],
         ];
 
         // Each report names the one before it, inside what is signed. A chain
@@ -139,19 +139,118 @@ final class Signature
             $block['previous'] = $previous;
         }
 
-        // The same bytes, signed again by a scheme Shor does not touch. Added
-        // rather than substituted: whoever cannot run ML-DSA still verifies the
-        // report, and whoever can gets a signature that outlives the curve.
-        $hybrid = $hybridSecretPem !== '' ? MlDsa::sign($payload, $hybridSecretPem) : null;
-        if ($hybrid !== null) {
-            $block['hybrid'] = [
-                'algorithm' => MlDsa::ALGORITHM,
-                'public_key' => MlDsa::publicFrom($hybridSecretPem),
-                'signature' => $hybrid,
-            ];
+        if (isset($sealed['hybrid'])) {
+            $block['hybrid'] = $sealed['hybrid'];
         }
 
         return $block;
+    }
+
+    /**
+     * The page itself, signed as the file it is.
+     *
+     * The findings signature cannot cover the page that displays it: a file
+     * that prints its own signature would have to contain it before it was
+     * computed. A signature written *beside* the page has no such problem, so
+     * once every byte of the page is on disk, its SHA-256 is signed with the
+     * same key and the same two schemes, and filed as `<page>.page.sig`.
+     *
+     * The payload starts with its own label, `sablier-page/1`, so a page
+     * signature can never be passed off as a findings signature or the other
+     * way round, and it carries the findings digest the page displays: a page
+     * signature presented beside another analysis's `.sig` says so.
+     *
+     * @return array{covers:string, algorithm:string, file:string, sha256:string, digest:string, signed_at:string, public_key:string, signature:string, hybrid?:array{algorithm:string, public_key:string, signature:string}}
+     */
+    public static function signPage(string $pagePath, string $digest, string $secretKeyBase64, string $hybridSecretPem = ''): array
+    {
+        $secret = base64_decode($secretKeyBase64, true);
+        if ($secret === false || \strlen($secret) !== \SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
+            throw new \RuntimeException('invalid secret key');
+        }
+
+        $file = basename($pagePath);
+        $sha256 = self::pageHash($pagePath);
+        $signedAt = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
+        $sealed = self::seal(self::pagePayload($file, $sha256, $digest, $signedAt), $secret, $hybridSecretPem);
+
+        $block = [
+            'covers' => 'page',
+            'algorithm' => self::ALGORITHM,
+            'file' => $file,
+            'sha256' => $sha256,
+            'digest' => $digest,
+            'signed_at' => $signedAt,
+            'public_key' => $sealed['public_key'],
+            'signature' => $sealed['signature'],
+        ];
+        if (isset($sealed['hybrid'])) {
+            $block['hybrid'] = $sealed['hybrid'];
+        }
+
+        return $block;
+    }
+
+    /** Where the signature of a page is filed: beside it, under its name. */
+    public static function pagePath(string $pagePath): string
+    {
+        return $pagePath.'.page.sig';
+    }
+
+    /** The SHA-256 of a file as it is on disk, every byte of it. */
+    public static function pageHash(string $pagePath): string
+    {
+        $hash = is_file($pagePath) ? hash_file('sha256', $pagePath) : false;
+
+        return \is_string($hash) ? $hash : '';
+    }
+
+    /**
+     * A page against its signature.
+     *
+     * The signature is checked first and the page second, because they fail
+     * for different reasons and the reader acts differently on each: a
+     * signature that does not hold means the `.page.sig` file itself was
+     * altered; a signature that holds over another hash means the page was.
+     *
+     * @param array<mixed> $block
+     *
+     * @return array{valid:bool, reason:string, hybrid:string}
+     */
+    public static function verifyPage(array $block, string $pagePath, ?string $expectedPublicKey = null, ?string $expectedPqKey = null): array
+    {
+        foreach (['algorithm', 'file', 'sha256', 'signed_at', 'public_key', 'signature'] as $field) {
+            if (Value::string($block[$field] ?? null) === '') {
+                return ['valid' => false, 'reason' => 'verify.incomplete', 'hybrid' => 'absent'];
+            }
+        }
+        if (Value::string($block['covers'] ?? null) !== 'page') {
+            return ['valid' => false, 'reason' => 'verify.page.not_page', 'hybrid' => 'unchecked'];
+        }
+
+        $checked = self::check(
+            self::pagePayload(
+                Value::string($block['file'] ?? null),
+                Value::string($block['sha256'] ?? null),
+                Value::string($block['digest'] ?? null),
+                Value::string($block['signed_at'] ?? null),
+            ),
+            $block,
+            $expectedPublicKey,
+            $expectedPqKey,
+        );
+        if (!$checked['valid']) {
+            return $checked;
+        }
+
+        if (!is_file($pagePath)) {
+            return ['valid' => false, 'reason' => 'verify.page.missing', 'hybrid' => $checked['hybrid']];
+        }
+        if (!hash_equals(Value::string($block['sha256'] ?? null), self::pageHash($pagePath))) {
+            return ['valid' => false, 'reason' => 'verify.page.modified', 'hybrid' => $checked['hybrid']];
+        }
+
+        return ['valid' => true, 'reason' => 'verify.page.valid', 'hybrid' => $checked['hybrid']];
     }
 
     /**
@@ -191,22 +290,43 @@ final class Signature
             }
         }
 
-        if ($block['algorithm'] !== self::ALGORITHM) {
+        // The algorithm and the key are judged before the digest, as they
+        // always were: a file signed by somebody else is that, first, whatever
+        // it claims to cover. check() asks both again, which costs nothing.
+        if ($expectedDigest !== null && !hash_equals($expectedDigest, $block['digest'])) {
+            $first = self::check('', $block, $expectedPublicKey, null);
+            if (\in_array($first['reason'], ['verify.algorithm', 'verify.wrong_key'], true)) {
+                return $first;
+            }
+
+            return ['valid' => false, 'reason' => 'verify.changed', 'hybrid' => 'unchecked'];
+        }
+
+        return self::check(self::payload($block['digest'], $block['signed_at'], $block['previous'] ?? ''), $block, $expectedPublicKey, $expectedPqKey);
+    }
+
+    /**
+     * Both halves of a signature over a payload, against the keys a reader expects.
+     *
+     * @param array<mixed> $block
+     *
+     * @return array{valid:bool, reason:string, hybrid:string}
+     */
+    private static function check(string $payload, array $block, ?string $expectedPublicKey, ?string $expectedPqKey): array
+    {
+        if (Value::string($block['algorithm'] ?? null) !== self::ALGORITHM) {
             return ['valid' => false, 'reason' => 'verify.algorithm', 'hybrid' => 'unchecked'];
         }
 
         // A signature that verifies against a key nobody vouched for proves
         // nothing: the expected key comes from the versioned declaration.
-        if ($expectedPublicKey !== null && $expectedPublicKey !== '' && !hash_equals($expectedPublicKey, $block['public_key'])) {
+        $publicKey = Value::string($block['public_key'] ?? null);
+        if ($expectedPublicKey !== null && $expectedPublicKey !== '' && !hash_equals($expectedPublicKey, $publicKey)) {
             return ['valid' => false, 'reason' => 'verify.wrong_key', 'hybrid' => 'unchecked'];
         }
 
-        if ($expectedDigest !== null && !hash_equals($expectedDigest, $block['digest'])) {
-            return ['valid' => false, 'reason' => 'verify.changed', 'hybrid' => 'unchecked'];
-        }
-
-        $key = base64_decode($block['public_key'], true);
-        $signature = base64_decode($block['signature'], true);
+        $key = base64_decode($publicKey, true);
+        $signature = base64_decode(Value::string($block['signature'] ?? null), true);
         // Both lengths are checked, not just the key's: sodium throws on a
         // signature of the wrong size, and a malformed file must come back as
         // a verdict rather than as a stack trace.
@@ -216,7 +336,6 @@ final class Signature
             return ['valid' => false, 'reason' => 'verify.malformed', 'hybrid' => 'unchecked'];
         }
 
-        $payload = self::payload($block['digest'], $block['signed_at'], $block['previous'] ?? '');
         $ok = sodium_crypto_sign_verify_detached($signature, $payload, $key);
         if (!$ok) {
             return ['valid' => false, 'reason' => 'verify.invalid', 'hybrid' => 'absent'];
@@ -250,6 +369,34 @@ final class Signature
     }
 
     /**
+     * One payload, signed by Ed25519 and, when the key has its other half, by ML-DSA-65.
+     *
+     * @param non-empty-string $secret
+     * @return array{public_key:string, signature:string, hybrid?:array{algorithm:string, public_key:string, signature:string}}
+     */
+    private static function seal(string $payload, string $secret, string $hybridSecretPem): array
+    {
+        $sealed = [
+            'public_key' => base64_encode(sodium_crypto_sign_publickey_from_secretkey($secret)),
+            'signature' => base64_encode(sodium_crypto_sign_detached($payload, $secret)),
+        ];
+
+        // The same bytes, signed again by a scheme Shor does not touch. Added
+        // rather than substituted: whoever cannot run ML-DSA still verifies the
+        // report, and whoever can gets a signature that outlives the curve.
+        $hybrid = $hybridSecretPem !== '' ? MlDsa::sign($payload, $hybridSecretPem) : null;
+        if ($hybrid !== null) {
+            $sealed['hybrid'] = [
+                'algorithm' => MlDsa::ALGORITHM,
+                'public_key' => MlDsa::publicFrom($hybridSecretPem),
+                'signature' => $hybrid,
+            ];
+        }
+
+        return $sealed;
+    }
+
+    /**
      * What the signature actually covers.
      *
      * The previous digest is appended rather than inserted, so a block without
@@ -265,5 +412,10 @@ final class Signature
     private static function payload(string $digest, string $signedAt, string $previous = ''): string
     {
         return "sablier-report/1\n".$digest."\n".$signedAt.($previous !== '' ? "\n".$previous : '');
+    }
+
+    private static function pagePayload(string $file, string $sha256, string $digest, string $signedAt): string
+    {
+        return "sablier-page/1\n".$file."\n".$sha256."\n".$digest."\n".$signedAt;
     }
 }
