@@ -361,7 +361,17 @@ function sablier_page_check(string $signaturePath, array $block, array $report, 
     // file — say which of the two signatures they are about.
     $mark = $result['valid'] ? '' : '✗ ';
     $about = str_starts_with($result['reason'], 'verify.page.') ? '' : Lang::t('verify.page.prefix', Signature::pagePath($name));
-    printf("  %s%s%s\n", $mark, $about, Lang::t($result['reason'], $name, Signature::pagePath($name)));
+    // The sizes, as figures: what was signed and what is here now. A hash
+    // tells a reader that something changed; a size lets them see it.
+    $signedSize = \is_int($block['size'] ?? null) ? $block['size'] : null;
+    $reason = $result['reason'] === 'verify.page.modified' && $signedSize === null ? 'verify.page.modified.unsized' : $result['reason'];
+    printf("  %s%s%s\n", $mark, $about, Lang::t(
+        $reason,
+        $name,
+        Signature::pagePath($name),
+        Lang::number(max(0, Signature::pageSize($page))),
+        Lang::number($signedSize ?? 0),
+    ));
     if ($result['valid'] && $signedName !== '' && $signedName !== $name) {
         printf("  %s\n", Lang::t('verify.page.renamed', $signedName, $name));
     }

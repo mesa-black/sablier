@@ -830,6 +830,40 @@ fi
 rm -rf "$pdfdir"
 printf '  ✓ %-24s %-10s %s\n' "footer" "pdf" "beside and below: linked; above: not; hidden in print"
 
+# --- the page signature carries the page's size ------------------------------
+# verify states it as a figure, and on a mismatch the size signed against the
+# size now. The size is signed (sablier-page/2); a 0.13.1 file (sablier-page/1,
+# no size) still verifies, and the field cannot be added or removed silently.
+sz=$(mktemp -d)
+./bin/sablier keygen --out="$sz/k.json" >/dev/null 2>&1
+./bin/sablier scan tests/fixtures/sample --no-probe --quiet --out="$sz/r.html" --sign="$sz/k.json" >/dev/null 2>&1 || true
+bytes=$(php -r 'echo number_format(filesize($argv[1]), 0, "", " ");' "$sz/r.html")
+./bin/sablier verify "$sz/r.html.page.sig" >"$sz/v.out" 2>&1 || { echo "✗ size: an untouched page fails"; cat "$sz/v.out"; rm -rf "$sz"; exit 1; }
+grep -q "page r.html ($bytes octets) : conforme" "$sz/v.out" || { echo "✗ size: verify does not state $bytes octets"; cat "$sz/v.out"; rm -rf "$sz"; exit 1; }
+./bin/sablier verify "$sz/r.html.page.sig" --lang=en >"$sz/v.out" 2>&1 || true
+grep -q "page r.html ($(php -r 'echo number_format(filesize($argv[1]));' "$sz/r.html") bytes): matches" "$sz/v.out" || { echo "✗ size: English does not group with a comma"; cat "$sz/v.out"; rm -rf "$sz"; exit 1; }
+printf '<!-- added -->' >>"$sz/r.html"
+now=$(php -r 'echo number_format(filesize($argv[1]), 0, "", " ");' "$sz/r.html")
+./bin/sablier verify "$sz/r.html.page.sig" >"$sz/v.out" 2>&1 && { echo "✗ size: a longer page passed"; rm -rf "$sz"; exit 1; }
+grep -q -- "— $bytes octets signés, $now octets maintenant." "$sz/v.out" || { echo "✗ size: the mismatch does not give both sizes"; cat "$sz/v.out"; rm -rf "$sz"; exit 1; }
+for edit in drop bump; do
+	php -r '
+		$b = json_decode(file_get_contents($argv[1]), true);
+		if ($argv[3] === "drop") { unset($b["size"]); } else { ++$b["size"]; }
+		file_put_contents($argv[2], json_encode($b));
+	' "$sz/r.html.page.sig" "$sz/edited.page.sig" "$edit"
+	cp "$sz/r.html" "$sz/edited"
+	if ./bin/sablier verify "$sz/edited.page.sig" >/dev/null 2>&1; then
+		echo "✗ size: a page signature with its size edited ($edit) passed"
+		rm -rf "$sz"; exit 1
+	fi
+done
+rm -rf "$sz"
+./bin/sablier verify tests/fixtures/page-v1/page.html.page.sig >"/tmp/sablier-v1.out" 2>&1 \
+	&& grep -q "page page.html (231 octets) : conforme" /tmp/sablier-v1.out \
+	|| { echo "✗ size: a 0.13.1 page signature no longer verifies"; cat /tmp/sablier-v1.out; exit 1; }
+printf '  ✓ %-24s %-10s %s\n' "page" "size" "stated, compared, signed; a 0.13.1 file still verifies"
+
 # --- one report succeeding another -------------------------------------------
 # A chain nobody has to ask for: a second run over the same output path names
 # the digest it replaces, inside what is signed. A pile of reports becomes an

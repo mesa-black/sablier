@@ -155,12 +155,17 @@ final class Signature
      * once every byte of the page is on disk, its SHA-256 is signed with the
      * same key and the same two schemes, and filed as `<page>.page.sig`.
      *
-     * The payload starts with its own label, `sablier-page/1`, so a page
+     * The payload starts with its own label, `sablier-page/2`, so a page
      * signature can never be passed off as a findings signature or the other
      * way round, and it carries the findings digest the page displays: a page
      * signature presented beside another analysis's `.sig` says so.
      *
-     * @return array{covers:string, algorithm:string, file:string, sha256:string, digest:string, signed_at:string, public_key:string, signature:string, hybrid?:array{algorithm:string, public_key:string, signature:string}}
+     * Since 0.13.2 it also carries the page's size in bytes, signed with the
+     * rest, so `verify` can say how big the signed page was — a figure a
+     * reader can compare with the file in hand, where a hash is not. The
+     * label moved to `/2` for it; `/1` files, without a size, still verify.
+     *
+     * @return array{covers:string, algorithm:string, file:string, sha256:string, size:int, digest:string, signed_at:string, public_key:string, signature:string, hybrid?:array{algorithm:string, public_key:string, signature:string}}
      */
     public static function signPage(string $pagePath, string $digest, string $secretKeyBase64, string $hybridSecretPem = ''): array
     {
@@ -171,14 +176,16 @@ final class Signature
 
         $file = basename($pagePath);
         $sha256 = self::pageHash($pagePath);
+        $size = self::pageSize($pagePath);
         $signedAt = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
-        $sealed = self::seal(self::pagePayload($file, $sha256, $digest, $signedAt), $secret, $hybridSecretPem);
+        $sealed = self::seal(self::pagePayload($file, $sha256, $digest, $signedAt, $size), $secret, $hybridSecretPem);
 
         $block = [
             'covers' => 'page',
             'algorithm' => self::ALGORITHM,
             'file' => $file,
             'sha256' => $sha256,
+            'size' => $size,
             'digest' => $digest,
             'signed_at' => $signedAt,
             'public_key' => $sealed['public_key'],
@@ -205,6 +212,14 @@ final class Signature
         return \is_string($hash) ? $hash : '';
     }
 
+    /** The size of a file in bytes, as `verify` prints it; -1 when there is no file. */
+    public static function pageSize(string $pagePath): int
+    {
+        $size = is_file($pagePath) ? filesize($pagePath) : false;
+
+        return $size === false ? -1 : $size;
+    }
+
     /**
      * A page against its signature.
      *
@@ -228,12 +243,21 @@ final class Signature
             return ['valid' => false, 'reason' => 'verify.page.not_page', 'hybrid' => 'unchecked'];
         }
 
+        // The size decides the label: present, the payload is `/2` and the
+        // size is in it; absent, it is a `/1` file from 0.13.1. Neither can be
+        // turned into the other — adding or removing the field changes the
+        // bytes the signature is checked over, and the check fails.
+        $size = \array_key_exists('size', $block) ? $block['size'] : null;
+        if ($size !== null && (!\is_int($size) || $size < 0)) {
+            return ['valid' => false, 'reason' => 'verify.malformed', 'hybrid' => 'unchecked'];
+        }
         $checked = self::check(
             self::pagePayload(
                 Value::string($block['file'] ?? null),
                 Value::string($block['sha256'] ?? null),
                 Value::string($block['digest'] ?? null),
                 Value::string($block['signed_at'] ?? null),
+                $size,
             ),
             $block,
             $expectedPublicKey,
@@ -246,7 +270,8 @@ final class Signature
         if (!is_file($pagePath)) {
             return ['valid' => false, 'reason' => 'verify.page.missing', 'hybrid' => $checked['hybrid']];
         }
-        if (!hash_equals(Value::string($block['sha256'] ?? null), self::pageHash($pagePath))) {
+        if (!hash_equals(Value::string($block['sha256'] ?? null), self::pageHash($pagePath))
+            || ($size !== null && $size !== self::pageSize($pagePath))) {
             return ['valid' => false, 'reason' => 'verify.page.modified', 'hybrid' => $checked['hybrid']];
         }
 
@@ -414,8 +439,12 @@ final class Signature
         return "sablier-report/1\n".$digest."\n".$signedAt.($previous !== '' ? "\n".$previous : '');
     }
 
-    private static function pagePayload(string $file, string $sha256, string $digest, string $signedAt): string
+    private static function pagePayload(string $file, string $sha256, string $digest, string $signedAt, ?int $size = null): string
     {
-        return "sablier-page/1\n".$file."\n".$sha256."\n".$digest."\n".$signedAt;
+        // The size after the hash it describes; `/1` is byte for byte what
+        // 0.13.1 signed, so its files keep verifying.
+        return $size === null
+            ? "sablier-page/1\n".$file."\n".$sha256."\n".$digest."\n".$signedAt
+            : "sablier-page/2\n".$file."\n".$sha256."\n".$size."\n".$digest."\n".$signedAt;
     }
 }

@@ -87,7 +87,10 @@ sablier verify audit.html.page.sig --declare=sablier.json # une page seule
 ```
 
 `verify` sur le `.sig` d'un rapport vérifie le `.page.sig` posé à côté quand il existe,
-avec les mêmes clés : une page qui ne correspond plus échoue, avec le mot *modifiée* ;
+avec les mêmes clés, et donne la taille de la page en octets. Une page qui ne correspond
+plus échoue, avec le mot *modifiée* et la taille signée face à la taille actuelle (depuis
+la 0.13.2 la taille est dans ce qui est signé, `sablier-page/2` ; les fichiers de la
+0.13.1, `sablier-page/1`, se vérifient toujours) ;
 une signature de page faite par une autre clé, sur d'autres constats, ou sans la moitié
 post-quantique que porte la signature des constats, échoue aussi. Un rapport antérieur à
 la 0.13.1 n'en a pas, et on le lui dit — une remarque, pas un échec. Ce qu'aucune
