@@ -4,6 +4,40 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+The footer, true for the report it ends.
+
+### What left the machine, said per report
+
+The footer said *Sablier sends nothing*. It stopped being true when the probe,
+the timestamps and the anchoring arrived. It now says *Sablier stores nothing
+and depends on nothing*, then what actually left the machine for this report,
+from the analysis itself: a TLS (or SSH) handshake with the declared hosts,
+named; the findings digest — 32 bytes, in an RFC 3161 query of about 70, never
+the code nor the findings — to the timestamping authorities, named; a hash of
+that digest mixed with a random number (32 bytes) to the OpenTimestamps
+calendars; the number of the block whose public header was read. When none of
+these happened: *For this report, nothing left this machine.*
+
+### "Forwarded as is", with somewhere to go
+
+The share button carries a language-neutral anchor, `#partager`, and the
+footer links to it ("by Threema"). When `--pdf` wrote the PDF in the report's
+directory or below it, the footer also links to it, relatively ("as a PDF");
+a PDF elsewhere is not linked, since the link would break as soon as the page
+travels alone. The PDF link is hidden in print: the PDF is made from this page.
+
+### Page signatures state the page's size
+
+`sablier verify` gives the size of the page it checks, as a figure in the
+reader's language (29 612 octets, 29,612 bytes, 29.612 bytes): *page
+report.html (29 612 bytes): matches its signature*, and on a mismatch the size
+that was signed against the size now. `.page.sig` files gain `"size"`, signed
+with the rest under a new payload label, `sablier-page/2`; a 0.13.1 file
+(`sablier-page/1`, no size) still verifies, and adding or removing the field
+breaks the signature.
+
 ## v0.13.1 — 2026-11-17
 
 The page itself, signed.
