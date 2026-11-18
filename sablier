@@ -33,12 +33,20 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 # resolves to today, for updating it on purpose.
 image=${SABLIER_PHP_IMAGE:-php:8.5-cli-alpine@sha256:d1fbbe78850d1eb9aa8f7da652ec5db61eb4c9377c8215cf5e23f3b528ed4f2b}
 
-if command -v php >/dev/null 2>&1 && php -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' 2>/dev/null; then
+# PHP 8.5 is the version the tool is run with everywhere it is published from:
+# this image, the CI, the images that embed it. 8.4 is still supported and
+# tested, but it is where the trouble has come from, so a local 8.4 is used
+# only when there is no Docker to borrow 8.5 from — and it says so.
+if command -v php >/dev/null 2>&1 && php -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);' 2>/dev/null; then
     exec php "$root/bin/sablier" "$@"
 fi
 
 if ! command -v docker >/dev/null 2>&1; then
-    echo "sablier: needs PHP 8.4 or Docker, and found neither." >&2
+    if command -v php >/dev/null 2>&1 && php -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' 2>/dev/null; then
+        echo "sablier: running on PHP $(php -r 'echo PHP_VERSION;'); 8.5, or Docker, is recommended." >&2
+        exec php "$root/bin/sablier" "$@"
+    fi
+    echo "sablier: needs PHP 8.5 (8.4 at least) or Docker, and found neither." >&2
     echo "         PHP: https://www.php.net/downloads — Docker: https://docs.docker.com/get-docker/" >&2
     exit 1
 fi

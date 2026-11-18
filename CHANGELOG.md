@@ -4,6 +4,17 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+### The launcher prefers PHP 8.5
+
+`./sablier` runs on the local interpreter only when it is PHP 8.5 or newer,
+the version the tool is run with everywhere it is published from (its image,
+the CI, the images that embed it). With a local 8.4, it now borrows 8.5 from
+Docker; without Docker, it still runs on 8.4, saying that 8.5 or Docker is
+recommended. The tool itself keeps supporting 8.4: `composer.json`, PHPStan
+and the CI matrix are unchanged.
+
 ## v0.14.0 — 2026-11-17
 
 Sealing data, not only a report.
