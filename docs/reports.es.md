@@ -256,7 +256,12 @@ huella recibida por otro canal sigue siendo la comprobación. El nombre del
 cielo viaja por otros dos caminos, para que la página no sea la única en
 enunciarlo: el mensaje de Threema lo lleva, y `sablier verify` lo calcula a
 partir de las claves del archivo de firma y lo muestra (también como
-`signature.sky` con `--json`), solo bajo una firma que se sostiene. El dibujo
+`signature.sky` con `--json`), solo bajo una firma que se sostiene. Ambos
+imprimen también el hash completo de las claves, en una línea `SHA256:`: la
+huella es la mitad, suficiente para comparar claves y no para dibujarlas, y
+con el todo cualquier implementación de la correspondencia (el sitio de
+Stellar lee esa línea) dibuja el mismo cielo, de modo que el dibujo puede
+comprobarlo algo que no sea esta herramienta. El dibujo
 solo está en la página HTML: el PDF es el documento que se archiva, y lleva pruebas,
 no imágenes.
 

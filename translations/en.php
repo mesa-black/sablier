@@ -903,6 +903,8 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'seal.fingerprint' => 'key fingerprint',
     'seal.sky' => 'sky of the keys',
     'share.text.sky' => 'The sky of these keys is called %s: the signed page draws it under its seal, and "sablier verify" names it. Another name means other keys; the same name is a hint, not a proof. The proof is the fingerprint above.',
+    'seal.sky.full' => 'The whole hash of the keys, to draw this sky with another tool (Stellar reads this line):',
+    'verify.sky.full' => 'whole hash of the keys, to draw that sky with another tool: %s',
     'verify.sky' => 'sky of the keys that signed: %s (a signed report shows the same name under its seal)',
     'seal.sky.legend' => 'A drawing and an invented name, both derived from the keys. The same keys always draw the same sky, and other keys an unrelated one, so a report from the usual hand is recognised at a glance. It is another view of the key fingerprint (%s) and proves nothing the fingerprint does not: a page draws its own sky. It is a way to notice a change; the fingerprint received by another channel remains the check.',
 

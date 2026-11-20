@@ -261,7 +261,12 @@ remarquer un changement ; l'empreinte reçue par un autre canal reste la
 vérification. Le nom du ciel passe par deux autres chemins, pour que la page ne
 soit pas seule à l'énoncer : le message Threema le porte, et `sablier verify` le
 calcule à partir des clés du fichier de signature et l'affiche (aussi sous
-`signature.sky` avec `--json`), uniquement sous une signature qui tient. Le
+`signature.sky` avec `--json`), uniquement sous une signature qui tient. Les
+deux impriment aussi le hachage complet des clés, sur une ligne `SHA256:` :
+l'empreinte en est la moitié, assez pour comparer des clés et pas pour les
+dessiner, et avec le tout n'importe quelle implémentation de la correspondance
+(le site de Stellar lit cette ligne) dessine le même ciel, si bien que le
+dessin peut être vérifié par autre chose que cet outil. Le
 dessin n'est que dans la page HTML : le PDF est le document
 qu'on archive, et il porte des preuves, pas des images.
 

@@ -97,6 +97,21 @@ final class Signature
         return hash('sha256', $publicKeyBase64."\n".self::canonicalPem($pqPublicPem), true);
     }
 
+    /**
+     * That hash, whole, as one line: `SHA256:` and 43 characters of base64.
+     *
+     * The fingerprint is half the hash, which is enough to compare two keys
+     * and not enough to draw their sky. This line is all of it, in the
+     * notation OpenSSH prints and Stellar reads, so that anybody can paste it
+     * into another implementation and see whether the sky this tool drew is
+     * the one the keys have. A drawing only this program could produce would
+     * be a drawing nobody could check.
+     */
+    public static function fullFingerprint(string $publicKeyBase64, string $pqPublicPem = ''): string
+    {
+        return 'SHA256:'.rtrim(base64_encode(self::keysHash($publicKeyBase64, $pqPublicPem)), '=');
+    }
+
     /** Where the post-quantum half of a key pair lives, beside the other half. */
     public static function hybridKeyPath(string $keyPath): string
     {

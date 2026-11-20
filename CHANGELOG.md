@@ -4,6 +4,18 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+### The whole hash of the keys, so the sky can be checked elsewhere
+
+The sky of the keys is drawn from a 32-byte hash, and the report printed half
+of it: the fingerprint, enough to compare two keys and not to draw them. So
+the drawing could only be checked by the tool that made it. The signed page
+and `sablier verify` now also print the whole hash, as one `SHA256:` line (and
+`signature.keys_sha256` in `--json`), in the notation OpenSSH prints and
+Stellar reads: pasted into another implementation of the mapping, it draws
+the same sky.
+
 ## v0.15.1 — 2026-11-20
 
 The release v0.15.0 could not be.
