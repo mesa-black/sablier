@@ -16,40 +16,43 @@ vulnerabilities:
       Heap corruption through an integer overflow in merge size calculations. git and git-init-template 2.54.0-r0 ship in aquasec/trivy:0.76.2
       (sha256:8f6bb947…), the latest Trivy, on both architectures; neither PHP
       image carries git. Alpine publishes the fix as 2.54.1-r0 and no Trivy
-      image has been rebuilt with it (checked 2026-11-16); we do not control
+      image has been rebuilt with it (checked 2026-11-20: the 0.76.2 tag still
+      resolves to the same digest and is still the newest); we do not control
       that rebuild. Trivy never runs the git binary the way we call it
       (`image --image-src remote` and `fs --scanners vuln`): both scans give
       the same result with /usr/bin/git replaced by a tripwire that fails on
       any call, and the tripwire never fired (checked 2026-11-16). Re-checked
       every Monday by the scheduled run; the entry goes as soon as a Trivy
       image ships git 2.54.1.
-    expired_at: 2026-11-23
+    expired_at: 2026-12-04
   - id: CVE-2026-111760
     statement: >-
       Code execution through unsafe submodule metadata in a recursive clone. git and git-init-template 2.54.0-r0 ship in aquasec/trivy:0.76.2
       (sha256:8f6bb947…), the latest Trivy, on both architectures; neither PHP
       image carries git. Alpine publishes the fix as 2.54.1-r0 and no Trivy
-      image has been rebuilt with it (checked 2026-11-16); we do not control
+      image has been rebuilt with it (checked 2026-11-20: the 0.76.2 tag still
+      resolves to the same digest and is still the newest); we do not control
       that rebuild. Trivy never runs the git binary the way we call it
       (`image --image-src remote` and `fs --scanners vuln`): both scans give
       the same result with /usr/bin/git replaced by a tripwire that fails on
       any call, and the tripwire never fired (checked 2026-11-16). Re-checked
       every Monday by the scheduled run; the entry goes as soon as a Trivy
       image ships git 2.54.1.
-    expired_at: 2026-11-23
+    expired_at: 2026-12-04
   - id: CVE-2026-114466
     statement: >-
       File system access through fast-import features. git and git-init-template 2.54.0-r0 ship in aquasec/trivy:0.76.2
       (sha256:8f6bb947…), the latest Trivy, on both architectures; neither PHP
       image carries git. Alpine publishes the fix as 2.54.1-r0 and no Trivy
-      image has been rebuilt with it (checked 2026-11-16); we do not control
+      image has been rebuilt with it (checked 2026-11-20: the 0.76.2 tag still
+      resolves to the same digest and is still the newest); we do not control
       that rebuild. Trivy never runs the git binary the way we call it
       (`image --image-src remote` and `fs --scanners vuln`): both scans give
       the same result with /usr/bin/git replaced by a tripwire that fails on
       any call, and the tripwire never fired (checked 2026-11-16). Re-checked
       every Monday by the scheduled run; the entry goes as soon as a Trivy
       image ships git 2.54.1.
-    expired_at: 2026-11-23
+    expired_at: 2026-12-04
   - id: CVE-2026-97054
     statement: >-
       A crash, not an intrusion: an HTTP/1 server written in Go that uses MaxBytesReader can panic when its handler reads the request body while writing the response header. The trivy binary in aquasec/trivy:0.76.2
@@ -63,4 +66,4 @@ vulnerabilities:
       its vulnerability database, and `trivy server`, the one mode that
       listens, is never started. Re-checked every Monday by the scheduled run;
       the entry goes as soon as a Trivy image is built with a fixed Go.
-    expired_at: 2026-11-27
+    expired_at: 2026-12-04
