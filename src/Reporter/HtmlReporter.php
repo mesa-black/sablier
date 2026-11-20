@@ -752,6 +752,11 @@ final class HtmlReporter implements ReporterInterface
                 .'<figcaption><span class="seal-sky-label">'.htmlspecialchars(Lang::t('seal.sky')).'</span> '
                 .'<strong>'.htmlspecialchars($sky->name).'</strong><br>'
                 .htmlspecialchars(Lang::t('seal.sky.legend', Signature::fingerprint($block['public_key'], $pq)))
+                // The whole hash, of which the fingerprint is half: what
+                // another implementation needs to draw the same sky, so the
+                // drawing can be checked by something that is not this page.
+                .'<br>'.htmlspecialchars(Lang::t('seal.sky.full'))
+                .' <code>'.htmlspecialchars(Signature::fullFingerprint($block['public_key'], $pq)).'</code>'
                 .'</figcaption></figure>';
         }
 
@@ -980,6 +985,7 @@ final class HtmlReporter implements ReporterInterface
             .seal-sky figcaption{flex:1 1 17rem;font-size:.8rem;color:var(--muted)}
             .seal-sky strong{color:var(--ink,inherit);font-size:.95rem;letter-spacing:.03em}
             .seal-sky-label{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase}
+            .seal-sky code{word-break:break-all}
             .seal-caveat{border-left:2px solid var(--warn);padding-left:.9rem;color:var(--warn);
                          font-size:.84rem;margin:.9rem 0 0;text-align:justify;hyphens:auto}
             .fp{margin-top:.8rem;font-size:.84rem}

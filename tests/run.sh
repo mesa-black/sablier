@@ -741,6 +741,28 @@ if grep -q "$skyname" "$keydir/v.out"; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "sky" "named" "in the Threema message and by verify; not under a rejected signature"
 
+# The whole hash, so that the drawing can be checked by something that is not
+# this tool: half of it (the fingerprint) compares keys and draws nothing. The
+# page and verify must print the same line, in the notation Stellar reads —
+# SHA256: and 43 characters of unpadded base64, which decode to the 32 bytes
+# the sky was drawn from.
+skyhash=$(php -r '
+	spl_autoload_register(static fn (string $c) => require "src/".str_replace("\\", "/", substr($c, 8)).".php");
+	$b = json_decode(file_get_contents($argv[1]), true);
+	$line = Sablier\Signature::fullFingerprint($b["public_key"], $b["hybrid"]["public_key"] ?? "");
+	$raw = base64_decode(substr($line, 7), true);
+	if (preg_match("#^SHA256:[A-Za-z0-9+/]{43}$#", $line) !== 1 || $raw === false || strlen($raw) !== 32
+		|| (new Sablier\Sky($raw))->name !== $argv[2]) { exit(1); }
+	echo $line;
+' "$keydir/r.html.sig" "$skyname") || { echo "✗ sky: the whole hash is not a SHA256: line that draws the same sky"; rm -rf "$keydir"; exit 1; }
+./bin/sablier verify "$keydir/r.html.sig" --declare="$keydir/right.json" --json="$keydir/v.json" >"$keydir/v.out" 2>&1 || true
+if ! grep -qF "<code>$skyhash</code>" "$keydir/r.html" || ! grep -qF "$skyhash" "$keydir/v.out" \
+	|| ! php -r 'exit((json_decode(file_get_contents($argv[1]), true)["signature"]["keys_sha256"] ?? "") === $argv[2] ? 0 : 1);' "$keydir/v.json" "$skyhash"; then
+	echo "✗ sky: the page and verify do not print the same whole hash of the keys"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "sky" "whole hash" "one SHA256: line on the page and in verify, which draws the same sky"
+
 # --- the page itself, signed beside it ---------------------------------------
 # The findings signature cannot cover a page that displays it, so a page edited
 # by hand used to verify. Each page is now signed as the file it is, in

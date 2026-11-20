@@ -258,7 +258,11 @@ received by another channel remains the check. The name of the sky travels by
 two other roads, so that the page is not the only one to state it: the Threema
 message carries it, and `sablier verify` computes it from the keys in the
 signature file and prints it (also as `signature.sky` with `--json`), under a
-signature that holds only. The drawing is in the HTML page
+signature that holds only. Both also print the whole hash of the keys, as a
+`SHA256:` line: the fingerprint is half of it, enough to compare keys and not
+to draw them, and with the whole of it any implementation of the mapping
+(Stellar's website reads that line) draws the same sky, so the drawing can be
+checked by something that is not this tool. The drawing is in the HTML page
 only: the PDF is the document that gets filed, and it carries evidence, not
 pictures.
 
