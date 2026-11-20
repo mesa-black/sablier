@@ -4,6 +4,23 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## Unreleased
+
+### The sky of the keys
+
+A signed HTML report now draws the keys that signed it, under the seal, as a
+small constellation with an invented name: the same keys always give the same
+sky, other keys an unrelated one. A reader who receives a report every quarter
+recognises the usual hand before reading anything. The legend beside it says
+what it is not: the page draws it, so it proves nothing the key fingerprint
+does not, and the fingerprint (printed there, for a declared key too) remains
+the check. The PDF, the audit report and the signature files are unchanged.
+
+The mapping is [Stellar](https://github.com/mesa-black/stellar)'s, version 1,
+reimplemented in `src/Sky.php` with its own SHAKE256: no dependency, and the
+report still loads nothing. `tests/fixtures/stellar-v1.json` is Stellar's list
+of reference constellations, and the suite fails if one is drawn differently.
+
 ## v0.14.1 — 2026-11-18
 
 PHP 8.5 first.

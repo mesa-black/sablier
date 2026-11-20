@@ -685,6 +685,42 @@ php -r '
 ' "$keydir/r.html.sig" "$keydir/tampered.sig"
 signcheck "$keydir/tampered.sig" "" rejected "tampered digest"
 
+# --- the sky of the keys -----------------------------------------------------
+# A signed page draws its keys as a constellation, by Stellar's mapping. Three
+# things keep the drawing honest. It is the one Stellar draws: a sky that
+# depended on which program drew it would be worse than none, so the port must
+# reproduce Stellar's own reference list exactly. It is the sky of the keys
+# that signed, not of anything else on the page. And an unsigned report has no
+# keys, so it draws nothing.
+php -r '
+	require "src/Sky.php";
+	$vectors = json_decode(file_get_contents("tests/fixtures/stellar-v1.json"), true);
+	foreach ($vectors as $v) {
+		$sky = new Sablier\Sky(hex2bin($v["digest"]));
+		$drawn = [$sky->name, array_map("array_values", $sky->stars), $sky->edges, array_map("array_values", $sky->field)];
+		if ($drawn !== [$v["name"], $v["stars"], $v["edges"], $v["field"]]) {
+			fwrite(STDERR, "✗ sky: the digest ".$v["digest"]." is not drawn as Stellar draws it\n");
+			exit(1);
+		}
+	}
+	printf("  ✓ %-24s %-10s %d reference skies, drawn as Stellar draws them\n", "sky", "mapping", count($vectors));
+' || { rm -rf "$keydir"; exit 1; }
+skyname=$(php -r '
+	spl_autoload_register(static fn (string $c) => require "src/".str_replace("\\", "/", substr($c, 8)).".php");
+	$b = json_decode(file_get_contents($argv[1]), true);
+	echo (new Sablier\Sky(Sablier\Signature::keysHash($b["public_key"], $b["hybrid"]["public_key"] ?? "")))->name;
+' "$keydir/r.html.sig")
+if [ -z "$skyname" ] || [ "$(grep -c '<figure class="seal-sky">' "$keydir/r.html")" != 1 ] \
+	|| ! grep -q "<strong>$skyname</strong>" "$keydir/r.html"; then
+	echo "✗ sky: a signed page does not draw the sky of its keys [$skyname]"
+	rm -rf "$keydir"; exit 1
+fi
+if grep -q 'class="seal-sky"' /tmp/sablier-test.html; then
+	echo "✗ sky: an unsigned report draws a sky, and it has no keys"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "sky" "page" "$skyname, on the signed page only"
+
 # --- the page itself, signed beside it ---------------------------------------
 # The findings signature cannot cover a page that displays it, so a page edited
 # by hand used to verify. Each page is now signed as the file it is, in

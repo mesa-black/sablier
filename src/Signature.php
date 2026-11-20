@@ -79,9 +79,22 @@ final class Signature
      */
     public static function fingerprint(string $publicKeyBase64, string $pqPublicPem = ''): string
     {
-        $raw = hash('sha256', $publicKeyBase64."\n".self::canonicalPem($pqPublicPem), true);
+        $raw = self::keysHash($publicKeyBase64, $pqPublicPem);
 
         return implode(' ', str_split(strtoupper(bin2hex(substr($raw, 0, 16))), 4));
+    }
+
+    /**
+     * The hash the fingerprint shortens, whole: 32 raw bytes.
+     *
+     * The fingerprint keeps half of it because a line read aloud has to stay
+     * short. The sky of the keys (see {@see Sky}) is drawn from all of it, so
+     * the drawing and the fingerprint are two views of one value and cannot
+     * disagree about which keys they describe.
+     */
+    public static function keysHash(string $publicKeyBase64, string $pqPublicPem = ''): string
+    {
+        return hash('sha256', $publicKeyBase64."\n".self::canonicalPem($pqPublicPem), true);
     }
 
     /** Where the post-quantum half of a key pair lives, beside the other half. */

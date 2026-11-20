@@ -910,6 +910,8 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'reason.hybrid' => "Associé à un algorithme post-quantique, d'après la déclaration : c'est l'hybridation demandée pendant la transition, pas quelque chose à migrer.",
     'blind.hybrid' => "%d domaine(s) déclaré(s) hybrides : la paire est affirmée dans la déclaration, pas observée dans le code. Deux appels dans un fichier ne prouvent pas qu'ils couvrent les mêmes octets.",
     'seal.fingerprint' => 'empreinte des clés',
+    'seal.sky' => 'ciel des clés',
+    'seal.sky.legend' => 'Un dessin et un nom inventé, tirés tous deux des clés. Les mêmes clés dessinent toujours le même ciel, et d\'autres clés un ciel sans rapport : un rapport de la main habituelle se reconnaît d\'un coup d\'œil. C\'est une autre vue de l\'empreinte des clés (%s), et il ne prouve rien de plus qu\'elle : une page dessine son propre ciel. Il sert à remarquer un changement ; l\'empreinte reçue par un autre canal reste la vérification.',
 
     // --- the post-breach document, read the week after ---
     'incident.doc_title' => 'Document post-fuite',

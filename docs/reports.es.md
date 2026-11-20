@@ -244,6 +244,18 @@ de Bitcoin sobreviva a esa transición queda fuera de su alcance.
 [`signing.es.md`](signing.es.md) da el detalle: qué reciben los calendarios, por qué
 aquí hay un valor por defecto y ninguno para `--timestamp`, y el umbral.
 
+**El cielo de las claves.** Bajo el sello, una página firmada dibuja las claves
+que la firmaron como una pequeña constelación de nombre inventado, según la
+correspondencia de [Stellar](https://github.com/mesa-black/stellar). Las mismas
+claves dibujan siempre el mismo cielo, y otras claves uno sin relación: un
+lector que recibe un informe cada trimestre reconoce la mano habitual sin leer
+treinta y dos caracteres. Es otra vista de la huella de las claves, impresa al
+lado, y no prueba nada más que ella: una página dibuja su propio cielo, así que
+una página falsificada dibuja el que quiera. Sirve para advertir un cambio; la
+huella recibida por otro canal sigue siendo la comprobación. El dibujo solo
+está en la página HTML: el PDF es el documento que se archiva, y lleva pruebas,
+no imágenes.
+
 ## Componer el informe en PDF
 
 `--pdf=ARCHIVO` escribe también un PDF, compuesto aquí en lugar de impreso por un
