@@ -919,9 +919,6 @@ if ($command === 'verify') {
     // `--fingerprint` just below is what compares the keys.
     $sky = (new Sky(Signature::keysHash(Value::string($block['public_key'] ?? null), Value::string($hybridClaim['public_key'] ?? null))))->name;
     $summary['signature']['sky'] = $sky;
-    if ($result['valid']) {
-        printf("  %s\n", Lang::t('verify.sky', $sky));
-    }
 
     // The keys in this file against the line that came by another road. With an
     // ephemeral key there is nothing else to compare them to: the channel is
@@ -950,6 +947,12 @@ if ($command === 'verify') {
         }, Value::string($hybridClaim['algorithm'] ?? null)));
     } else {
         printf("  %s\n", Lang::t('verify.hybrid.none'));
+    }
+
+    // Printed here, under the lines that say which signatures hold, rather
+    // than between them.
+    if ($result['valid']) {
+        printf("  %s\n", Lang::t('verify.sky', $sky));
     }
 
     // The files themselves, against the list. Each difference is named, with
