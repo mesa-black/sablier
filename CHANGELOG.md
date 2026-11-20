@@ -4,6 +4,21 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.15.1 — 2026-11-20
+
+The release v0.15.0 could not be.
+
+### A fourth dated exception in the scanner's image
+
+v0.15.0 was tagged and never published: between two runs, a flaw was published
+in Go's HTTP server (CVE-2026-97054, a crash when `MaxBytesReader`'s limit is
+exceeded), Trivy 0.76.2 is built with the Go that has it, and the gate that
+proves our images carry no known high or critical vulnerability turned red on
+a commit that touched none of them. No Trivy release is built with a fixed Go
+yet. Trivy serves nothing the way this project calls it, so the flaw is not
+reachable here: `.trivyignore.yaml` says so, until 2026-11-27. The tool itself
+is v0.15.0, unchanged.
+
 ## v0.15.0 — 2026-11-20
 
 The keys, drawn.
