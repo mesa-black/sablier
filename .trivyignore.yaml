@@ -50,3 +50,17 @@ vulnerabilities:
       every Monday by the scheduled run; the entry goes as soon as a Trivy
       image ships git 2.54.1.
     expired_at: 2026-11-23
+  - id: CVE-2026-97054
+    statement: >-
+      A crash, not an intrusion: an HTTP/1 server written in Go that uses MaxBytesReader can panic when its handler reads the request body while writing the response header. The trivy binary in aquasec/trivy:0.76.2
+      (sha256:8f6bb947…), the latest Trivy, is built with Go 1.27.3 on both
+      architectures; the fix is in Go 1.27.4 and 1.26.11, and no Trivy image
+      has been rebuilt with either (checked 2026-11-20: 0.76.2 is still the
+      newest tag, only `canary` is more recent); we do not control that
+      rebuild. Neither PHP image carries a Go binary. The flaw is in an HTTP
+      server, and Trivy serves nothing the way we call it (`image --image-src
+      remote` and `fs --scanners vuln`): it is a client of the registry and of
+      its vulnerability database, and `trivy server`, the one mode that
+      listens, is never started. Re-checked every Monday by the scheduled run;
+      the entry goes as soon as a Trivy image is built with a fixed Go.
+    expired_at: 2026-11-27
