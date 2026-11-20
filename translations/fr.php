@@ -911,6 +911,8 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'blind.hybrid' => "%d domaine(s) déclaré(s) hybrides : la paire est affirmée dans la déclaration, pas observée dans le code. Deux appels dans un fichier ne prouvent pas qu'ils couvrent les mêmes octets.",
     'seal.fingerprint' => 'empreinte des clés',
     'seal.sky' => 'ciel des clés',
+    'share.text.sky' => 'Le ciel de ces clés s\'appelle %s : la page signée le dessine sous son sceau, et « sablier verify » le nomme. Un autre nom, ce sont d\'autres clés ; le même nom est un indice, pas une preuve. La preuve, c\'est l\'empreinte ci-dessus.',
+    'verify.sky' => 'ciel des clés qui ont signé : %s (un rapport signé affiche le même nom sous son sceau)',
     'seal.sky.legend' => 'Un dessin et un nom inventé, tirés tous deux des clés. Les mêmes clés dessinent toujours le même ciel, et d\'autres clés un ciel sans rapport : un rapport de la main habituelle se reconnaît d\'un coup d\'œil. C\'est une autre vue de l\'empreinte des clés (%s), et il ne prouve rien de plus qu\'elle : une page dessine son propre ciel. Il sert à remarquer un changement ; l\'empreinte reçue par un autre canal reste la vérification.',
 
     // --- the post-breach document, read the week after ---

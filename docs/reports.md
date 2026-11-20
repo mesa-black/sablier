@@ -254,7 +254,11 @@ every quarter recognises the usual hand without reading thirty-two characters.
 It is another view of the key fingerprint, printed beside it, and it proves
 nothing the fingerprint does not: a page draws its own sky, so a forged page
 draws whichever it likes. It is a way to notice a change; the fingerprint
-received by another channel remains the check. The drawing is in the HTML page
+received by another channel remains the check. The name of the sky travels by
+two other roads, so that the page is not the only one to state it: the Threema
+message carries it, and `sablier verify` computes it from the keys in the
+signature file and prints it (also as `signature.sky` with `--json`), under a
+signature that holds only. The drawing is in the HTML page
 only: the PDF is the document that gets filed, and it carries evidence, not
 pictures.
 

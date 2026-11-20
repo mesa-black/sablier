@@ -72,6 +72,7 @@ use Sablier\Reporter\JsonReporter;
 use Sablier\Scanner;
 use Sablier\Seal;
 use Sablier\Signature;
+use Sablier\Sky;
 use Sablier\Timestamp;
 use Sablier\Value;
 use Sablier\Version;
@@ -908,6 +909,19 @@ if ($command === 'verify') {
         'fingerprint' => Signature::fingerprint(Value::string($block['public_key'] ?? null), Value::string($hybridClaim['public_key'] ?? null)),
         'ephemeral' => ($block['ephemeral'] ?? false) === true,
     ];
+
+    // The sky of the keys, named. The signed page draws it under its seal and
+    // the Threema message carries its name, but a page draws what it likes:
+    // this is the one place the name is computed from the keys by the reader's
+    // own copy of the tool. Only under a signature that holds — the keys of a
+    // file that failed are nobody's, and naming them would lend them a face.
+    // A matching name is a hint and never the check: it is some 33 bits, and
+    // `--fingerprint` just below is what compares the keys.
+    $sky = (new Sky(Signature::keysHash(Value::string($block['public_key'] ?? null), Value::string($hybridClaim['public_key'] ?? null))))->name;
+    $summary['signature']['sky'] = $sky;
+    if ($result['valid']) {
+        printf("  %s\n", Lang::t('verify.sky', $sky));
+    }
 
     // The keys in this file against the line that came by another road. With an
     // ephemeral key there is nothing else to compare them to: the channel is

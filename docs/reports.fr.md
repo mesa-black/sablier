@@ -258,7 +258,11 @@ sans lire trente-deux caractères. C'est une autre vue de l'empreinte des clés,
 imprimée à côté, et il ne prouve rien de plus qu'elle : une page dessine son
 propre ciel, donc une page falsifiée dessine celui qu'elle veut. Il sert à
 remarquer un changement ; l'empreinte reçue par un autre canal reste la
-vérification. Le dessin n'est que dans la page HTML : le PDF est le document
+vérification. Le nom du ciel passe par deux autres chemins, pour que la page ne
+soit pas seule à l'énoncer : le message Threema le porte, et `sablier verify` le
+calcule à partir des clés du fichier de signature et l'affiche (aussi sous
+`signature.sky` avec `--json`), uniquement sous une signature qui tient. Le
+dessin n'est que dans la page HTML : le PDF est le document
 qu'on archive, et il porte des preuves, pas des images.
 
 ## Composer le rapport en PDF

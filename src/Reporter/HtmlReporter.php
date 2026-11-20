@@ -331,6 +331,14 @@ final class HtmlReporter implements ReporterInterface
                 ),
                 basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html').'.sig',
             );
+            // And the name of their sky, which the page draws under its seal
+            // and `sablier verify` computes on the reader's side. A paragraph
+            // of its own, after the command: the two lines above are the
+            // proof and must stay the only things called that.
+            $summary .= "\n\n".Lang::t('share.text.sky', (new Sky(Signature::keysHash(
+                $this->analysis->signature['public_key'],
+                \is_array($hybrid) ? $hybrid['public_key'] : '',
+            )))->name);
         }
 
         // And the date a third party attests, when one was asked for: the one

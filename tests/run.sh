@@ -721,6 +721,26 @@ if grep -q 'class="seal-sky"' /tmp/sablier-test.html; then
 fi
 printf '  ✓ %-24s %-10s %s\n' "sky" "page" "$skyname, on the signed page only"
 
+# The same name by the two other roads. The message a reader receives carries
+# it, and their own `sablier verify` computes it from the keys in the file: a
+# page that drew another sky than its keys' would be contradicted by both.
+# And a signature that fails names nothing: those keys are nobody's.
+if ! grep -q "threema://compose?text=[^\"]*$(printf '%s' "$skyname" | sed 's/ /%20/')" "$keydir/r.html"; then
+	echo "✗ sky: the Threema message does not name the sky of the keys"
+	rm -rf "$keydir"; exit 1
+fi
+./bin/sablier verify "$keydir/r.html.sig" --declare="$keydir/right.json" --json="$keydir/v.json" >"$keydir/v.out" 2>&1 || true
+if ! grep -q "$skyname" "$keydir/v.out" || ! grep -q "\"sky\": *\"$skyname\"" "$keydir/v.json"; then
+	echo "✗ sky: verify does not name the sky of the keys"
+	cat "$keydir/v.out"; rm -rf "$keydir"; exit 1
+fi
+./bin/sablier verify "$keydir/r.html.sig" --declare="$keydir/wrong.json" >"$keydir/v.out" 2>&1 || true
+if grep -q "$skyname" "$keydir/v.out"; then
+	echo "✗ sky: verify names the sky of keys whose signature it rejected"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "sky" "named" "in the Threema message and by verify; not under a rejected signature"
+
 # --- the page itself, signed beside it ---------------------------------------
 # The findings signature cannot cover a page that displays it, so a page edited
 # by hand used to verify. Each page is now signed as the file it is, in

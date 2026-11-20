@@ -16,6 +16,12 @@ what it is not: the page draws it, so it proves nothing the key fingerprint
 does not, and the fingerprint (printed there, for a declared key too) remains
 the check. The PDF, the audit report and the signature files are unchanged.
 
+The name of the sky is stated by two other roads than the page, which could
+draw whatever it likes: the Threema message carries it, in a paragraph of its
+own after the two lines that are the proof, and `sablier verify` computes it
+from the keys in the signature file and prints it, with `signature.sky` in
+`--json`. A signature that fails names no sky.
+
 The mapping is [Stellar](https://github.com/mesa-black/stellar)'s, version 1,
 reimplemented in `src/Sky.php` with its own SHAKE256: no dependency, and the
 report still loads nothing. `tests/fixtures/stellar-v1.json` is Stellar's list

@@ -252,8 +252,12 @@ lector que recibe un informe cada trimestre reconoce la mano habitual sin leer
 treinta y dos caracteres. Es otra vista de la huella de las claves, impresa al
 lado, y no prueba nada más que ella: una página dibuja su propio cielo, así que
 una página falsificada dibuja el que quiera. Sirve para advertir un cambio; la
-huella recibida por otro canal sigue siendo la comprobación. El dibujo solo
-está en la página HTML: el PDF es el documento que se archiva, y lleva pruebas,
+huella recibida por otro canal sigue siendo la comprobación. El nombre del
+cielo viaja por otros dos caminos, para que la página no sea la única en
+enunciarlo: el mensaje de Threema lo lleva, y `sablier verify` lo calcula a
+partir de las claves del archivo de firma y lo muestra (también como
+`signature.sky` con `--json`), solo bajo una firma que se sostiene. El dibujo
+solo está en la página HTML: el PDF es el documento que se archiva, y lleva pruebas,
 no imágenes.
 
 ## Componer el informe en PDF
