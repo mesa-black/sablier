@@ -685,6 +685,62 @@ php -r '
 ' "$keydir/r.html.sig" "$keydir/tampered.sig"
 signcheck "$keydir/tampered.sig" "" rejected "tampered digest"
 
+# --- the sky of the keys -----------------------------------------------------
+# A signed page draws its keys as a constellation, by Stellar's mapping. Three
+# things keep the drawing honest. It is the one Stellar draws: a sky that
+# depended on which program drew it would be worse than none, so the port must
+# reproduce Stellar's own reference list exactly. It is the sky of the keys
+# that signed, not of anything else on the page. And an unsigned report has no
+# keys, so it draws nothing.
+php -r '
+	require "src/Sky.php";
+	$vectors = json_decode(file_get_contents("tests/fixtures/stellar-v1.json"), true);
+	foreach ($vectors as $v) {
+		$sky = new Sablier\Sky(hex2bin($v["digest"]));
+		$drawn = [$sky->name, array_map("array_values", $sky->stars), $sky->edges, array_map("array_values", $sky->field)];
+		if ($drawn !== [$v["name"], $v["stars"], $v["edges"], $v["field"]]) {
+			fwrite(STDERR, "✗ sky: the digest ".$v["digest"]." is not drawn as Stellar draws it\n");
+			exit(1);
+		}
+	}
+	printf("  ✓ %-24s %-10s %d reference skies, drawn as Stellar draws them\n", "sky", "mapping", count($vectors));
+' || { rm -rf "$keydir"; exit 1; }
+skyname=$(php -r '
+	spl_autoload_register(static fn (string $c) => require "src/".str_replace("\\", "/", substr($c, 8)).".php");
+	$b = json_decode(file_get_contents($argv[1]), true);
+	echo (new Sablier\Sky(Sablier\Signature::keysHash($b["public_key"], $b["hybrid"]["public_key"] ?? "")))->name;
+' "$keydir/r.html.sig")
+if [ -z "$skyname" ] || [ "$(grep -c '<figure class="seal-sky">' "$keydir/r.html")" != 1 ] \
+	|| ! grep -q "<strong>$skyname</strong>" "$keydir/r.html"; then
+	echo "✗ sky: a signed page does not draw the sky of its keys [$skyname]"
+	rm -rf "$keydir"; exit 1
+fi
+if grep -q 'class="seal-sky"' /tmp/sablier-test.html; then
+	echo "✗ sky: an unsigned report draws a sky, and it has no keys"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "sky" "page" "$skyname, on the signed page only"
+
+# The same name by the two other roads. The message a reader receives carries
+# it, and their own `sablier verify` computes it from the keys in the file: a
+# page that drew another sky than its keys' would be contradicted by both.
+# And a signature that fails names nothing: those keys are nobody's.
+if ! grep -q "threema://compose?text=[^\"]*$(printf '%s' "$skyname" | sed 's/ /%20/')" "$keydir/r.html"; then
+	echo "✗ sky: the Threema message does not name the sky of the keys"
+	rm -rf "$keydir"; exit 1
+fi
+./bin/sablier verify "$keydir/r.html.sig" --declare="$keydir/right.json" --json="$keydir/v.json" >"$keydir/v.out" 2>&1 || true
+if ! grep -q "$skyname" "$keydir/v.out" || ! grep -q "\"sky\": *\"$skyname\"" "$keydir/v.json"; then
+	echo "✗ sky: verify does not name the sky of the keys"
+	cat "$keydir/v.out"; rm -rf "$keydir"; exit 1
+fi
+./bin/sablier verify "$keydir/r.html.sig" --declare="$keydir/wrong.json" >"$keydir/v.out" 2>&1 || true
+if grep -q "$skyname" "$keydir/v.out"; then
+	echo "✗ sky: verify names the sky of keys whose signature it rejected"
+	rm -rf "$keydir"; exit 1
+fi
+printf '  ✓ %-24s %-10s %s\n' "sky" "named" "in the Threema message and by verify; not under a rejected signature"
+
 # --- the page itself, signed beside it ---------------------------------------
 # The findings signature cannot cover a page that displays it, so a page edited
 # by hand used to verify. Each page is now signed as the file it is, in

@@ -901,6 +901,10 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'reason.hybrid' => 'Emparejado con un algoritmo post-cuántico, según la declaración: es la hibridación que piden las referencias durante la transición, no algo que migrar.',
     'blind.hybrid' => '%d dominio(s) declarado(s) híbridos: el emparejamiento se afirma en la declaración, no se observa en el código. Dos llamadas en un archivo no prueban que cubran los mismos bytes.',
     'seal.fingerprint' => 'huella de las claves',
+    'seal.sky' => 'cielo de las claves',
+    'share.text.sky' => 'El cielo de estas claves se llama %s: la página firmada lo dibuja bajo su sello, y «sablier verify» lo nombra. Otro nombre son otras claves; el mismo nombre es un indicio, no una prueba. La prueba es la huella de arriba.',
+    'verify.sky' => 'cielo de las claves que firmaron: %s (un informe firmado muestra el mismo nombre bajo su sello)',
+    'seal.sky.legend' => 'Un dibujo y un nombre inventado, derivados ambos de las claves. Las mismas claves dibujan siempre el mismo cielo, y otras claves uno sin relación: un informe de la mano habitual se reconoce de un vistazo. Es otra vista de la huella de las claves (%s) y no prueba nada más que ella: una página dibuja su propio cielo. Sirve para advertir un cambio; la huella recibida por otro canal sigue siendo la comprobación.',
 
     // --- the post-breach document, read the week after ---
     'incident.doc_title' => 'Documento posfuga',

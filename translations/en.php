@@ -901,6 +901,10 @@ openssl ts -verify -digest %1$s -in %2$s -CAfile "$CA" -untrusted chain.pem',
     'reason.hybrid' => 'Paired with a post-quantum algorithm, per the declaration: this is the hybridation the references ask for during the transition, not something to migrate.',
     'blind.hybrid' => '%d domain(s) declared hybrid: the pairing is asserted in the declaration, not observed in the code. Two calls in one file are no proof that they cover the same bytes.',
     'seal.fingerprint' => 'key fingerprint',
+    'seal.sky' => 'sky of the keys',
+    'share.text.sky' => 'The sky of these keys is called %s: the signed page draws it under its seal, and "sablier verify" names it. Another name means other keys; the same name is a hint, not a proof. The proof is the fingerprint above.',
+    'verify.sky' => 'sky of the keys that signed: %s (a signed report shows the same name under its seal)',
+    'seal.sky.legend' => 'A drawing and an invented name, both derived from the keys. The same keys always draw the same sky, and other keys an unrelated one, so a report from the usual hand is recognised at a glance. It is another view of the key fingerprint (%s) and proves nothing the fingerprint does not: a page draws its own sky. It is a way to notice a change; the fingerprint received by another channel remains the check.',
 
     // --- the post-breach document, read the week after ---
     'incident.doc_title' => 'Post-breach document',

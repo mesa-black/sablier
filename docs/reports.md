@@ -246,6 +246,22 @@ whether Bitcoin's own consensus survives that transition is outside its scope.
 [`signing.md`](signing.md) has the details: what the calendars receive, why there
 is a default here and none for `--timestamp`, and the floor.
 
+**The sky of the keys.** Under the seal, a signed page draws the keys that
+signed it as a small constellation with an invented name, by the mapping of
+[Stellar](https://github.com/mesa-black/stellar). The same keys always draw the
+same sky and other keys an unrelated one, so a reader who receives a report
+every quarter recognises the usual hand without reading thirty-two characters.
+It is another view of the key fingerprint, printed beside it, and it proves
+nothing the fingerprint does not: a page draws its own sky, so a forged page
+draws whichever it likes. It is a way to notice a change; the fingerprint
+received by another channel remains the check. The name of the sky travels by
+two other roads, so that the page is not the only one to state it: the Threema
+message carries it, and `sablier verify` computes it from the keys in the
+signature file and prints it (also as `signature.sky` with `--json`), under a
+signature that holds only. The drawing is in the HTML page
+only: the PDF is the document that gets filed, and it carries evidence, not
+pictures.
+
 ## Typesetting the report as a PDF
 
 `--pdf=FILE` writes a PDF as well, typeset here rather than printed by a

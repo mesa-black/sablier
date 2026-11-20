@@ -16,6 +16,7 @@ use Sablier\Finding;
 use Sablier\Lang;
 use Sablier\Rendered;
 use Sablier\Signature;
+use Sablier\Sky;
 use Sablier\OpenTimestamps;
 use Sablier\Timestamp;
 use Sablier\Version;
@@ -330,6 +331,14 @@ final class HtmlReporter implements ReporterInterface
                 ),
                 basename($this->analysis->reportPath !== '' ? $this->analysis->reportPath : 'report.html').'.sig',
             );
+            // And the name of their sky, which the page draws under its seal
+            // and `sablier verify` computes on the reader's side. A paragraph
+            // of its own, after the command: the two lines above are the
+            // proof and must stay the only things called that.
+            $summary .= "\n\n".Lang::t('share.text.sky', (new Sky(Signature::keysHash(
+                $this->analysis->signature['public_key'],
+                \is_array($hybrid) ? $hybrid['public_key'] : '',
+            )))->name);
         }
 
         // And the date a third party attests, when one was asked for: the one
@@ -725,6 +734,25 @@ final class HtmlReporter implements ReporterInterface
                 : ($this->analysis->declaration->signingPublicKey !== ''
                     ? Lang::t('seal.proves.declared')
                     : Lang::t('seal.proves.unvouched'))).'</p>';
+
+            // The keys, drawn. Thirty-two characters of fingerprint are checked
+            // once, with care, and never looked at again; a drawing is
+            // recognised without being read, report after report. Last in the
+            // block and under its own legend, because it is the one item here
+            // that proves nothing: this page draws it, so a forged page draws
+            // what it likes. The legend says so, and gives the fingerprint the
+            // drawing is another view of — for a declared key too, which
+            // otherwise never has its fingerprint printed.
+            //
+            // In the page only. The PDF is the document that gets filed, and a
+            // picture that is no evidence has no place among the evidence.
+            $pq = \is_array($hybrid) ? $hybrid['public_key'] : '';
+            $sky = new Sky(Signature::keysHash($block['public_key'], $pq));
+            $caveat .= '<figure class="seal-sky">'.$sky->svg()
+                .'<figcaption><span class="seal-sky-label">'.htmlspecialchars(Lang::t('seal.sky')).'</span> '
+                .'<strong>'.htmlspecialchars($sky->name).'</strong><br>'
+                .htmlspecialchars(Lang::t('seal.sky.legend', Signature::fingerprint($block['public_key'], $pq)))
+                .'</figcaption></figure>';
         }
 
         return '<section class="seal"><h2>'.htmlspecialchars(Lang::t('seal.title')).'</h2>'
@@ -947,6 +975,11 @@ final class HtmlReporter implements ReporterInterface
             .seal dt{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
             .seal dd{margin:0 0 .3rem;font-size:.84rem;word-break:break-all}
             .seal code{font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:.82em}
+            .seal-sky{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem 1.3rem;margin:1.3rem 0 0}
+            .seal-sky svg{flex:none;width:13rem;height:13rem}
+            .seal-sky figcaption{flex:1 1 17rem;font-size:.8rem;color:var(--muted)}
+            .seal-sky strong{color:var(--ink,inherit);font-size:.95rem;letter-spacing:.03em}
+            .seal-sky-label{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase}
             .seal-caveat{border-left:2px solid var(--warn);padding-left:.9rem;color:var(--warn);
                          font-size:.84rem;margin:.9rem 0 0;text-align:justify;hyphens:auto}
             .fp{margin-top:.8rem;font-size:.84rem}
