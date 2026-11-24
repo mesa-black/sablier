@@ -21,6 +21,14 @@ The mapping has not moved: same stars, same edges, same name, and Stellar's 32
 reference skies still pass. A report signed before this release names the same
 sky; it only draws it the old way until it is produced again.
 
+### A fifth dated exception, in the image the launcher runs
+
+A flaw was published in libxml2's XInclude processing (CVE-2026-86144), the
+official `php:8.5-cli-alpine` image still ships the version that has it, and
+the gate turned red on a commit that touched no image. This tool reads HTML
+it wrote itself and never asks for an XInclude, so the flaw is not reached
+here: `.trivyignore.yaml` says so, until 2026-12-04.
+
 ## v0.16.0 — 2026-11-20
 
 A sky anybody can draw again.

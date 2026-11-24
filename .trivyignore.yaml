@@ -67,3 +67,21 @@ vulnerabilities:
       listens, is never started. Re-checked every Monday by the scheduled run;
       the entry goes as soon as a Trivy image is built with a fixed Go.
     expired_at: 2026-12-04
+  - id: CVE-2026-86144
+    statement: >-
+      XInclude processing in libxml2 (xmlXIncludeProcess and
+      xmlXIncludeProcessTree) does not pass on the parser's flags, so a
+      document that is XIncluded may be fetched from the network although the
+      caller forbade it. libxml2 2.13.9-r2 ships in php:8.5-cli-alpine, the
+      image the launcher runs; Alpine publishes the fix as 2.13.9-r3 and the
+      official image has not been rebuilt with it (checked 2026-11-24: the tag
+      resolves to sha256:b9d7db51…, newer than the digest pinned here, and
+      Trivy finds the same 2.13.9-r2 in it); we do not control that rebuild.
+      This tool never asks for an XInclude: its one use of libxml2 is
+      DOMDocument::loadHTML in src/Pdf.php, on the report it has just written
+      itself, with the HTML parser, and nothing in src or bin calls xinclude(),
+      LIBXML_XINCLUDE, XSLT or XMLReader (checked 2026-11-24 by searching for
+      them). The flaw is therefore not reached here. Re-checked every Monday
+      by the scheduled run; the entry goes, and the digest is updated, as soon
+      as the image ships libxml2 2.13.9-r3.
+    expired_at: 2026-12-04
