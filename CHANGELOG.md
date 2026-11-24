@@ -4,6 +4,23 @@ A tool that demands dated decisions of its users owes them one of its own.
 Each entry says what changed and, where it matters, why — the reasoning is in
 the commit messages, and this page is the map.
 
+## v0.17.0 — 2026-11-24
+
+The same keys, the same picture, here and at Stellar.
+
+### The sky of the keys, drawn as a glyph in one ink
+
+Stellar changed how it draws a sky: no colour any more, a hollow stroke from
+star to star that swells into a round cell at each star, the magnitude told by
+the size of the cell and the class by a mark inside it. The signed page kept
+the earlier picture, glows and five colours, so the same keys looked one way
+under a seal and another way on stellar.mesa.black — and looking the same is
+all the drawing is for. `src/Sky.php` now renders what Stellar renders.
+
+The mapping has not moved: same stars, same edges, same name, and Stellar's 32
+reference skies still pass. A report signed before this release names the same
+sky; it only draws it the old way until it is produced again.
+
 ## v0.16.0 — 2026-11-20
 
 A sky anybody can draw again.

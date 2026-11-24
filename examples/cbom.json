@@ -4,13 +4,13 @@
     "serialNumber": "urn:uuid:92cd7996-cbe6-85ae-90aa-e64e425865da",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-11-20T03:21:22+00:00",
+        "timestamp": "2026-11-24T13:45:36+00:00",
         "tools": {
             "components": [
                 {
                     "type": "application",
                     "name": "Sablier",
-                    "version": "0.16.0",
+                    "version": "0.17.0",
                     "description": "Cryptographic inventory with the expiry date of each protection."
                 }
             ]
