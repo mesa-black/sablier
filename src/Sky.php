@@ -41,10 +41,17 @@ final class Sky
     private const array NOUN_ENDINGS = ['a', 'us', 'um', 'is', 'ix', 'or', 'ax', 'ia'];
     private const array EPITHET_ENDINGS = ['alis', 'aris', 'ensis', 'inus', 'ianus', 'osus', 'atus', 'icus'];
 
-    /** Glow and core colours of the five spectral classes, hot blue to cool red. */
-    private const array CLASS_COLOURS = ['#8fb4ff', '#f4f6ff', '#ffe08a', '#ffb070', '#ff7b6b'];
-    /** Core radius per magnitude, brightest first, in viewBox units. */
-    private const array RADII = [11.0, 8.0, 5.5];
+    /**
+     * The figure is drawn as Stellar draws it: a glyph in one ink, a hollow
+     * stroke from star to star that swells into a round cell at each star.
+     * Nothing is told by colour.
+     */
+    private const string INK = '#e8ecff';
+    /** Width of a stroke and thickness of its outline, in viewBox units. */
+    private const float STROKE = 15.0;
+    private const float WALL = 4.2;
+    /** Radius of a star's cell per magnitude, brightest first, in viewBox units. */
+    private const array RADII = [23.0, 18.0, 13.5];
 
     /** SHAKE256 absorbs and squeezes 136 bytes at a time. */
     private const int RATE = 136;
@@ -145,52 +152,62 @@ final class Sky
     /**
      * The drawing, as a standalone SVG element.
      *
-     * It is always night in it, whatever the theme of the page around: the
-     * colours are part of what a reader recognises. The identifiers carry a
-     * prefix, since the element is inlined in a page that has its own.
+     * It is always night in it, whatever the theme of the page around, and
+     * the figure is drawn in one ink: the shape is what a reader recognises.
+     * The identifiers carry a prefix, since the element is inlined in a page
+     * that has its own.
      *
      * @param string $caption printed under the name; the fingerprint, usually
      */
     public function svg(string $caption = ''): string
     {
+        // The night is painted in page coordinates, so that the inside of the
+        // glyph can be painted with it again and look cut out.
         $out = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" role="img" aria-label="'
             .htmlspecialchars($this->name).'">'
-            .'<defs><radialGradient id="sky-night" cx="50%" cy="42%" r="75%">'
-            .'<stop offset="0" stop-color="#16204a"/><stop offset="1" stop-color="#05060f"/></radialGradient>';
-        foreach (self::CLASS_COLOURS as $class => $colour) {
-            $out .= '<radialGradient id="sky-glow'.$class.'"><stop offset="0" stop-color="'.$colour
-                .'" stop-opacity=".55"/><stop offset="1" stop-color="'.$colour.'" stop-opacity="0"/></radialGradient>';
-        }
-        $out .= '</defs><rect width="1000" height="1000" rx="4" fill="url(#sky-night)"/><g fill="#cfd8ff">';
+            .'<defs><radialGradient id="sky-night" gradientUnits="userSpaceOnUse" cx="500" cy="420" r="750">'
+            .'<stop offset="0" stop-color="#16204a"/><stop offset="1" stop-color="#05060f"/></radialGradient></defs>'
+            .'<rect width="1000" height="1000" rx="4" fill="url(#sky-night)"/><g fill="#cfd8ff">';
         foreach ($this->field as $star) {
             $out .= \sprintf(
                 '<circle cx="%.1F" cy="%.1F" r="%.1F" opacity="%.2F"/>',
                 ($star['x'] + 0.5) / self::FIELD_GRID * 1000,
                 ($star['y'] + 0.5) / self::FIELD_GRID * 1000,
-                0.9 + 0.45 * $star['brightness'],
-                0.25 + 0.17 * $star['brightness'],
+                0.9 + 0.4 * $star['brightness'],
+                0.14 + 0.1 * $star['brightness'],
             );
         }
-        $out .= '</g><g stroke="#dfe6ff" stroke-opacity=".5" stroke-width="2.2" stroke-linecap="round">';
-        foreach ($this->edges as [$a, $b]) {
-            $out .= \sprintf('<line x1="%.1F" y1="%.1F" x2="%.1F" y2="%.1F"/>', ...self::place($this->stars[$a]), ...self::place($this->stars[$b]));
-        }
         $out .= '</g>';
+
+        // The whole figure in ink, then its inside in night: what is left is
+        // the outline of one shape, strokes and cells together.
+        foreach ([[self::INK, 0.0], ['url(#sky-night)', self::WALL]] as [$paint, $inset]) {
+            $out .= \sprintf('<g fill="%s" stroke="%s" stroke-width="%.1F" stroke-linecap="round">', $paint, $paint, self::STROKE - 2 * $inset);
+            foreach ($this->edges as [$a, $b]) {
+                $out .= \sprintf('<line x1="%.1F" y1="%.1F" x2="%.1F" y2="%.1F"/>', ...self::place($this->stars[$a]), ...self::place($this->stars[$b]));
+            }
+            foreach ($this->stars as $star) {
+                [$x, $y] = self::place($star);
+                $out .= \sprintf('<circle cx="%.1F" cy="%.1F" r="%.1F" stroke="none"/>', $x, $y, self::RADII[$star['magnitude']] - $inset);
+            }
+            $out .= '</g>';
+        }
+
+        // The class of a star is the mark in its cell: none, a point, a full
+        // cell, a bar, a cross.
+        $out .= \sprintf('<g fill="%s" stroke="%s" stroke-width="%.1F" stroke-linecap="round">', self::INK, self::INK, self::WALL);
         foreach ($this->stars as $star) {
             [$x, $y] = self::place($star);
-            $r = self::RADII[$star['magnitude']];
-            $colour = self::CLASS_COLOURS[$star['class']];
-            $out .= \sprintf('<circle cx="%.1F" cy="%.1F" r="%.1F" fill="url(#sky-glow%d)"/>', $x, $y, $r * 4, $star['class']);
-            if ($star['magnitude'] === 0) {
-                // Diffraction spikes single out the brightest stars.
-                $out .= \sprintf(
-                    '<path d="M%.1F %.1FH%.1FM%.1F %.1FV%.1F" stroke="%s" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/>',
-                    $x - $r * 3.2, $y, $x + $r * 3.2, $x, $y - $r * 3.2, $y + $r * 3.2, $colour,
-                );
-            }
-            $out .= \sprintf('<circle cx="%.1F" cy="%.1F" r="%.1F" fill="%s"/>', $x, $y, $r, $colour)
-                .\sprintf('<circle cx="%.1F" cy="%.1F" r="%.1F" fill="#fff"/>', $x, $y, $r * 0.45);
+            $r = self::RADII[$star['magnitude']] - self::WALL;
+            $out .= match ($star['class']) {
+                1 => \sprintf('<circle cx="%.1F" cy="%.1F" r="%.1F" stroke="none"/>', $x, $y, $r * 0.36),
+                2 => \sprintf('<circle cx="%.1F" cy="%.1F" r="%.1F" stroke="none"/>', $x, $y, $r),
+                3 => \sprintf('<path d="M%.1F %.1FH%.1F"/>', $x - $r, $y, $x + $r),
+                4 => \sprintf('<path d="M%.1F %.1FH%.1FM%.1F %.1FV%.1F"/>', $x - $r, $y, $x + $r, $x, $y - $r, $y + $r),
+                default => '',
+            };
         }
+        $out .= '</g>';
         $out .= '<text x="500" y="935" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" letter-spacing="10" fill="#e8ecff">'
             .htmlspecialchars(strtoupper($this->name)).'</text>';
         if ($caption !== '') {
